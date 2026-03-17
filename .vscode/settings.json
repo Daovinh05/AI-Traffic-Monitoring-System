@@ -1,4 +1,6 @@
 {
     "liveServer.settings.port": 5504,
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "python.analysis.ignore": ["dotenv"],
+    "python.linting.pylintArgs": ["--generated-ignored=dotenv"]
 }

@@ -2,11 +2,19 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Hệ thống Hỗ trợ Lái xe Thông minh</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
       body {
         font-family: "Segoe UI", sans-serif;
@@ -39,7 +47,7 @@
         justify-content: center;
         gap: 20px;
         flex-wrap: wrap;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
       }
 
       button {
@@ -59,6 +67,20 @@
         transform: translateY(-2px);
       }
 
+      #voice-output {
+        text-align: center;
+        font-size: 16px;
+        color: #1c1d1e;
+        font-weight: 600;
+        margin: 5px auto 5px 400px;
+        max-width: 1000px;
+        min-height: 20px;
+        padding: 2px 5px;
+        background-color: #e3f2fd;
+        border-radius: 8px;
+        display: block;
+      }
+
       .anh_img {
         display: block;
         margin: 0 auto;
@@ -75,7 +97,7 @@
         padding: 20px;
         margin: 0 auto;
         width: 100%;
-        max-width: 1300px;
+        max-width: 1500px;
         border-radius: 15px;
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
         overflow: hidden;
@@ -90,6 +112,14 @@
       p {
         font-size: 18px;
         line-height: 1.6;
+      }
+
+      .section span {
+        display: block;
+        /* font-size: 16px; */
+        /* line-height: 1.6; */
+        /* color: #333; */
+        margin-bottom: 10px;
       }
 
       .container {
@@ -367,6 +397,367 @@
         background-color: #85a337;
       }
 
+      /* Styles cho Location List Sidebar */
+      .location-sidebar-container {
+        display: flex;
+        flex-direction: row;
+        gap: 15px;
+        background-color: #dcdff4;
+        padding: 15px;
+        border-radius: 10px;
+        width: 95%;
+        margin: 0 auto;
+        max-width: 1400px;
+        align-items: stretch;
+        height: 420px;
+      }
+
+      .location-sidebar {
+        width: 280px;
+        min-width: 280px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      .location-sidebar-header {
+        background-image: linear-gradient(0, #a5d2da, #67a4cf);        
+        /* background-color: #116a99; */
+        color: rgb(26, 25, 25);
+        padding: 15px;
+        text-align: center;
+      }
+
+      .location-sidebar-header h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+      }
+
+      .location-sidebar-header small {
+        opacity: 0.9;
+        font-size: 12px;
+      }
+
+      .location-search-box {
+        padding: 10px 15px;
+        background: #f5f5f5;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .location-search-input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      .location-search-input:focus {
+        border-color: #667eea;
+      }
+
+      .location-search-input::placeholder {
+        color: #999;
+      }
+
+      .location-list {
+        padding: 10px;
+        overflow-y: auto;
+        flex: 1;
+        max-height: 500px;
+      }
+
+      .location-item {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s ease;
+      }
+
+      .location-item:hover {
+        background: #f1f1f1;
+        border-color: #667eea;
+        transform: translateX(5px);
+      }
+
+      .location-item.active {
+        border-left: 5px solid #667eea;
+        background: #eef7ff;
+      }
+
+      .location-icon-preview {
+        width: 40px;
+        height: 40px;
+        margin-right: 15px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: white;
+      }
+
+      .location-icon-preview.hanoi {
+        background-color: #f21818;
+      }
+
+      .location-icon-preview.hadong {
+        background-color: #f218bb;
+      }
+
+      .location-icon-preview.thanhxuan {
+        background-color: #490fdb;
+      }
+
+      .location-icon-preview.ngatuso {
+        background-color: #85a337;
+      }
+
+      .location-item-info {
+        flex: 1;
+      }
+
+      .location-item-name {
+        font-weight: 600;
+        font-size: 15px;
+        color: #333;
+      }
+
+      .location-item-status {
+        font-size: 12px;
+        color: #666;
+        margin-top: 3px;
+      }
+
+      .location-status-tag {
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: bold;
+        color: white;
+        margin-left: 5px;
+      }
+
+      .status-active {
+        background-color: #28a745;
+      }
+
+      .status-waiting {
+        background-color: #ffc107;
+        color: #333;
+      }
+
+      .location-map-container {
+        flex: 1;
+        display: flex;
+        flex-direction: row;
+        gap: 15px;
+        min-width: 0;
+        height: 400px;
+      }
+
+      .map-wrapper {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+        height: 100%;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      #location-map {
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+      }
+
+      /* Style cho custom location markers */
+      .location-marker-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: white;
+        font-size: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      }
+
+      .location-video-wrapper {
+        position: relative;
+        width: 640px;
+        min-width: 480px;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        background-color: #000;
+      }
+
+      .location-video-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .location-video-label {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      /* Google Map Card - Floating on map */
+      .map-info-card {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 380px;
+        background: white;
+        border: 1px solid #ddd;
+        padding: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        border-radius: 8px;
+        z-index: 1000;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .map-info-card .top {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .map-info-card .title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #202124;
+        max-width: 250px;
+        line-height: 1.3;
+      }
+
+      .map-info-card .address {
+        font-size: 13px;
+        color: #5f6368;
+        margin-top: 4px;
+        line-height: 1.4;
+      }
+
+      .map-info-card .direction {
+        text-align: center;
+        color: #1a73e8;
+        cursor: pointer;
+        min-width: 60px;
+      }
+
+      .map-info-card .direction .icon {
+        font-size: 20px;
+      }
+
+      .map-info-card .direction .text {
+        font-size: 13px;
+        margin-top: 2px;
+      }
+
+      .map-info-card .rating-row {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .map-info-card .score {
+        font-size: 16px;
+        color: #202124;
+        font-weight: 600;
+      }
+
+      .map-info-card .stars {
+        color: #fbbc04;
+        font-size: 16px;
+      }
+
+      .map-info-card .reviews {
+        color: #1a73e8;
+        text-decoration: none;
+        font-size: 13px;
+      }
+
+      .map-info-card .reviews:hover {
+        text-decoration: underline;
+      }
+
+      .map-info-card .map-link {
+        display: block;
+        margin-top: 10px;
+        color: #1a73e8;
+        text-decoration: none;
+        font-size: 13px;
+      }
+
+      .map-info-card .map-link:hover {
+        text-decoration: underline;
+      }
+
+      .map-info-card .close-card {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        cursor: pointer;
+        color: #5f6368;
+        font-size: 18px;
+        line-height: 1;
+      }
+
+      .map-info-card .close-card:hover {
+        color: #202124;
+      }
+
+      @media (max-width: 1200px) {
+        .location-sidebar-container {
+          flex-direction: column;
+        }
+
+        .location-sidebar {
+          width: 100%;
+          min-width: 100%;
+        }
+
+        .location-list {
+          max-height: 300px;
+        }
+        
+        .location-map-container {
+          flex-direction: column;
+        }
+        
+        .location-video-wrapper {
+          width: 100%;
+          min-width: 100%;
+          height: 250px;
+        }
+        
+        #location-map {
+          min-height: 300px;
+        }
+      }
+
       /*  */
 
       .header-frame {
@@ -402,6 +793,9 @@
         border-radius: 10px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         flex-shrink: 0;
+        margin-left: auto;
+        margin-right: auto;
+        
       }
 
       .region-stats {
@@ -627,7 +1021,10 @@
         <i class="fa-solid fa-microphone"></i> Bật giọng nói
       </button>
       <button id="stop-voice" style="display: none">🔇 Tắt giọng nói</button>
-      <p id="voice-output"></p>
+    </div>
+
+    <div class="">
+          <p id="voice-output"></p>
     </div>
 
     <div id="img" class="anh_img">
@@ -772,6 +1169,10 @@
           <div id="sign-warning-traffic" class="warning-item no-warning">
             Biển báo: Không có
           </div>
+          <div id="sign-image-container" class="sign-image-container" style="display: none; margin-top: 15px; text-align: center;">
+            <div style="font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #e74c3c;">Hình ảnh biển báo phát hiện:</div>
+            <img id="detected-sign-img" class="detected-sign-img" src="" alt="Biển báo phát hiện" style="max-width: 300px; max-height: 300px; border: 3px solid #007bff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);"/>
+          </div>
         </div>
       </div>
       <div class="status-panel">
@@ -805,106 +1206,138 @@
       <h2>🚗 Phân tích lưu lượng giao thông</h2>
       <p>
         Phân tích số lượng xe cộ trên một đoạn đường để cảnh báo kẹt xe, đông
-        đúc...
+        đúc... Chọn địa điểm để xem camera giao thông trực tiếp.
       </p>
 
-      <div class="app">
-        <div class="header-frame">
-          <div class="iframe-container">
-            <a class="location-icon1" onclick="changeRegionPoints('single')">
-              <i class="fa-solid fa-location-dot"></i>Hà Nội
-            </a>
-            <a class="location-icon2" onclick="changeRegionPoints('multiple')">
-              <i class="fa-solid fa-location-dot"></i>Hà Đông
-            </a>
-            <a class="location-icon3" onclick="changeRegionPoints('thanhxuan')">
-              <i class="fa-solid fa-location-dot"></i>Thanh Xuân
-            </a>
-            <a class="location-icon4" onclick="changeRegionPoints('ngatuso')">
-              <i class="fa-solid fa-location-dot"></i>Ngã tư sở
-            </a>
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d10145.722427221333!2d105.79770704728345!3d20.98546951307521!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135acc6bdc7f95f%3A0x58ffc66343a45247!2zVHLGsOG7nW5nIMSQ4bqhaSBo4buNYyBDw7RuZyBuZ2jhu4cgR2lhbyB0aMO0bmcgVuG6rW4gdOG6o2k!5e1!3m2!1svi!2s!4v1747758021598!5m2!1svi!2s"
-              width="640"
-              height="480"
-              style="border: 0"
-              allowfullscreen=""
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"
-            >
-            </iframe>
+      <div class="location-sidebar-container">
+        <!-- Sidebar danh sách địa điểm -->
+        <div class="location-sidebar">
+          <div class="location-sidebar-header">
+            <h3>📍 Danh sách địa điểm</h3>
+            <!-- <small id="location-clock">--:--:--</small> -->
           </div>
-          <div class="video-container">
+          <div class="location-search-box">
+            <input 
+              type="text" 
+              class="location-search-input" 
+              id="locationSearchInput"
+              placeholder="🔍 Tìm kiếm địa điểm..."
+              oninput="filterLocations()"
+            />
+          </div>
+          <div class="location-list" id="locationList">
+            <!-- Các địa điểm sẽ được tạo bằng JavaScript -->
+          </div>
+        </div>
+
+        <!-- Khu vực bản đồ và video -->
+        <div class="location-map-container">
+          <!-- Bản đồ Leaflet -->
+          <div class="map-wrapper">
+            <div id="location-map"></div>
+            
+            <!-- Google Map Info Card -->
+            <div class="map-info-card" id="map-info-card">
+              <div class="close-card" onclick="closeMapCard()">✕</div>
+              
+              <div class="top">
+                <div>
+                  <div class="title">
+                    Trường Đại học Công nghệ Giao thông Vận tải
+                  </div>
+                  <div class="address">
+                    54 P. Triều Khúc, Thanh Xuân Nam,<br>
+                    Thanh Xuân, Hà Nội
+                  </div>
+                </div>
+                <div class="direction" onclick="openGoogleMapsDirection()">
+                  <div class="icon">➚</div>
+                  <div class="text">Chỉ đường</div>
+                </div>
+              </div>
+              
+              <div class="rating-row">
+                <span class="score">4,9</span>
+                <span class="stars">★★★★☆</span>
+                <a class="reviews" href="#" onclick="openGoogleMapsReviews()">866 bài viết</a>
+              </div>
+              
+              <a class="map-link" href="#" onclick="openGoogleMaps()">
+                Xem bản đồ lớn hơn
+              </a>
+            </div>
+            
+          </div>
+
+          <!-- Video feed -->
+          <div class="location-video-wrapper">
+            <div class="location-video-label">
+              <i class="fa-solid fa-video"></i> Camera trực tiếp
+            </div>
             <img
               id="video-feed-sign"
-              class="video-feed"
               src=""
               alt="Camera giao thông"
             />
           </div>
         </div>
-        <div class="container">
-          <div class="stats-container">
-            <h2>Thống kê lưu lượng giao thông</h2>
-            <div class="time-display">
-              Thời gian: <span id="current-time"></span>
-            </div>
+      </div>
 
-            <div class="traffic-status" id="traffic-status">
-              <span class="status-icon normal"></span>
-              <span id="status-message"
-                >Giao thông thông thoáng, di chuyển bình thường</span
-              >
-            </div>
+      <div class="stats-container" style="margin-top: 20px;">
+        <h2>Thống kê lưu lượng giao thông</h2>
+        <div class="time-display">
+          Thời gian: <span id="current-time"></span>
+        </div>
 
-            <div class="stats-box">
-              <div class="stats-title">Tổng số xe hiện tại</div>
-              <div class="stats-value" id="total-vehicles">0</div>
-            </div>
+        <div class="traffic-status" id="traffic-status">
+          <span class="status-icon normal"></span>
+          <span id="status-message"
+            >Giao thông thông thoáng, di chuyển bình thường</span
+          >
+        </div>
 
-            <div class="stats-box_region">
-              <div class="stats-title">Thống kê theo khu vực</div>
-              <div class="region-stats" id="region-stats"></div>
-            </div>
+        <div class="stats-box">
+          <div class="stats-title">Tổng số xe hiện tại</div>
+          <div class="stats-value" id="total-vehicles">0</div>
+        </div>
+
+        <div class="stats-box_region">
+          <div class="stats-title">Thống kê theo khu vực</div>
+          <div class="region-stats" id="region-stats"></div>
+        </div>
+      </div>
+
+      <div class="status-panel">
+        <h3>THÔNG TIN HỆ THỐNG</h3>
+        <div class="status-grid">
+          <div class="status-item">
+            <div class="label">Thời gian hoạt động</div>
+            <div class="haicham">:</div>
+            <div class="value" id="uptime-sign">00:00:00</div>
+          </div>
+          <div class="status-item">
+            <div class="label">Trạng thái ghi hình</div>
+            <div class="haicham">:</div>
+            <div class="value" id="recording-status-sign">Không ghi hình</div>
           </div>
         </div>
-        <div class="status-panel">
-          <h3>THÔNG TIN HỆ THỐNG</h3>
-          <div class="status-grid">
-            <div class="status-item">
-              <div class="label">Thời gian hoạt động</div>
-              <div class="haicham">:</div>
-              <div class="value" id="uptime-sign">00:00:00</div>
-            </div>
-            <div class="status-item">
-              <div class="label">Trạng thái ghi hình</div>
-              <div class="haicham">:</div>
-              <div class="value" id="recording-status-sign">Không ghi hình</div>
-            </div>
-          </div>
-        </div>
+      </div>
 
-        <div class="controls">
-          <button onclick="startRecording('sign')">Bắt đầu ghi hình</button>
-          <button onclick="stopRecording('sign')">Dừng ghi hình</button>
-          <button class="stop-button" onclick="stopMonitoring()">
-            ⛔ Dừng tra cứu
-          </button>
-        </div>
+      <div class="controls">
+        <button onclick="startRecording('sign')">Bắt đầu ghi hình</button>
+        <button onclick="stopRecording('sign')">Dừng ghi hình</button>
+        <button class="stop-button" onclick="stopMonitoring()">
+          ⛔ Dừng tra cứu
+        </button>
       </div>
     </div>
 
     <div id="vacham" class="section">
-      <h2>🚗 Cảnh báo va chạm và lệch làn</h2>
+      <h2>⚠️ Cảnh báo va chạm và lệch làn</h2>
       <h2></h2>
-      <span>
-        báo tài xế khi xe có nguy cơ đâm vào phương tiện phía trước do không giữ
-        khoảng cách an toàn.</span
-      >
-      <span
-        >Nhắc nhở lệch làn hoặc thông báo khi xe rời khỏi làn đường một cách
-        không chủ ý.</span
-      >
+      <p>
+        Huấn luyện AI phát hiện xe phía trước, người đi bộ, vật cản; cảnh báo va chạm, lệch làn và chướng ngại vật để hỗ trợ tài xế lái xe an toàn.
+      </p>
       <div class="container">
         <div class="video-container">
           <img
@@ -916,11 +1349,41 @@
         </div>
         <div class="alert-panel">
           <h2>CẢNH BÁO</h2>
-          <div id="collision-warning-vacham" class="warning-item no-warning">
-            Va chạm: Không có
+
+          <div class="warning-with-toggle">
+            <div id="collision-warning-vacham" class="warning-item no-warning">
+              Va chạm: Không có
+            </div>
+            <input
+              type="checkbox"
+              class="switch-toggle"
+              id="collision-warning-toggle"
+              checked
+            />
           </div>
-          <div id="lane-warning-vacham" class="warning-item no-warning">
-            Lệch làn: Không có
+
+          <div class="warning-with-toggle">
+            <div id="lane-warning-vacham" class="warning-item no-warning">
+              Lệch làn: Không có
+            </div>
+            <input
+              type="checkbox"
+              class="switch-toggle"
+              id="lane-warning-toggle"
+              checked
+            />
+          </div>
+
+          <div class="warning-with-toggle">
+            <div id="obstacle-warning-vacham" class="warning-item no-warning">
+              Vật cản: Không có
+            </div>
+            <input
+              type="checkbox"
+              class="switch-toggle"
+              id="obstacle-warning-toggle"
+              checked
+            />
           </div>
         </div>
       </div>
@@ -956,6 +1419,7 @@
     </audio>
 
     <script>
+      const myVehicleId = {{ vehicle_id|default(0, true)|tojson }};
       let warningInterval = null;
       let currentSectionId = null;
       let startTimes = {
@@ -973,6 +1437,9 @@
         phone: true,
         seatbelt: true,
         hand: true,
+        collision: true,
+        lane: true,
+        obstacle: true,
       };
 
       // Cập nhật thời gian hoạt động cho tất cả các section mỗi giây
@@ -999,8 +1466,15 @@
       function handleWarningToggle(warningType, e) {
         warningStates[warningType] = e.target.checked;
         const warningContainer = e.target.closest(".warning-with-toggle");
+        
+        // Xác định section hiện tại để tìm đúng element
+        let sectionId = "driver"; // mặc định
+        if (warningType === "collision" || warningType === "lane" || warningType === "obstacle") {
+          sectionId = "vacham";
+        }
+        
         const warningElement = document.getElementById(
-          `${warningType}-warning-driver`
+          `${warningType}-warning-${sectionId}`
         );
 
         fetch("/toggle_warning", {
@@ -1017,11 +1491,24 @@
           .then((data) => {
             if (data.status === "success") {
               if (!warningStates[warningType]) {
-                warningElement.textContent = `${
-                  warningType.charAt(0).toUpperCase() + warningType.slice(1)
-                }: Cảnh báo đã tắt`;
+                // Hiển thị trạng thái tắt
+                const typeNames = {
+                  "eye": "Mắt",
+                  "yawn": "Ngáp",
+                  "head": "Đầu",
+                  "phone": "Điện thoại",
+                  "seatbelt": "Dây an toàn",
+                  "hand": "Tay lái",
+                  "collision": "Va chạm",
+                  "lane": "Lệch làn",
+                  "obstacle": "Vật cản"
+                };
+                warningElement.textContent = `${typeNames[warningType] || warningType}: Cảnh báo đã tắt`;
                 warningElement.classList.add("no-warning");
                 warningElement.classList.remove("warning");
+              } else {
+                // Khi bật lại, để updateWarnings cập nhật nội dung
+                warningElement.textContent = warningType.charAt(0).toUpperCase() + warningType.slice(1) + ": Bình thường";
               }
             } else {
               console.error(
@@ -1058,6 +1545,15 @@
       document
         .getElementById("hand-warning-toggle")
         .addEventListener("change", (e) => handleWarningToggle("hand", e));
+      document
+        .getElementById("collision-warning-toggle")
+        .addEventListener("change", (e) => handleWarningToggle("collision", e));
+      document
+        .getElementById("lane-warning-toggle")
+        .addEventListener("change", (e) => handleWarningToggle("lane", e));
+      document
+        .getElementById("obstacle-warning-toggle")
+        .addEventListener("change", (e) => handleWarningToggle("obstacle", e));
 
       // Đảm bảo tất cả các toggle switch được bật mặc định khi trang được tải
       window.onload = function () {
@@ -1162,12 +1658,29 @@
         section.style.display = "block";
         currentSectionId = sectionId;
 
+        // 🔥 FIX LEAFLET MAP - Resize map khi hiển thị section
+        if (sectionId === "sign" && window.locationMap) {
+          setTimeout(() => {
+            window.locationMap.invalidateSize();
+          }, 300);
+        }
+
         // Gửi mode lên server
         fetch("/set_mode", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ mode: sectionId }),
-        }).then(() => startMonitoring(sectionId));
+        }).then(() => {
+          // Gửi vehicle_id đang được giám sát lên server
+          if (myVehicleId && sectionId !== 'sign') {
+            fetch("/api/set_monitoring_vehicle", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ vehicle_id: myVehicleId }),
+            });
+          }
+          startMonitoring(sectionId);
+        });
       }
 
       function startMonitoring(sectionId) {
@@ -1216,6 +1729,7 @@
         fetch("/get_warnings")
           .then((response) => response.json())
           .then((warnings) => {
+            console.log("Received warnings:", warnings);
             if (sectionId === "driver") {
               updateWarningItem(
                 `eye-warning-${sectionId}`,
@@ -1264,6 +1778,8 @@
                 warnings.sign,
                 "Biển báo"
               );
+              // Xử lý hiển thị hình ảnh biển báo
+              updateSignImage(warnings.sign_image, warnings.sign_label);
             } else if (sectionId === "vacham") {
               updateWarningItem(
                 `collision-warning-${sectionId}`,
@@ -1274,6 +1790,11 @@
                 `lane-warning-${sectionId}`,
                 warnings.lane,
                 "Lệch làn"
+              );
+              updateWarningItem(
+                `obstacle-warning-${sectionId}`,
+                warnings.obstacle,
+                "Vật cản"
               );
             }
           })
@@ -1310,8 +1831,28 @@
         }
       }
 
+      function updateSignImage(imagePath, signLabel) {
+        const imageContainer = document.getElementById("sign-image-container");
+        const signImg = document.getElementById("detected-sign-img");
+        
+        console.log("updateSignImage called:", { imagePath, signLabel });
+        
+        // Kiểm tra nếu có biển báo được phát hiện
+        if (signLabel && signLabel.trim() !== "" && signLabel !== "Không có") {
+          // Hiển thị hình ảnh biển báo với timestamp để tránh cache
+          const timestamp = new Date().getTime();
+          signImg.src = "/get_latest_sign_image?t=" + timestamp;
+          imageContainer.style.display = "block";
+          console.log("Showing sign image");
+        } else {
+          // Ẩn hình ảnh nếu không có biển báo
+          imageContainer.style.display = "none";
+          console.log("Hiding sign image - no sign detected");
+        }
+      }
+
       function startRecording(sectionId) {
-        fetch("/start_recording")
+        fetch(`/start_recording?section_id=${sectionId}`)
           .then((response) => response.text())
           .then((data) => {
             console.log(data);
@@ -1380,7 +1921,7 @@
       updateCurrentTime(); // Cập nhật ngay lập tức
 
       // thay đổi cam và vùng làn đường
-      function changeRegionPoints(type) {
+      function changeRegionPoints(type, lat, lng) {
         // Dừng video hiện tại
         const videoFeed = document.getElementById("video-feed-sign");
         if (videoFeed) {
@@ -1433,16 +1974,33 @@
           });
       }
 
-      // hàm đọc văn bản
+      // hàm đọc văn bản (nhanh, không chờ)
       function speak(text) {
+        window.speechSynthesis.cancel(); // Dừng đọc cũ
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = "vi-VN";
+        utterance.rate = 1.5; // Đọc nhanh hơn (1.5x)
         window.speechSynthesis.speak(utterance);
       }
 
       const startBtn = document.getElementById("start-voice");
       const stopBtn = document.getElementById("stop-voice");
       const voiceOutput = document.getElementById("voice-output");
+
+      // Hàm xin quyền microphone
+      async function requestMicrophonePermission() {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          console.log("✅ Microphone permission granted");
+          // Stop stream ngay sau khi xin quyền
+          stream.getTracks().forEach(track => track.stop());
+          return true;
+        } catch (err) {
+          console.error("❌ Microphone permission denied:", err);
+          voiceOutput.textContent = "❌ Micro bị chặn! Click icon 🔒 để cho phép.";
+          return false;
+        }
+      }
 
       // Kiểm tra hỗ trợ Speech Recognition API
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1458,17 +2016,39 @@
             startBtn.style.opacity = "0.5";
             startBtn.title = "Tính năng không được hỗ trợ trên trình duyệt này";
         }
+      } else {
+        // Kiểm tra permission microphone
+        if (navigator.permissions) {
+          navigator.permissions.query({ name: 'microphone' })
+            .then(result => {
+              if (result.state === 'denied') {
+                console.warn('Microphone permission denied');
+                if (voiceOutput) {
+                  voiceOutput.textContent = "⚠️ Micro bị chặn. Click vào icon ổ khóa 🔒 để cho phép microphone.";
+                }
+                if (startBtn) {
+                  startBtn.disabled = true;
+                  startBtn.style.opacity = "0.5";
+                  startBtn.title = "Microphone bị chặn bởi trình duyệt";
+                }
+              }
+            })
+            .catch(err => {
+              console.error('Error checking microphone permission:', err);
+            });
+        }
       }
 
       const recognition = SpeechRecognition ? new SpeechRecognition() : null;
 
+      // Biến để theo dõi trạng thái
+      let isListening = false;
+
       if (recognition) {
           recognition.lang = "vi-VN";
-          recognition.continuous = true;
-          recognition.interimResults = true;
+          recognition.continuous = false; // Tắt continuous để nhanh có kết quả cuối cùng
+          recognition.interimResults = true; // Hiển thị lời nói liên tục
           recognition.maxAlternatives = 1;
-
-          let isListening = false;
 
           recognition.onstart = () => {
             isListening = true;
@@ -1479,12 +2059,32 @@
 
           recognition.onend = () => {
             if (isListening) {
-              // Tự động restart ngay lập tức nếu vẫn đang lắng nghe
+              // Tự động restart nhanh hơn nếu vẫn đang lắng nghe
               setTimeout(() => {
                 recognition.start();
-              }, 100);
+              }, 50);
             } else {
               voiceOutput.textContent = "🔇 Đã dừng lắng nghe.";
+            }
+          };
+
+          recognition.onerror = (event) => {
+            console.error("Speech recognition error:", event.error);
+
+            if (event.error === 'not-allowed') {
+              voiceOutput.textContent = "❌ Micro bị chặn! Click icon ổ khóa 🔒 → Cho phép microphone";
+              isListening = false;
+              startBtn.style.display = "inline-block";
+              stopBtn.style.display = "none";
+            } else if (event.error === 'permission-denied') {
+              voiceOutput.textContent = "❌ Bạn đã từ chối cho phép microphone. Vui lòng cấp quyền trong cài đặt trình duyệt.";
+              isListening = false;
+              startBtn.style.display = "inline-block";
+              stopBtn.style.display = "none";
+            } else if (isListening) {
+              setTimeout(() => {
+                recognition.start();
+              }, 50);
             }
           };
 
@@ -1492,9 +2092,14 @@
             let transcript = "";
             for (let i = event.resultIndex; i < event.results.length; ++i) {
               transcript += event.results[i][0].transcript;
+              
+              // Hiển thị lời nói liên tục (cả interim và final)
+              const result = event.results[i];
+              voiceOutput.textContent = `🗣 ${result.isFinal ? '✓' : '🎤'} ${transcript.trim()}`;
+              
               if (event.results[i].isFinal) {
-                voiceOutput.textContent = `🗣 Lệnh: ${transcript.trim()}`;
                 transcript = transcript.trim().toLowerCase();
+                console.log('Nhận diện được:', transcript);
 
                 // Xử lý lệnh ngay lập tức
                 if (transcript.includes("mở giám sát tài xế")) {
@@ -1524,13 +2129,13 @@
                 } else if (transcript.includes("tắt mic")) {
                   stopVoiceRecognition();
                 } else if (transcript.includes("hà nội")) {
-                  changeRegionPoints("single");
+                  selectLocation("hanoi");
                 } else if (transcript.includes("hà đông")) {
-                  changeRegionPoints("multiple");
+                  selectLocation("hadong");
                 } else if (transcript.includes("thanh xuân")) {
-                  changeRegionPoints("thanhxuan");
+                  selectLocation("thanhxuan");
                 } else if (transcript.includes("ngã tư sở")) {
-                  changeRegionPoints("ngatuso");
+                  selectLocation("ngatuso");
                 }
 
                 if (
@@ -1538,22 +2143,10 @@
                   transcript.includes("về trang chủ")
                 ) {
                   speak("Đang chuyển về trang chủ");
-                  setTimeout(() => {
-                    window.location.href = "/";
-                  }, 1000);
+                  window.location.href = "/";
                   return;
                 }
               }
-            }
-          };
-
-          // Thêm xử lý lỗi để tự động khởi động lại nếu có vấn đề
-          recognition.onerror = (event) => {
-            console.error("Speech recognition error:", event.error);
-            if (isListening) {
-              setTimeout(() => {
-                recognition.start();
-              }, 100);
             }
           };
       }
@@ -1569,9 +2162,13 @@
 
       // Thêm event listeners cho nút bật/tắt giọng nói
       if (recognition) {
-          startBtn.addEventListener("click", () => {
+          startBtn.addEventListener("click", async () => {
             if (!isListening) {
-              recognition.start();
+              // Xin quyền mic trước khi start
+              const granted = await requestMicrophonePermission();
+              if (granted) {
+                recognition.start();
+              }
             }
           });
 
@@ -1581,6 +2178,279 @@
             startBtn.style.display = "inline-block";
             stopBtn.style.display = "none";
           });
+      }
+
+      // ==================== DANH SÁCH ĐỊA ĐIỂM ====================
+      
+      // Dữ liệu các địa điểm
+      const locationData = [
+        {
+          id: "hanoi",
+          name: "Hà Nội",
+          type: "single",
+          lat: 21.0285,
+          lng: 105.8542,
+          address: "Hoàn Kiếm, Hà Nội",
+          status: "active",
+          statusText: "Đang hoạt động",
+          class: "hanoi"
+        },
+        {
+          id: "hadong",
+          name: "Hà Đông",
+          type: "multiple",
+          lat: 20.9720,
+          lng: 105.7820,
+          address: "Nguyễn Trãi, Hà Đông",
+          status: "active",
+          statusText: "Đang hoạt động",
+          class: "hadong"
+        },
+        {
+          id: "thanhxuan",
+          name: "Thanh Xuân",
+          type: "thanhxuan",
+          lat: 20.9950,
+          lng: 105.8080,
+          address: "Khuất Duy Tiến, Thanh Xuân",
+          status: "waiting",
+          statusText: "Chờ cập nhật",
+          class: "thanhxuan"
+        },
+        {
+          id: "ngatuso",
+          name: "Ngã Tư Sở",
+          type: "ngatuso",
+          lat: 21.0065,
+          lng: 105.8270,
+          address: "Ngã Tư Sở, Đống Đa",
+          status: "active",
+          statusText: "Đang hoạt động",
+          class: "ngatuso"
+        }
+      ];
+
+      let currentLocationId = null;
+
+      // Tạo danh sách địa điểm
+      function initLocationList() {
+        const listContainer = document.getElementById("locationList");
+        if (!listContainer) return;
+
+        listContainer.innerHTML = "";
+        
+        locationData.forEach(location => {
+          const item = document.createElement("div");
+          item.className = "location-item";
+          item.id = `location-item-${location.id}`;
+          item.onclick = () => selectLocation(location.id);
+          
+          const statusClass = location.status === "active" ? "status-active" : "status-waiting";
+          
+          item.innerHTML = `
+            <div class="location-icon-preview ${location.class}">
+              <i class="fa-solid fa-location-dot"></i>
+            </div>
+            <div class="location-item-info">
+              <div class="location-item-name">${location.name}</div>
+              <div class="location-item-status">
+                ${location.address}
+                <span class="location-status-tag ${statusClass}">${location.statusText}</span>
+              </div>
+            </div>
+          `;
+          
+          listContainer.appendChild(item);
+        });
+      }
+
+      // Lọc địa điểm theo từ khóa tìm kiếm
+      function filterLocations() {
+        const searchInput = document.getElementById("locationSearchInput");
+        if (!searchInput) return;
+
+        const keyword = searchInput.value.toLowerCase().trim();
+        
+        locationData.forEach(location => {
+          const item = document.getElementById(`location-item-${location.id}`);
+          if (!item) return;
+
+          const searchText = `${location.name} ${location.address}`.toLowerCase();
+          
+          if (keyword === "" || searchText.includes(keyword)) {
+            item.style.display = "flex";
+          } else {
+            item.style.display = "none";
+          }
+        });
+      }
+
+      // Chọn địa điểm
+      function selectLocation(locationId) {
+        const location = locationData.find(l => l.id === locationId);
+        if (!location) return;
+
+        // Cập nhật active state
+        document.querySelectorAll(".location-item").forEach(el => {
+          el.classList.remove("active");
+        });
+        const currentItem = document.getElementById(`location-item-${locationId}`);
+        if (currentItem) {
+          currentItem.classList.add("active");
+        }
+
+        currentLocationId = locationId;
+
+        // Cập nhật map đến vị trí mới
+        updateMapLocation(location.lat, location.lng);
+
+        // Cập nhật video feed
+        updateVideoFeed(locationId);
+
+        // Gửi request đến server để thay đổi region points - gửi type thay vì id
+        changeRegionPoints(location.type, location.lat, location.lng);
+      }
+
+      // Cập nhật video feed
+      function updateVideoFeed(locationId) {
+        const video = document.getElementById("video-feed-sign");
+        if (video) {
+          // Gửi request đến server để thay đổi video feed theo location
+          video.src = "/video_sign?location=" + locationId + "&ts=" + new Date().getTime();
+        }
+      }
+
+      // Cập nhật đồng hồ trong sidebar
+      function updateLocationClock() {
+        const clock = document.getElementById("location-clock");
+        if (clock) {
+          const now = new Date();
+          clock.textContent = now.toLocaleTimeString("vi-VN");
+        }
+      }
+
+      // Khởi tạo danh sách địa điểm khi trang web loaded
+      // Thêm vào window.onload
+      const originalOnload = window.onload;
+      
+      // Biến toàn cục cho Leaflet map và markers
+      var locationMap = null;
+      var locationMarkers = {};
+      
+      window.onload = function() {
+        if (originalOnload) originalOnload();
+        initLocationList();
+        setInterval(updateLocationClock, 1000);
+        
+        // Khởi tạo Leaflet map
+        initLocationMap();
+      };
+      
+      // Hàm khởi tạo map Leaflet
+      function initLocationMap() {
+        // Khởi tạo map với vị trí mặc định (Hà Nội)
+        locationMap = L.map('location-map', {
+          center: [21.0285, 105.8542],
+          zoom: 11,
+          zoomControl: true
+        });
+        
+        // Gán vào window để có thể gọi từ showSection
+        window.locationMap = locationMap;
+
+        // Thêm tile layer từ OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors'
+        }).addTo(locationMap);
+        
+        // Force resize sau khi map load
+        setTimeout(() => {
+          locationMap.invalidateSize();
+        }, 200);
+
+        // Tạo custom icons cho từng location
+        const locationIcons = {
+          hanoi: L.divIcon({
+            className: 'location-marker-icon',
+            html: '<div style="background-color: #f21818; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 3px solid white;"><i class="fa-solid fa-location-dot"></i></div>',
+            iconSize: [35, 35],
+            iconAnchor: [17, 35],
+            popupAnchor: [0, -35]
+          }),
+          hadong: L.divIcon({
+            className: 'location-marker-icon',
+            html: '<div style="background-color: #f218bb; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 3px solid white;"><i class="fa-solid fa-location-dot"></i></div>',
+            iconSize: [35, 35],
+            iconAnchor: [17, 35],
+            popupAnchor: [0, -35]
+          }),
+          thanhxuan: L.divIcon({
+            className: 'location-marker-icon',
+            html: '<div style="background-color: #490fdb; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 3px solid white;"><i class="fa-solid fa-location-dot"></i></div>',
+            iconSize: [35, 35],
+            iconAnchor: [17, 35],
+            popupAnchor: [0, -35]
+          }),
+          ngatuso: L.divIcon({
+            className: 'location-marker-icon',
+            html: '<div style="background-color: #85a337; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 3px solid white;"><i class="fa-solid fa-location-dot"></i></div>',
+            iconSize: [35, 35],
+            iconAnchor: [17, 35],
+            popupAnchor: [0, -35]
+          })
+        };
+        
+        // Thêm markers cho từng location
+        locationData.forEach(location => {
+          const marker = L.marker([location.lat, location.lng], {
+            icon: locationIcons[location.id]
+          }).addTo(locationMap);
+          
+          // Thêm popup cho marker
+          marker.bindPopup(`
+            <div style="text-align: center; padding: 5px;">
+              <strong style="color: #667eea; font-size: 16px;">${location.name}</strong><br>
+              <span style="color: #666; font-size: 14px;">${location.address}</span><br>
+              <span style="background: ${location.status === 'active' ? '#28a745' : '#ffc107'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-top: 5px; display: inline-block;">${location.statusText}</span>
+            </div>
+          `);
+          
+          // Lưu marker vào object
+          locationMarkers[location.id] = marker;
+        });
+      }
+      
+      // Cập nhật hàm updateMapLocation để sử dụng Leaflet flyTo
+      function updateMapLocation(lat, lng) {
+        if (locationMap) {
+          locationMap.flyTo([lat, lng], 13, {
+            animate: true,
+            duration: 1.5
+          });
+        }
+      }
+
+      // Google Map Card functions
+      function closeMapCard() {
+        const card = document.getElementById('map-info-card');
+        if (card) {
+          card.style.display = 'none';
+        }
+      }
+
+      function openGoogleMapsDirection() {
+        // Mở Google Maps chỉ đường đến Trường Đại học Công nghệ Giao thông Vận tải
+        window.open('https://maps.app.goo.gl/Wpg9vNeJ7nVE4rzH7', '_blank');
+      }
+
+      function openGoogleMapsReviews() {
+        // Mở Google Maps xem reviews của trường
+        window.open('https://maps.app.goo.gl/Wpg9vNeJ7nVE4rzH7', '_blank');
+      }
+
+      function openGoogleMaps() {
+        // Mở Google Maps lớn với vị trí Trường Đại học Công nghệ Giao thông Vận tải
+        window.open('https://maps.app.goo.gl/Wpg9vNeJ7nVE4rzH7', '_blank');
       }
     </script>
   </body>
