@@ -915,7 +915,7 @@ def video_driver():
 def video_traffic():
     import models
     vehicle_id = session.get('vehicle_id') or models.current_monitoring_vehicle_id
-    return Response(traffic_sign_monitor(vehicle_id),
+    return Response(models.traffic_sign_monitor(vehicle_id),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/video_sign')
@@ -1078,18 +1078,18 @@ def lai_xe_v2_page():
 @app.route('/get_warnings')
 @login_required
 def get_warnings():
+    import models
     warnings_with_image = warnings.copy()
-    warnings_with_image['sign_image'] = latest_sign_image_path
-    warnings_with_image['sign_label'] = latest_sign_label
+    warnings_with_image['sign_image'] = models.latest_sign_image_path
+    warnings_with_image['sign_label'] = models.latest_sign_label
     return jsonify(warnings_with_image)
 
 @app.route('/get_latest_sign_image')
-@login_required
 def get_latest_sign_image():
     """Trả về hình ảnh biển báo mới nhất"""
-    global latest_sign_image_path
-    if latest_sign_image_path and os.path.exists(latest_sign_image_path):
-        return send_file(latest_sign_image_path, mimetype='image/jpeg')
+    import models
+    if models.latest_sign_image_path and os.path.exists(models.latest_sign_image_path):
+        return send_file(models.latest_sign_image_path, mimetype='image/jpeg')
     return "", 404
 
 @app.route('/get_stats')

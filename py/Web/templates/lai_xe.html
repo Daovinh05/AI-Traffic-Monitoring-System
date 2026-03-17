@@ -1779,6 +1779,11 @@
                 "Biển báo"
               );
               // Xử lý hiển thị hình ảnh biển báo
+              console.log("Traffic section - Received:", {
+                sign: warnings.sign,
+                sign_label: warnings.sign_label,
+                sign_image: warnings.sign_image
+              });
               updateSignImage(warnings.sign_image, warnings.sign_label);
             } else if (sectionId === "vacham") {
               updateWarningItem(
