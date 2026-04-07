@@ -1124,13 +1124,17 @@ def collision_monitor(vehicle_id=None):
             # Vehicle detection
             if need_collision_detection:
                 results_v = model_vehicle(frame)[0]
+                supported_labels = {'car', 'truck', 'bus', 'motorbike', 'person'}
+
                 for box in results_v.boxes:
                     cls = int(box.cls[0])
                     conf = float(box.conf[0])
                     x1, y1, x2, y2 = map(int, box.xyxy[0])
                     label = model_vehicle.names[cls]
 
-                if label in ['car', 'truck', 'bus', 'motorbike', 'person']:
+                    if label not in supported_labels:
+                        continue
+
                     distance = estimate_distance(y1, y2)
 
                     if label == 'person':
@@ -1149,11 +1153,8 @@ def collision_monitor(vehicle_id=None):
                     elif distance < warning_distance:
                         warnings["collision"] = "GIỮ KHOẢNG CÁCH!"
                         color = (0, 255, 255)
-                        collision_alert_sent = False
                     else:
-                        warnings["collision"] = ""
                         color = (0, 255, 0)
-                        collision_alert_sent = False
 
                     cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
 

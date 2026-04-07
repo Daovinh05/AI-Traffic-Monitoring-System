@@ -794,7 +794,7 @@ def detect_lane_deviation_combined(results_l, frame, width, classic_lines):
     return frame
 
 def collision_monitor():
-    global warnings, video_writer, is_recording, active_video_stream, last_collision_warning
+    global warnings, video_writer, is_recording, active_video_stream, last_collision_warning, collision_alert_sent
     try:
         active_video_stream = 'vacham'
         # Sử dụng video hole.mp4 để phát hiện vật cản/ổ gà
@@ -906,15 +906,19 @@ def collision_monitor():
             # Phát hiện phương tiện - Chỉ khi cảnh báo va chạm được bật
             if need_collision_detection:
                 results_v = model_vehicle(frame)[0]
+                supported_labels = {'car', 'truck', 'bus', 'motorbike', 'person'}
+
                 for box in results_v.boxes:
                     cls = int(box.cls[0])
                     conf = float(box.conf[0])
                     x1, y1, x2, y2 = map(int, box.xyxy[0])
                     label = model_vehicle.names[cls]
 
-                if label in ['car', 'truck', 'bus', 'motorbike', 'person']:
+                    if label not in supported_labels:
+                        continue
+
                     distance = estimate_distance(y1, y2)
-                    
+
                     # Xác định ngưỡng khoảng cách dựa trên đối tượng
                     if label == 'person':
                         # Người: ngưỡng an toàn cao hơn (nguy hiểm hơn)
@@ -926,7 +930,7 @@ def collision_monitor():
                         critical_distance = 8
                         warning_distance = 15
                         alert_message = "🚨 CẢNH BÁO VA CHẠM SẮP XẢY RA!"
-                    
+
                     # Xử lý cảnh báo va chạm
                     if distance < critical_distance:
                         warnings["collision"] = "CẢNH BÁO VA CHẠM!"
@@ -943,21 +947,19 @@ def collision_monitor():
                         color = (0, 255, 255)  # Vàng
                         collision_alert_sent = False
                     else:
-                        warnings["collision"] = ""
                         color = (0, 255, 0)  # Xanh lá
-                        collision_alert_sent = False
 
                     # Vẽ bounding box, nhãn và khoảng cách
                     cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
-                    
+
                     # Thêm nhãn đối tượng và khoảng cách
                     label_text = f'{label} {conf:.2f} | {distance:.1f}m'
                     if label == 'person':
                         label_text = f'NGUOI {conf:.2f} | {distance:.1f}m'
-                    
+
                     cv2.putText(frame, label_text, (x1, y1 - 10),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
-                    
+
                     # Vẽ thêm indicator đặc biệt cho người
                     if label == 'person' and distance < warning_distance:
                         # Vẽ vòng tròn đỏ quanh người
