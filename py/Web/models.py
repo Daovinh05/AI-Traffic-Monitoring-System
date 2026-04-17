@@ -16,6 +16,7 @@ from ultralytics import YOLO
 from shapely.geometry import Point, Polygon
 import mediapipe as mp
 from flask import session
+import mqtt_client
 
 # ========================================
 # GLOBAL VARIABLES FOR AI ALERTS & CHATBOT
@@ -43,6 +44,9 @@ def add_ai_alert(alert_type, message, vehicle_id=None):
         if len(ai_alerts_queue) > MAX_ALERTS_HISTORY:
             ai_alerts_queue = ai_alerts_queue[-MAX_ALERTS_HISTORY:]
         print(f"[AI ALERT] {alert_type}: {message}")
+
+        # Gửi cảnh báo qua MQTT đến ESP32
+        mqtt_client.publish_alert(alert_type, message, alert['level'])
         
         # Ghi vào database (Cần import db context nếu được, tạm thời dùng pymysql độc lập)
         try:

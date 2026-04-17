@@ -1096,7 +1096,9 @@ def get_latest_sign_image():
 @login_required
 def get_stats():
     global counter
-    return jsonify(counter.get_stats())
+    if counter is not None:
+        return jsonify(counter.get_stats())
+    return jsonify({})
 
 @app.route('/set_mode', methods=['POST'])
 @login_required
