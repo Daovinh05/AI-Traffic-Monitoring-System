@@ -1,0 +1,20 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+
+ARG NEXT_PUBLIC_BACKEND_URL=http://localhost:5001
+ARG NEXT_BACKEND_INTERNAL_URL=http://backend:5001
+ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
+ENV NEXT_BACKEND_INTERNAL_URL=${NEXT_BACKEND_INTERNAL_URL}
+ENV NODE_ENV=production
+
+RUN npm run build
+
+EXPOSE 3001
+
+CMD ["npm", "run", "start"]

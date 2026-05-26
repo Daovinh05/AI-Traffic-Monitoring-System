@@ -1,0 +1,19 @@
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  reactStrictMode: true,
+  async rewrites() {
+    const backendUrl =
+      process.env.NEXT_BACKEND_INTERNAL_URL ||
+      process.env.NEXT_PUBLIC_BACKEND_URL ||
+      "http://localhost:5001";
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${backendUrl}/api/:path*`,
+      },
+    ];
+  },
+};
+
+export default nextConfig;

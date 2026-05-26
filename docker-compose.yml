@@ -1,0 +1,44 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file:
+      - backend/.env.example
+    environment:
+      MYSQL_HOST: mysql
+      PORT: 5001
+    ports:
+      - "5001:5001"
+    depends_on:
+      - mysql
+    volumes:
+      - .:/app
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_BACKEND_URL: http://localhost:5001
+        NEXT_BACKEND_INTERNAL_URL: http://backend:5001
+    environment:
+      NEXT_PUBLIC_BACKEND_URL: http://localhost:5001
+      NEXT_BACKEND_INTERNAL_URL: http://backend:5001
+    ports:
+      - "3001:3001"
+    depends_on:
+      - backend
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: giam_sat
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+
+volumes:
+  mysql_data:

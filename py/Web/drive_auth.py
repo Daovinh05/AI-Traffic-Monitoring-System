@@ -17,6 +17,7 @@ import pygame
 import threading
 import time
 import numpy as np
+from backend.app.services import auth_service
 
 # Import from models
 from models import (
@@ -71,20 +72,22 @@ from models import (
 # FLASK APP CONFIG
 # ========================================
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+app.secret_key = os.environ.get('SECRET_KEY', 'ai-traffic-dev-secret')
 CORS(app)
 
 # Session config
-app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_PERMANENT'] = True
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
+app.config['SESSION_TYPE'] = os.environ.get('SESSION_TYPE', 'filesystem')
+app.config['SESSION_PERMANENT'] = os.environ.get('SESSION_PERMANENT', 'true').lower() == 'true'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(
+    hours=int(os.environ.get('SESSION_LIFETIME_HOURS', 24))
+)
 
 # MySQL config
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_PORT'] = 3306
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = ''
-app.config['MYSQL_DB'] = 'giam_sat'
+app.config['MYSQL_HOST'] = os.environ.get('MYSQL_HOST', 'localhost')
+app.config['MYSQL_PORT'] = int(os.environ.get('MYSQL_PORT', 3306))
+app.config['MYSQL_USER'] = os.environ.get('MYSQL_USER', 'root')
+app.config['MYSQL_PASSWORD'] = os.environ.get('MYSQL_PASSWORD', '')
+app.config['MYSQL_DB'] = os.environ.get('MYSQL_DB', 'giam_sat')
 
 # Extensions
 bcrypt = Bcrypt(app)
@@ -145,70 +148,26 @@ def login_page():
 def api_login():
     try:
         data = request.get_json()
-        username = data.get('username', '').strip()
+        username = data.get('username', '')
         password = data.get('password', '')
 
-        if not username or not password:
-            return jsonify({'success': False, 'message': 'Vui lòng nhập đầy đủ'}), 400
-
-        conn = get_db_connection()
-        if not conn:
-            return jsonify({'success': False, 'message': 'Database error'}), 500
-
-        cur = conn.cursor()
-        cur.execute('SELECT id, ten_dang_nhap as username, mat_khau as password, vai_tro as role, ho_ten as full_name, trang_thai_hoat_dong as is_active FROM nguoi_dung WHERE ten_dang_nhap = %s', (username,))
-        user = cur.fetchone()
-        cur.close()
-        cur.close() # Close the initial cursor
-
-        if not user:
-            conn.close()
-            return jsonify({'success': False, 'message': 'Tên đăng nhập không tồn tại'}), 401
-
-        if not user['is_active']:
-            conn.close()
-            return jsonify({'success': False, 'message': 'Tài khoản đã bị khóa'}), 403
-
-        if not bcrypt.check_password_hash(user['password'], password):
-            conn.close()
-            return jsonify({'success': False, 'message': 'Mật khẩu không đúng'}), 401
-
+        result = auth_service.authenticate(username, password, bcrypt)
+        if not result['success']:
+            return jsonify({
+                'success': False,
+                'message': result['message']
+            }), result['status']
+        
         session.permanent = True
-        session['user_id'] = user['id']
-        session['username'] = user['username']
-        session['role'] = user['role']
-        session['full_name'] = user['full_name']
-
-        # Nếu là tài xế, tìm tai_xe_id và vehicle_id tương ứng
-        if user['role'] == 'user':
-            cur = conn.cursor()
-            # Tìm ID tài xế từ ID người dùng
-            cur.execute('SELECT id FROM tai_xe WHERE id_nguoi_dung = %s', (user['id'],))
-            driver = cur.fetchone()
-            if driver:
-                session['tai_xe_id'] = driver['id']
-                # Tìm ID xe mà tài xế này đang lái
-                cur.execute('SELECT id FROM phuong_tien WHERE id_tai_xe = %s', (driver['id'],))
-                vehicle = cur.fetchone()
-                if vehicle:
-                    session['vehicle_id'] = vehicle['id']
-            cur.close()
-
-        conn.close()
-
-        redirect_url = '/dashboard' if user['role'] == 'admin' else '/trang_chu'
+        for key, value in result['session'].items():
+            session[key] = value
 
         return jsonify({
             'success': True,
-            'message': 'Đăng nhập thành công',
-            'redirect': redirect_url,
-            'user': {
-                'id': user['id'],
-                'username': user['username'],
-                'full_name': user['full_name'],
-                'role': user['role']
-            }
-        }), 200
+            'message': result['message'],
+            'redirect': result['redirect'],
+            'user': result['user']
+        }), result['status']
 
     except Exception as e:
         return jsonify({'success': False, 'message': f'Lỗi: {str(e)}'}), 500
@@ -1092,13 +1051,39 @@ def get_latest_sign_image():
         return send_file(latest_sign_image_path, mimetype='image/jpeg')
     return "", 404
 
+def get_default_stats():
+    return {
+        'total_vehicles': 0,
+        'lane_counts': [],
+        'vehicle_types': {'car': 0, 'motorcycle': 0, 'bus': 0, 'truck': 0},
+        'region_details': [],
+        'traffic_status': {
+            'level': 'normal',
+            'message': 'Giao thông thông thoáng, di chuyển bình thường',
+            'color': 'green'
+        }
+    }
+
 @app.route('/get_stats')
 @login_required
 def get_stats():
     global counter
     if counter is not None:
-        return jsonify(counter.get_stats())
-    return jsonify({})
+        stats = counter.get_stats() or {}
+        defaults = get_default_stats()
+        defaults.update(stats)
+        defaults['vehicle_types'] = stats.get('vehicle_types') or defaults['vehicle_types']
+        defaults['region_details'] = stats.get('region_details') or defaults['region_details']
+        defaults['traffic_status'] = stats.get('traffic_status') or defaults['traffic_status']
+        return jsonify(defaults)
+    return jsonify(get_default_stats())
+
+@app.route('/sound/<path:filename>')
+def serve_sound(filename):
+    sound_path = os.path.join(os.getcwd(), 'py', 'Sound', filename)
+    if os.path.exists(sound_path):
+        return send_file(sound_path)
+    return "Sound not found", 404
 
 @app.route('/set_mode', methods=['POST'])
 @login_required
@@ -1225,6 +1210,20 @@ def stop_recording():
 
         return "Recording stopped"
     return "Not recording"
+
+@app.route('/stop_camera')
+@login_required
+def stop_camera():
+    """Dừng camera/stream hiện tại từ UI lái xe."""
+    global video_capture, active_video_stream
+    try:
+        active_video_stream = None
+        if video_capture is not None:
+            video_capture.release()
+            video_capture = None
+        return jsonify({'success': True, 'message': 'Đã dừng camera'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/get_video_source/<region_type>')
 @login_required

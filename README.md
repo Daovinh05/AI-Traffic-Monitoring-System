@@ -8,6 +8,134 @@
 
 ---
 
+## 🧭 Trạng thái refactor hiện tại
+
+Dự án đã được bổ sung kiến trúc monorepo theo `IMPLEMENT.md`:
+
+```text
+backend/   Python backend entrypoint + service/repository/API/AI adapters
+frontend/  Next.js app router UI
+py/Web/    Flask legacy UI/runtime đang giữ giao diện và tính năng gốc
+esp32/     MQTT/ESP32 firmware
+```
+
+Nguyên tắc hiện tại: giữ nguyên giao diện và tính năng ban đầu, đồng thời tách
+dần kiến trúc mới.
+
+- Backend mới chạy qua `python -m backend.app.main`.
+- Backend mới vẫn mount Flask app cũ trong `py/Web/drive_auth.py` để giữ route,
+  template, static asset và video stream hiện tại.
+- Frontend Next.js đã có các route:
+  - `/login`: màn login đã chuyển sang React/Next.js.
+  - `/admin/dashboard`: bridge toàn màn hình tới Flask `/dashboard`.
+  - `/user/dashboard`: bridge tới Flask `/trang_chu`.
+  - `/user/drive`: bridge tới Flask `/lai_xe`.
+  - `/user/history`: bridge tới Flask `/lich_su`.
+  - `/user/chatbot`: bridge tới Flask `/tu_van`.
+
+Các route bridge dùng iframe để giữ giao diện y hệt bản Flask ban đầu. Việc
+chuyển từng màn sang React/API thuần nên tiếp tục làm theo từng task nhỏ.
+
+## ▶️ Chạy theo kiến trúc mới
+
+### 1. Chạy backend
+
+Từ root project:
+
+```bash
+python -m backend.app.main
+```
+
+Backend mặc định chạy tại:
+
+```text
+http://localhost:5001
+```
+
+Cấu hình mẫu nằm ở:
+
+```text
+backend/.env.example
+```
+
+Các biến quan trọng:
+
+```text
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_USER=root
+MYSQL_PASSWORD=
+MYSQL_DB=giam_sat
+PORT=5001
+GROQ_API_KEY=
+MQTT_ENABLED=true
+```
+
+### 2. Chạy frontend
+
+Từ thư mục `frontend`:
+
+```bash
+npm install
+npm run dev
+```
+
+Frontend mặc định chạy tại:
+
+```text
+http://localhost:3001/login
+```
+
+Nếu backend không chạy ở `http://localhost:5001`, đặt:
+
+```bash
+NEXT_PUBLIC_BACKEND_URL=http://localhost:5001
+```
+
+### 3. Kiểm tra build frontend
+
+```bash
+cd frontend
+npm run build
+```
+
+### 4. Docker Compose cơ bản
+
+```bash
+docker compose config
+docker compose up --build
+```
+
+Sau khi chạy compose:
+
+```text
+Frontend: http://localhost:3001/login
+Backend:  http://localhost:5001
+MySQL:    localhost:3306
+```
+
+Lưu ý: build backend container có thể mất thời gian vì dependency AI như
+OpenCV, dlib, MediaPipe, Ultralytics.
+
+## ✅ Kiểm tra đã thực hiện sau refactor
+
+- `npm run build` trong `frontend` thành công.
+- `python3 -m py_compile` cho backend entrypoint, config, database adapter,
+  API groups, services, repositories, AI/realtime/MQTT/chatbot/voice adapters
+  và `py/Web/drive_auth.py` thành công.
+- Import nhẹ bằng `.venv/bin/python` cho service/repository/API groups thành
+  công.
+- `docker compose config` parse thành công.
+
+## ⚠️ Giới hạn cần môi trường thật để kiểm thử full
+
+- Đăng nhập admin/user cần MySQL đang chạy và có dữ liệu schema/account.
+- Dashboard, phân trang, cảnh báo cần database `giam_sat`.
+- Video stream cần model/weights, file video, OpenCV/dlib/MediaPipe/Ultralytics
+  và quyền truy cập audio/cache phù hợp.
+- Chatbot luật giao thông cần `GROQ_API_KEY` nếu muốn gọi LLM thật.
+- MQTT/ESP32 cần broker MQTT và thiết bị hoặc broker mô phỏng.
+
 ## 📖 MỤC LỤC
 
 1. [Giới thiệu](#-1-giới-thiệu)

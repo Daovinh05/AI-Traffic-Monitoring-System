@@ -1413,8 +1413,8 @@
 
     <audio id="alert-audio">
       <source
-        src="{{ url_for('static', filename='alert.mp3') }}"
-        type="audio/mpeg"
+        src="/sound/chu_y_bien_bao.wav"
+        type="audio/wav"
       />
     </audio>
 
@@ -1585,14 +1585,20 @@
           .then((response) => response.json())
           .then((data) => {
             // Cập nhật tổng số xe
-            document.getElementById("total-vehicles").textContent =
-              data.total_vehicles;
+            const totalVehicles = document.getElementById("total-vehicles");
+            if (totalVehicles) {
+              totalVehicles.textContent = data.total_vehicles || 0;
+            }
 
             // Cập nhật thống kê theo khu vực
             const regionStats = document.getElementById("region-stats");
+            if (!regionStats) {
+              return;
+            }
             regionStats.innerHTML = "";
 
-            data.region_details.forEach((region, index) => {
+            const regionDetails = Array.isArray(data.region_details) ? data.region_details : [];
+            regionDetails.forEach((region, index) => {
               const regionItem = document.createElement("div");
               regionItem.className = "region-item";
               regionItem.innerHTML = `
@@ -1626,13 +1632,17 @@
             const statusIcon = document.querySelector(".status-icon");
 
             // Xóa tất cả các class cũ
-            statusElement.className = "traffic-status";
-            statusIcon.className = "status-icon";
+            if (statusElement) statusElement.className = "traffic-status";
+            if (statusIcon) statusIcon.className = "status-icon";
 
             // Thêm class mới dựa trên trạng thái từ backend
-            statusElement.classList.add(data.traffic_status.level);
-            statusIcon.classList.add(data.traffic_status.level);
-            statusMessage.textContent = data.traffic_status.message;
+            const trafficStatus = data.traffic_status || {
+              level: "normal",
+              message: "Giao thông thông thoáng, di chuyển bình thường"
+            };
+            if (statusElement) statusElement.classList.add(trafficStatus.level);
+            if (statusIcon) statusIcon.classList.add(trafficStatus.level);
+            if (statusMessage) statusMessage.textContent = trafficStatus.message;
           });
       }
 

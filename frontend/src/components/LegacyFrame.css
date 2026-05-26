@@ -1,0 +1,13 @@
+.legacy-frame-page {
+  background: #0f172a;
+  height: 100vh;
+  overflow: hidden;
+  width: 100vw;
+}
+
+.legacy-frame {
+  border: 0;
+  display: block;
+  height: 100%;
+  width: 100%;
+}

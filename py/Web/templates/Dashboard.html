@@ -5917,9 +5917,12 @@ function initMap() {
 function updateMapStats() {
   const running = vehicles.filter(v => v.status === 1).length;
   const stopped = vehicles.filter(v => v.status === 0).length;
-  document.getElementById('mapVehicles').textContent = vehicles.length;
-  document.getElementById('mapRunning').textContent = running;
-  document.getElementById('mapStopped').textContent = stopped;
+  const mapVehicles = document.getElementById('mapVehicles');
+  const mapRunning = document.getElementById('mapRunning');
+  const mapStopped = document.getElementById('mapStopped');
+  if (mapVehicles) mapVehicles.textContent = vehicles.length;
+  if (mapRunning) mapRunning.textContent = running;
+  if (mapStopped) mapStopped.textContent = stopped;
 }
 
 function simulateMovement() {
