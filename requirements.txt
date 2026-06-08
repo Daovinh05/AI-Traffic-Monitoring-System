@@ -9,8 +9,6 @@ mediapipe==0.10.21
 flask-cors==5.0.0
 flask-limiter==3.8.0
 python-dotenv==1.0.1
-pyttsx3==2.90
-speech_recognition==3.10.0
 
 # Authentication & Database
 PyMySQL==1.1.2
