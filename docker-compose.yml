@@ -8,6 +8,7 @@ services:
     environment:
       MYSQL_HOST: mysql
       PORT: 5001
+      AI_ENABLED: ${AI_ENABLED:-false}
     ports:
       - "5001:5001"
     depends_on:
