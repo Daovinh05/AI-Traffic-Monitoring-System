@@ -1,11 +1,22 @@
-"""
-AI Traffic Monitoring System - Models
-Contains database models, data structures, and business logic
+"""AI monitoring runtime.
+
+It remains stateful because the video streams share models, warning state,
+recording state, and traffic counters.
 """
 
-import pymysql
 import os
-from datetime import datetime, timedelta
+from pathlib import Path
+
+_CACHE_DIR = Path(
+    os.environ.get("AI_TRAFFIC_CACHE_DIR", "/private/tmp/ai-traffic-cache")
+)
+_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+os.environ.setdefault("MPLCONFIGDIR", str(_CACHE_DIR / "matplotlib"))
+os.environ.setdefault("XDG_CACHE_HOME", str(_CACHE_DIR / "xdg"))
+os.environ.setdefault("YOLO_CONFIG_DIR", str(_CACHE_DIR / "ultralytics"))
+os.environ.setdefault("ULTRALYTICS_CONFIG_DIR", str(_CACHE_DIR / "ultralytics"))
+
+from datetime import datetime
 import cv2
 import dlib
 import numpy as np
@@ -15,8 +26,15 @@ import time
 from ultralytics import YOLO
 from shapely.geometry import Point, Polygon
 import mediapipe as mp
-from flask import session
-import mqtt_client
+from backend.app.repositories import chatbot_repository
+from backend.app.services import ai_alert_service
+
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+ASSET_DIR = os.path.join(ROOT_DIR, "backend", "assets")
+
+
+def asset_path(*parts):
+    return os.path.join(ASSET_DIR, *parts)
 
 # ========================================
 # GLOBAL VARIABLES FOR AI ALERTS & CHATBOT
@@ -38,60 +56,20 @@ def add_ai_alert(alert_type, message, vehicle_id=None):
             'message': message,
             'vehicle_id': vehicle_id,
             'timestamp': datetime.now().strftime('%H:%M:%S'),
-            'level': 'critical' if alert_type in ['eye', 'phone', 'seatbelt', 'collision'] else 'warning'
+            'level': ai_alert_service.alert_level(alert_type),
         }
         ai_alerts_queue.append(alert)
         if len(ai_alerts_queue) > MAX_ALERTS_HISTORY:
             ai_alerts_queue = ai_alerts_queue[-MAX_ALERTS_HISTORY:]
         print(f"[AI ALERT] {alert_type}: {message}")
 
-        # Gửi cảnh báo qua MQTT đến ESP32
-        mqtt_client.publish_alert(alert_type, message, alert['level'])
-        
-        # Ghi vào database (Cần import db context nếu được, tạm thời dùng pymysql độc lập)
         try:
-            conn = pymysql.connect(
-                host='localhost',
-                port=3306,
-                user='root',
-                password='',
-                database='giam_sat',
-                cursorclass=pymysql.cursors.DictCursor,
-                charset='utf8mb4'
+            persisted = ai_alert_service.publish_and_store(
+                alert_type,
+                message,
+                vehicle_id,
             )
-            cur = conn.cursor()
-            
-            # Lấy thông tin phương tiện và tài xế
-            plate = 'N/A'
-            driver_name = 'N/A'
-            driver_id = None
-            
-            if vehicle_id:
-                cur.execute("""
-                    SELECT p.bien_so, t.id as id_tai_xe, t.ho_ten 
-                    FROM phuong_tien p
-                    LEFT JOIN tai_xe t ON p.id_tai_xe = t.id
-                    WHERE p.id = %s
-                """, (vehicle_id,))
-                res = cur.fetchone()
-                if res:
-                    plate = res['bien_so']
-                    driver_id = res['id_tai_xe']
-                    driver_name = res['ho_ten']
-            
-            # Cập nhật thông tin vào object alert trong queue
-            alert['plate'] = plate
-            alert['driver_name'] = driver_name
-            # Ghi đè tin nhắn để có thêm thông tin nếu cần
-            # alert['message'] = f"[{plate} - {driver_name}] {message}"
-            
-            cur.execute("""
-                INSERT INTO canh_bao_vi_pham (loai_vi_pham, noi_dung_vi_pham, muc_do, thoi_gian_vi_pham, id_phuong_tien, id_tai_xe) 
-                VALUES (%s, %s, %s, NOW(), %s, %s)
-            """, (alert_type, message, alert['level'], vehicle_id, driver_id))
-            conn.commit()
-            cur.close()
-            conn.close()
+            alert.update(persisted)
         except Exception as e:
             print(f"Error saving AI alert to DB: {e}")
 
@@ -103,7 +81,7 @@ lock = threading.Lock()
 pygame.init()
 
 # Sound files
-SOUND_DIR = "py/Sound"
+SOUND_DIR = asset_path("sounds")
 chopmat_sound = pygame.mixer.Sound(os.path.join(SOUND_DIR, "nham_mat.wav"))
 ngap_sound = pygame.mixer.Sound(os.path.join(SOUND_DIR, "ngap_ngu.wav"))
 phone_baodong = pygame.mixer.Sound(os.path.join(SOUND_DIR, "not_phone.wav"))
@@ -161,13 +139,13 @@ if not os.path.exists('recordings'):
 # AI MODELS
 # ========================================
 detector = dlib.get_frontal_face_detector()
-predictor = dlib.shape_predictor("py/shape_predictor_68_face_landmarks.dat")
-phone_mau = YOLO("py/weights/yolov8n.pt")
-seatbelt_mau = YOLO("py/weights/day_an_toan.pt")
-bienbao_model = YOLO("py/weights/bien_bao.pt")
-model_vehicle = YOLO("py/weights/yolov8n.pt")
-model_lane = YOLO("py/weights/lech_lan.pt")
-model_hole = YOLO("py/weights/vat_can.pt")
+predictor = dlib.shape_predictor(asset_path("shape_predictor_68_face_landmarks.dat"))
+phone_mau = YOLO(asset_path("weights", "yolov8n.pt"))
+seatbelt_mau = YOLO(asset_path("weights", "day_an_toan.pt"))
+bienbao_model = YOLO(asset_path("weights", "bien_bao.pt"))
+model_vehicle = YOLO(asset_path("weights", "yolov8n.pt"))
+model_lane = YOLO(asset_path("weights", "lech_lan.pt"))
+model_hole = YOLO(asset_path("weights", "vat_can.pt"))
 
 # ========================================
 # FACE LANDMARK CONFIG
@@ -426,7 +404,18 @@ class HandAndArmTracking:
 
         return img
 
-hand_detector = HandAndArmTracking()
+hand_detector = None
+hand_detector_lock = threading.Lock()
+
+
+def get_hand_detector():
+    """Create MediaPipe tracking only when the driver stream needs it."""
+    global hand_detector
+    if hand_detector is None:
+        with hand_detector_lock:
+            if hand_detector is None:
+                hand_detector = HandAndArmTracking()
+    return hand_detector
 
 # ========================================
 # GLOBAL WARNING STATES
@@ -476,7 +465,7 @@ previous_warnings = {
 # ========================================
 # TRAFFIC SIGN MONITORING
 # ========================================
-PICTURES_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'pictures')
+PICTURES_DIR = asset_path("pictures")
 latest_sign_image_path = None
 latest_sign_label = ""
 
@@ -511,7 +500,8 @@ vehicle_colors = {
 }
 
 class MultipleObjectCounter:
-    def __init__(self, model_path="py/weights/yolov8n.pt", regions=None, classes=None):
+    def __init__(self, model_path=None, regions=None, classes=None):
+        model_path = model_path or asset_path("weights", "yolov8n.pt")
         self.model = YOLO(model_path)
         self.regions = regions if regions is not None else []
         self.classes = classes if classes is not None else []
@@ -686,7 +676,7 @@ def get_region_points(region_type):
             'regions': [
                 np.array([[443, 79], [4, 399], [4, 709], [1267, 711], [1272, 401], [877, 39], [475, 57]])
             ],
-            'video_source': "py/video_input/ha_noi.mp4"
+            'video_source': asset_path("videos", "ha_noi.mp4")
         }
     elif region_type == 'thanhxuan':
         return {
@@ -697,7 +687,7 @@ def get_region_points(region_type):
                 np.array([[713, 95], [1088, 717], [750, 717], [639, 97]]),
                 np.array([[713, 97], [1090, 717], [1275, 717], [1282, 515], [767, 84]])
             ],
-            'video_source': "py/video_input/thanh_xuan.mp4"
+            'video_source': asset_path("videos", "thanh_xuan.mp4")
         }
     elif region_type == 'multiple':
         return {
@@ -708,7 +698,7 @@ def get_region_points(region_type):
                 np.array([[713, 95], [1088, 717], [750, 717], [639, 97]]),
                 np.array([[713, 97], [1090, 717], [1275, 717], [1282, 515], [767, 84]])
             ],
-            'video_source': "py/video_input/ha_dong.mp4"
+            'video_source': asset_path("videos", "ha_dong.mp4")
         }
     elif region_type == 'ngatuso':
         return {
@@ -718,7 +708,7 @@ def get_region_points(region_type):
                 np.array([[614, 99], [746, 95], [844, 709], [453, 705]]),
                 np.array([[842, 707], [1268, 710], [1276, 586], [897, 78], [747, 97]])
             ],
-            'video_source': "py/video_input/ngatuso.mp4"
+            'video_source': asset_path("videos", "ngatuso.mp4")
         }
     else:
         raise ValueError(f"Invalid region type: {region_type}")
@@ -735,7 +725,7 @@ def init_app():
 
     if not video_capture.isOpened():
         raise Exception("Không thể mở video")
-    counter = MultipleObjectCounter(model_path="py/weights/yolov8n.pt", regions=region_points, classes=object_classes)
+    counter = MultipleObjectCounter(regions=region_points, classes=object_classes)
 
 
 # ========================================
@@ -928,7 +918,7 @@ def driver_monitor(vehicle_id=None):
 
             # Hand detection
             if warning_states["hand"]:
-                frame = hand_detector.findArmsAndHands(frame)
+                frame = get_hand_detector().findArmsAndHands(frame)
                 if warnings["hand"] and previous_warnings["hand"] != warnings["hand"]:
                     add_ai_alert("hand", warnings["hand"], vehicle_id)
 
@@ -959,7 +949,7 @@ def traffic_sign_monitor(vehicle_id=None):
     global warnings, video_writer, is_recording, active_video_stream, latest_sign_image_path, latest_sign_label
     try:
         active_video_stream = 'sign'
-        cap = cv2.VideoCapture("py/video_input/bien_bao.mp4")
+        cap = cv2.VideoCapture(asset_path("videos", "bien_bao.mp4"))
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         cap.set(cv2.CAP_PROP_FPS, 20)
@@ -1038,7 +1028,7 @@ def collision_monitor(vehicle_id=None):
     global warnings, video_writer, is_recording, active_video_stream, last_collision_warning
     try:
         active_video_stream = 'vacham'
-        cap = cv2.VideoCapture("py/video_input/lech_lan.mp4")
+        cap = cv2.VideoCapture(asset_path("videos", "lech_lan.mp4"))
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         cap.set(cv2.CAP_PROP_FPS, 20)
@@ -1277,18 +1267,7 @@ def generate_bot_response(message, vehicle_id=None):
         if plate_match:
             plate = plate_match.group(0).upper()
             try:
-                conn = pymysql.connect(host='localhost', port=3306, user='root', password='', database='giam_sat', cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
-                cur = conn.cursor()
-                cur.execute('''
-                    SELECT p.bien_so, t.ho_ten, td.ten_tuyen 
-                    FROM phuong_tien p
-                    LEFT JOIN tai_xe t ON p.id_tai_xe = t.id
-                    LEFT JOIN tuyen_duong td ON p.id_tuyen_duong = td.id
-                    WHERE p.bien_so = %s
-                ''', (plate,))
-                v = cur.fetchone()
-                cur.close()
-                conn.close()
+                v = chatbot_repository.find_vehicle_by_plate(plate)
                 if v:
                     return f"🚗 Xe {v['bien_so']} do tài xế {v['ho_ten']} lái, đang ở vị trí: {v['ten_tuyen']}"
                 else:
@@ -1363,19 +1342,7 @@ def call_llm_api(message, vehicle_id=None):
         # Lấy dữ liệu xe thật từ DB cho AI Context
         vehicles_data = []
         try:
-            conn = pymysql.connect(host='localhost', port=3306, user='root', password='', database='giam_sat', cursorclass=pymysql.cursors.DictCursor, charset='utf8mb4')
-            cur = conn.cursor()
-            cur.execute('''
-                SELECT p.bien_so as plate, t.ho_ten as driver, td.ten_tuyen as location, 
-                       p.trang_thai_hoat_dong as status, p.toc_do_hien_tai as speed
-                FROM phuong_tien p
-                LEFT JOIN tai_xe t ON p.id_tai_xe = t.id
-                LEFT JOIN tuyen_duong td ON p.id_tuyen_duong = td.id
-                LIMIT 10
-            ''')
-            vehicles_data = cur.fetchall()
-            cur.close()
-            conn.close()
+            vehicles_data = chatbot_repository.list_vehicle_context()
         except Exception as e:
             print(f"Error loading vehicles for LLM: {e}")
 

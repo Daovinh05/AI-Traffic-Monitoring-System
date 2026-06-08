@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from backend.app.legacy.loaders import load_models_module
+from backend.app.ai import runtime
 
 
 def generate_law_response_fallback(question):
-    return load_models_module().generate_law_response_fallback(question)
+    return runtime.generate_law_response_fallback(question)

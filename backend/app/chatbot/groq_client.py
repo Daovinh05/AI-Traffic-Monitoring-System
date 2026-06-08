@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from backend.app.legacy.loaders import load_models_module
+from backend.app.ai import runtime
 
 
 def call_llm_api(message, vehicle_id=None):
-    return load_models_module().call_llm_api(message, vehicle_id)
+    return runtime.call_llm_api(message, vehicle_id)
 
 
 def call_groq_law_advisor(question):
-    return load_models_module().call_groq_law_advisor(question)
+    return runtime.call_groq_law_advisor(question)

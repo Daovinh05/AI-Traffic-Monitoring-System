@@ -70,3 +70,66 @@ def validate_route_payload(data, require_path=False):
     if path and len(path) < 2:
         return "Tuyến đường cần ít nhất 2 điểm tọa độ"
     return None
+
+
+def create_route(data):
+    error = validate_route_payload(data, require_path=True)
+    if error:
+        return {"success": False, "message": error, "status": 400}
+
+    route_id = data["id"].strip()
+    if route_repository.route_exists(route_id):
+        return {
+            "success": False,
+            "message": "Mã tuyến đường đã tồn tại",
+            "status": 400,
+        }
+
+    route_repository.create_route(
+        route_id,
+        data["name"].strip(),
+        data.get("description", ""),
+        data.get("distance", 0),
+        data.get("duration", 0),
+        data.get("vehicles", ""),
+        data.get("color", "#4a9eff"),
+        data.get("status", "active"),
+        data["path"],
+    )
+    return {"success": True, "message": "Tạo tuyến đường thành công", "status": 200}
+
+
+def update_route(route_id, data):
+    error = validate_route_payload(data)
+    if error:
+        return {"success": False, "message": error, "status": 400}
+    if not route_repository.route_exists(route_id):
+        return {
+            "success": False,
+            "message": "Tuyến đường không tồn tại",
+            "status": 404,
+        }
+
+    route_repository.update_route(
+        route_id,
+        data["name"].strip(),
+        data.get("description", ""),
+        data.get("distance", 0),
+        data.get("duration", 0),
+        data.get("vehicles", ""),
+        data.get("color", "#4a9eff"),
+        data.get("status", "active"),
+        data.get("path") or [],
+    )
+    return {"success": True, "message": "Cập nhật tuyến đường thành công", "status": 200}
+
+
+def delete_route(route_id):
+    if not route_repository.route_exists(route_id):
+        return {
+            "success": False,
+            "message": "Tuyến đường không tồn tại",
+            "status": 404,
+        }
+    route_repository.delete_route(route_id)
+    return {"success": True, "message": "Xóa tuyến đường thành công", "status": 200}

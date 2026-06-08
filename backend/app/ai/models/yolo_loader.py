@@ -1,29 +1,29 @@
-"""YOLO model accessors for the legacy runtime."""
+"""YOLO model accessors."""
 
 from __future__ import annotations
 
-from backend.app.legacy.loaders import load_models_module
+from backend.app.ai import runtime
 
 
 def phone_model():
-    return load_models_module().phone_mau
+    return runtime.phone_mau
 
 
 def seatbelt_model():
-    return load_models_module().seatbelt_mau
+    return runtime.seatbelt_mau
 
 
 def traffic_sign_model():
-    return load_models_module().bienbao_model
+    return runtime.bienbao_model
 
 
 def vehicle_model():
-    return load_models_module().model_vehicle
+    return runtime.model_vehicle
 
 
 def lane_model():
-    return load_models_module().model_lane
+    return runtime.model_lane
 
 
 def obstacle_model():
-    return load_models_module().model_hole
+    return runtime.model_hole

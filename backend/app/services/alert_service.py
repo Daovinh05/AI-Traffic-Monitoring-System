@@ -62,3 +62,37 @@ def send_admin_warning(admin_id, alert_id, plate: str, content: str, priority: s
         "warning_id": warning_id,
         "status": 200,
     }
+
+
+def get_admin_warning_page(page: int, driver_id=None, per_page=None):
+    per_page = per_page or (15 if driver_id is None else 10)
+    total = alert_repository.count_admin_warnings(driver_id)
+    warnings = alert_repository.list_admin_warnings(
+        per_page,
+        (page - 1) * per_page,
+        driver_id,
+    )
+    return {
+        "warnings": [
+            {
+                "id": warning["id"],
+                "vehicle_plate": warning["vehicle_plate"],
+                "message": warning["message"],
+                "priority": warning["priority"],
+                "is_read": bool(warning["is_read"]),
+                "created_at": (
+                    warning["created_at"].isoformat()
+                    if warning["created_at"]
+                    else None
+                ),
+                "admin_name": warning["admin_name"],
+                "driver_name": warning["driver_name"],
+                "violationType": warning["violationType"] or "Không rõ",
+            }
+            for warning in warnings
+        ],
+        "page": page,
+        "per_page": per_page,
+        "total": total,
+        "total_pages": math.ceil(total / per_page) if per_page else 0,
+    }

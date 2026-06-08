@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
-from backend.app.legacy.loaders import load_models_module
+from backend.app.ai import runtime
 
 
 def stream(vehicle_id=None):
-    return load_models_module().driver_monitor(vehicle_id)
+    return runtime.driver_monitor(vehicle_id)
 
 
 def hand_detector():
-    return load_models_module().hand_detector
+    return runtime.get_hand_detector()
 
 
 def hand_tracking_class():
-    return load_models_module().HandAndArmTracking
+    return runtime.HandAndArmTracking

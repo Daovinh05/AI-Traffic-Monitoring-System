@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from backend.app.legacy.loaders import load_models_module
+from backend.app.ai import runtime
 
 
 def stream(vehicle_id=None):
-    return load_models_module().traffic_sign_monitor(vehicle_id)
+    return runtime.traffic_sign_monitor(vehicle_id)
 
 
 def latest_sign():
-    models = load_models_module()
+    models = runtime
     return {
         "path": models.latest_sign_image_path,
         "label": models.latest_sign_label,

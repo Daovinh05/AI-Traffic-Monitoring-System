@@ -20,6 +20,7 @@ class Settings:
     mysql_db: str
     port: int
     debug: bool
+    frontend_url: str
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -35,6 +36,7 @@ class Settings:
             mysql_db=os.environ.get("MYSQL_DB", "giam_sat"),
             port=int(os.environ.get("PORT", "5001")),
             debug=os.environ.get("FLASK_DEBUG", "false").lower() == "true",
+            frontend_url=os.environ.get("FRONTEND_URL", "http://localhost:3001").rstrip("/"),
         )
 
 

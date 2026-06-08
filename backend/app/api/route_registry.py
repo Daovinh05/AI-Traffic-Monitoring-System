@@ -1,4 +1,4 @@
-"""Helpers for grouping legacy routes during gradual migration."""
+"""Route declarations shared by feature modules."""
 
 from __future__ import annotations
 
@@ -7,14 +7,15 @@ from typing import Callable, Iterable
 
 
 @dataclass(frozen=True)
-class LegacyRoute:
+class AppRoute:
     rule: str
     endpoint: str
     view_name: str
     methods: tuple[str, ...] = ("GET",)
+    handler: Callable | None = None
 
 
-def iter_missing_routes(app, routes: Iterable[LegacyRoute]):
+def iter_missing_routes(app, routes: Iterable[AppRoute]):
     existing = {
         (rule.rule, rule.endpoint)
         for rule in app.url_map.iter_rules()
@@ -22,7 +23,3 @@ def iter_missing_routes(app, routes: Iterable[LegacyRoute]):
     for route in routes:
         if (route.rule, route.endpoint) not in existing:
             yield route
-
-
-def resolve_view(legacy_module, route: LegacyRoute) -> Callable:
-    return getattr(legacy_module, route.view_name)

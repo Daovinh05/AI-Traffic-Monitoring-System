@@ -1,13 +1,13 @@
-"""Dlib model accessors for the legacy runtime."""
+"""Dlib model accessors."""
 
 from __future__ import annotations
 
-from backend.app.legacy.loaders import load_models_module
+from backend.app.ai import runtime
 
 
 def face_detector():
-    return load_models_module().detector
+    return runtime.detector
 
 
 def shape_predictor():
-    return load_models_module().predictor
+    return runtime.predictor

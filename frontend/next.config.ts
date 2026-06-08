@@ -12,6 +12,32 @@ const nextConfig: NextConfig = {
         source: "/api/:path*",
         destination: `${backendUrl}/api/:path*`,
       },
+      {
+        source: "/recordings/:path*",
+        destination: `${backendUrl}/recordings/:path*`,
+      },
+      {
+        source: "/sound/:path*",
+        destination: `${backendUrl}/sound/:path*`,
+      },
+      ...[
+        "video_driver",
+        "video_traffic",
+        "video_sign",
+        "video_vacham",
+        "get_warnings",
+        "get_latest_sign_image",
+        "get_stats",
+        "set_mode",
+        "toggle_warning",
+        "start_recording",
+        "stop_recording",
+        "stop_camera",
+        "change_region_points",
+      ].map((path) => ({
+        source: `/${path}`,
+        destination: `${backendUrl}/${path}`,
+      })),
     ];
   },
 };

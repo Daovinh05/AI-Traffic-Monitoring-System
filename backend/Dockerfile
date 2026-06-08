@@ -20,6 +20,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 ENV PYTHONPATH=/app
+ENV SDL_AUDIODRIVER=dummy
+ENV PYGAME_HIDE_SUPPORT_PROMPT=1
 EXPOSE 5001
 
 CMD ["python", "-m", "backend.app.main"]

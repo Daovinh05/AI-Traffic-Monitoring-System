@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from backend.app.legacy.loaders import load_models_module
+from backend.app.ai import runtime
 
 
 def state():
-    models = load_models_module()
+    models = runtime
     return {
         "is_recording": models.is_recording,
         "recording_start_time": models.recording_start_time,

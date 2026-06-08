@@ -1,13 +1,13 @@
-"""MediaPipe accessors for the legacy runtime."""
+"""MediaPipe accessors."""
 
 from __future__ import annotations
 
-from backend.app.legacy.loaders import load_models_module
+from backend.app.ai import runtime
 
 
 def hand_detector():
-    return load_models_module().hand_detector
+    return runtime.get_hand_detector()
 
 
 def hand_tracking_class():
-    return load_models_module().HandAndArmTracking
+    return runtime.HandAndArmTracking

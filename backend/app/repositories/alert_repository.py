@@ -5,6 +5,51 @@ from __future__ import annotations
 from backend.app.db.database import get_db_connection
 
 
+def create_ai_alert(alert_type: str, message: str, level: str, vehicle_id=None):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            driver_id = None
+            plate = "N/A"
+            driver_name = "N/A"
+
+            if vehicle_id:
+                cur.execute(
+                    """
+                    SELECT p.bien_so, t.id AS id_tai_xe, t.ho_ten
+                    FROM phuong_tien p
+                    LEFT JOIN tai_xe t ON p.id_tai_xe = t.id
+                    WHERE p.id = %s
+                    """,
+                    (vehicle_id,),
+                )
+                vehicle = cur.fetchone()
+                if vehicle:
+                    plate = vehicle["bien_so"]
+                    driver_id = vehicle["id_tai_xe"]
+                    driver_name = vehicle["ho_ten"]
+
+            cur.execute(
+                """
+                INSERT INTO canh_bao_vi_pham
+                (loai_vi_pham, noi_dung_vi_pham, muc_do, thoi_gian_vi_pham,
+                 id_phuong_tien, id_tai_xe)
+                VALUES (%s, %s, %s, NOW(), %s, %s)
+                """,
+                (alert_type, message, level, vehicle_id, driver_id),
+            )
+            alert_id = cur.lastrowid
+
+        conn.commit()
+        return {
+            "id": alert_id,
+            "plate": plate,
+            "driver_name": driver_name,
+        }
+    finally:
+        conn.close()
+
+
 def count_driver_alerts(driver_id: int) -> int:
     conn = get_db_connection()
     try:
@@ -116,5 +161,61 @@ def create_admin_warning(admin_id, alert_id, plate: str, content: str, priority:
             warning_id = cur.lastrowid
         conn.commit()
         return warning_id
+    finally:
+        conn.close()
+
+
+def count_admin_warnings(driver_id=None):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            if driver_id is None:
+                cur.execute("SELECT COUNT(*) AS total FROM thong_bao_admin")
+            else:
+                cur.execute(
+                    """
+                    SELECT COUNT(*) AS total
+                    FROM thong_bao_admin w
+                    LEFT JOIN phuong_tien p ON w.bien_so_xe = p.bien_so
+                    WHERE p.id_tai_xe = %s
+                    """,
+                    (driver_id,),
+                )
+            return cur.fetchone()["total"]
+    finally:
+        conn.close()
+
+
+def list_admin_warnings(limit: int, offset: int, driver_id=None):
+    where = ""
+    params = []
+    if driver_id is not None:
+        where = "WHERE p.id_tai_xe = %s"
+        params.append(driver_id)
+    params.extend((limit, offset))
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT w.id, w.bien_so_xe AS vehicle_plate,
+                       w.noi_dung_thong_bao AS message,
+                       w.muc_do_uu_tien AS priority, w.da_doc AS is_read,
+                       w.ngay_tao AS created_at, u.ho_ten AS admin_name,
+                       t.ho_ten AS driver_name,
+                       c.noi_dung_vi_pham AS violationType
+                FROM thong_bao_admin w
+                LEFT JOIN phuong_tien p ON w.bien_so_xe = p.bien_so
+                LEFT JOIN tai_xe t ON p.id_tai_xe = t.id
+                LEFT JOIN nguoi_dung u ON w.id_admin = u.id
+                LEFT JOIN canh_bao_vi_pham c ON w.id_vi_pham = c.id
+                {where}
+                ORDER BY w.ngay_tao DESC
+                LIMIT %s OFFSET %s
+                """,
+                tuple(params),
+            )
+            return cur.fetchall()
     finally:
         conn.close()

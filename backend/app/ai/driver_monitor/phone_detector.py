@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from backend.app.legacy.loaders import load_models_module
+from backend.app.ai import runtime
 
 
 def model():
-    return load_models_module().phone_mau
+    return runtime.phone_mau

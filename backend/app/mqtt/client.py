@@ -1,6 +1,4 @@
-"""
-MQTT Client Module - AI Traffic Monitoring System
-Gửi cảnh báo vi phạm tài xế đến ESP32 qua giao thức MQTT.
+"""MQTT client for ESP32 traffic alerts.
 
 Hỗ trợ các loại cảnh báo:
 - eye: Nhắm mắt quá lâu (critical)

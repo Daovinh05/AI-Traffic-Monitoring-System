@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from backend.app.legacy.loaders import load_models_module
+from backend.app.ai import runtime
 
 
 def process_ai_chat_message(message, vehicle_id=None):
-    return load_models_module().process_ai_chat_message(message, vehicle_id)
+    return runtime.process_ai_chat_message(message, vehicle_id)
 
 
 def generate_bot_response(message, vehicle_id=None):
-    return load_models_module().generate_bot_response(message, vehicle_id)
+    return runtime.generate_bot_response(message, vehicle_id)

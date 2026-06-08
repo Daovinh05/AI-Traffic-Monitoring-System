@@ -29,3 +29,22 @@ def get_vehicle_page(page: int, per_page: int = 5):
         "page": page,
         "total_pages": total_pages,
     }
+
+
+def build_dashboard(page: int, per_page: int = 5):
+    vehicle_page = get_vehicle_page(page, per_page)
+    routes = dashboard_repository.list_routes()
+    for route in routes:
+        route["path"] = [
+            [float(point["latitude"]), float(point["longitude"])]
+            for point in dashboard_repository.list_route_path(route["code"])
+        ]
+
+    return {
+        **vehicle_page,
+        "stats": build_stats(),
+        "drivers": dashboard_repository.list_drivers(),
+        "routes": routes,
+        "warnings": dashboard_repository.list_recent_warnings(),
+        "admin_alerts": dashboard_repository.list_recent_admin_alerts(),
+    }

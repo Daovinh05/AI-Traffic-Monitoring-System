@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from backend.app.legacy.loaders import load_models_module
+from backend.app.ai import runtime
 
 
 def stream(vehicle_id=None):
-    return load_models_module().collision_monitor(vehicle_id)
+    return runtime.collision_monitor(vehicle_id)
