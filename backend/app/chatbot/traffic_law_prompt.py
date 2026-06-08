@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from backend.app.ai import runtime
-
 
 def generate_law_response_fallback(question):
+    from backend.app.ai import runtime
+
     return runtime.generate_law_response_fallback(question)
