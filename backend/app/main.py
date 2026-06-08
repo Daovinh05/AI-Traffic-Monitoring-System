@@ -69,7 +69,7 @@ def start_background_workers(flask_app: Flask = app) -> None:
     del flask_app
     global _workers_started
 
-    if os.environ.get("AI_ENABLED", "true").lower() != "true":
+    if os.environ.get("AI_ENABLED", "false").lower() != "true":
         print("[AI] Runtime disabled by AI_ENABLED=false")
         return
 
