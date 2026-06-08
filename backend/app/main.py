@@ -49,14 +49,8 @@ def create_app(app_settings: Settings = settings) -> Flask:
 app = create_app()
 
 
-def start_background_workers(flask_app: Flask = app) -> None:
-    """Start AI/video workers once for the current process."""
-    global _workers_started
-
-    with _workers_lock:
-        if _workers_started:
-            return
-
+def _run_ai_workers() -> None:
+    try:
         from backend.app.ai import runtime
 
         runtime.init_app()
@@ -65,7 +59,25 @@ def start_background_workers(flask_app: Flask = app) -> None:
             daemon=True,
             name="reset-temporary-counts",
         ).start()
+        print("[AI] Runtime initialized successfully")
+    except Exception as exc:
+        print(f"[AI] Runtime initialization failed; API remains available: {exc}")
+
+
+def start_background_workers(flask_app: Flask = app) -> None:
+    """Start AI/video workers once without blocking the HTTP API."""
+    del flask_app
+    global _workers_started
+
+    with _workers_lock:
+        if _workers_started:
+            return
         _workers_started = True
+        threading.Thread(
+            target=_run_ai_workers,
+            daemon=True,
+            name="ai-runtime-init",
+        ).start()
 
 
 def main() -> None:
