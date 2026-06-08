@@ -6,4 +6,4 @@ from backend.app.ai import runtime
 
 
 def model():
-    return runtime.phone_mau
+    return runtime.get_phone_model()

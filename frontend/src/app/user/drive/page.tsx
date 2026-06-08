@@ -8,6 +8,14 @@ type Mode = "driver" | "traffic" | "sign" | "vacham";
 
 type Warnings = Record<string, string>;
 
+type AiStatus = {
+  enabled: boolean;
+  ready: boolean;
+  loading: boolean;
+  message: string;
+  missing_assets: string[];
+};
+
 const modes: Array<{ id: Mode; label: string; stream: string }> = [
   { id: "driver", label: "Tài xế", stream: "/video_driver" },
   { id: "traffic", label: "Biển báo", stream: "/video_traffic" },
@@ -37,6 +45,7 @@ export default function UserDrivePage() {
   const [recording, setRecording] = useState(false);
   const [region, setRegion] = useState("single");
   const [stats, setStats] = useState<{ total_vehicles?: number; traffic_status?: { message?: string } }>({});
+  const [aiStatus, setAiStatus] = useState<AiStatus | null>(null);
 
   const stream = useMemo(() => {
     const base = modes.find((item) => item.id === mode)?.stream || "/video_driver";
@@ -46,6 +55,17 @@ export default function UserDrivePage() {
   useEffect(() => {
     async function poll() {
       try {
+        const statusResponse = await fetch("/api/ai-status", {
+          credentials: "include",
+        });
+        if (statusResponse.ok) {
+          const nextStatus = await statusResponse.json();
+          setAiStatus(nextStatus);
+          if (!nextStatus.ready) {
+            return;
+          }
+        }
+
         const [warningsResponse, statsResponse] = await Promise.all([
           fetch("/get_warnings", { credentials: "include" }),
           fetch("/get_stats", { credentials: "include" }),
@@ -130,9 +150,27 @@ export default function UserDrivePage() {
         ))}
       </nav>
 
+      {aiStatus && !aiStatus.ready && (
+        <section className="ai-runtime-status">
+          <strong>
+            {aiStatus.loading ? "AI đang khởi tạo" : "AI chưa sẵn sàng"}
+          </strong>
+          <span>{aiStatus.message}</span>
+          {aiStatus.missing_assets.length > 0 && (
+            <small>Thiếu: {aiStatus.missing_assets.join(", ")}</small>
+          )}
+        </section>
+      )}
+
       <section className="drive-layout">
         <div className="stream-panel">
-          {streamKey ? <img src={stream} alt={`Luồng ${mode}`} /> : <div className="stream-off">Camera đã dừng</div>}
+          {streamKey && aiStatus?.ready ? (
+            <img src={stream} alt={`Luồng ${mode}`} />
+          ) : (
+            <div className="stream-off">
+              {aiStatus?.loading ? "AI đang khởi tạo..." : "Camera AI chưa sẵn sàng"}
+            </div>
+          )}
           <div className="stream-actions">
             <button className={recording ? "danger" : ""} onClick={toggleRecording}>
               {recording ? "Dừng ghi" : "Ghi hình"}

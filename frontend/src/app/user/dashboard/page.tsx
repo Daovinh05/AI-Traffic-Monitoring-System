@@ -23,7 +23,10 @@ const apps = [
 
 export default function UserDashboardPage() {
   const [alert, setAlert] = useState<AiAlert | null>(null);
+  const [voiceText, setVoiceText] = useState("");
+  const [listening, setListening] = useState(false);
   const lastAlertId = useRef(0);
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     async function pollAlerts() {
@@ -57,9 +60,82 @@ export default function UserDashboardPage() {
     window.location.href = data.redirect || "/login";
   }
 
+  function speak(text: string) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "vi-VN";
+    utterance.rate = 1.5;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function startVoice() {
+    const Recognition =
+      (window as typeof window & { webkitSpeechRecognition?: new () => any })
+        .webkitSpeechRecognition;
+    if (!Recognition) {
+      setVoiceText("Trình duyệt không hỗ trợ nhận diện giọng nói.");
+      return;
+    }
+
+    const recognition = new Recognition();
+    recognition.lang = "vi-VN";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.onresult = (event: any) => {
+      const result = event.results[event.results.length - 1];
+      const transcript = result[0].transcript.toLowerCase().trim();
+      setVoiceText(`${result.isFinal ? "✓" : "🎤"} ${transcript}`);
+      if (!result.isFinal) return;
+
+      const command = [
+        ["điện thoại", apps[0]],
+        ["tin nhắn", apps[1]],
+        ["google maps", apps[2]],
+        ["youtube", apps[3]],
+        ["lái xe", apps[4]],
+        ["tư vấn luật", apps[5]],
+        ["quản lý xe", apps[6]],
+        ["lịch sử", apps[7]],
+      ].find(([keyword]) => transcript.includes(String(keyword)));
+
+      if (command) {
+        const app = command[1] as (typeof apps)[number];
+        speak(`Đang mở ${app.label}`);
+        if (app.internal) {
+          window.location.href = app.href;
+        } else {
+          window.open(app.href, "_blank", "noopener,noreferrer");
+        }
+      }
+    };
+    recognition.onerror = (event: any) => {
+      setVoiceText(`Lỗi microphone: ${event.error}`);
+      setListening(false);
+    };
+    recognition.onend = () => setListening(false);
+    recognitionRef.current = recognition;
+    recognition.start();
+    setListening(true);
+    setVoiceText("Đang lắng nghe...");
+  }
+
+  function stopVoice() {
+    recognitionRef.current?.stop();
+    setListening(false);
+    setVoiceText("Đã dừng lắng nghe.");
+  }
+
   return (
     <main className="user-home">
       <button className="logout-button" onClick={logout}>Đăng xuất</button>
+      <div className="voice-controls">
+        {!listening ? (
+          <button onClick={startVoice}>Bật giọng nói</button>
+        ) : (
+          <button className="stop" onClick={stopVoice}>Tắt giọng nói</button>
+        )}
+        <span>{voiceText}</span>
+      </div>
 
       {alert && (
         <section className={`ai-alert ${alert.level}`}>
@@ -73,7 +149,6 @@ export default function UserDashboardPage() {
           const content = (
             <>
               <img src={`/legacy/${app.image}`} alt={app.label} />
-              <span>{app.label}</span>
             </>
           );
           return app.internal ? (

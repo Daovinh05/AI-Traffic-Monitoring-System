@@ -148,6 +148,12 @@ def api_get_ai_alerts_history():
         return jsonify(status="success", alerts=runtime.ai_alerts_queue[-20:])
 
 
+def api_ai_status():
+    from backend.app.ai import status
+
+    return jsonify(status.snapshot())
+
+
 def api_process_voice_command():
     try:
         data = request.get_json(silent=True) or {}
@@ -267,6 +273,12 @@ ROUTES = (
         "api_get_ai_alerts_history",
         "api_get_ai_alerts_history",
         handler=api_get_ai_alerts_history,
+    ),
+    AppRoute(
+        "/api/ai-status",
+        "api_ai_status",
+        "api_ai_status",
+        handler=api_ai_status,
     ),
     AppRoute(
         "/api/process_voice_command",

@@ -63,3 +63,24 @@ docker compose config
 
 Stream AI cần model trong `backend/assets/weights`, video trong
 `backend/assets/videos`, Dlib landmark file và quyền camera/audio phù hợp.
+
+## Bat AI tren VPS
+
+Model `.pt` khong duoc luu trong Git. Dong bo asset tu may co day du model:
+
+```bash
+./scripts/check-ai-assets.sh
+./scripts/sync-ai-assets.sh vinh@103.195.5.126:~/project/AI-Traffic-Monitoring-System
+```
+
+Tren VPS, kiem tra asset va bat AI:
+
+```bash
+./scripts/check-ai-assets.sh
+printf 'AI_ENABLED=true\n' > .env
+docker compose up -d --build --force-recreate backend frontend
+curl http://localhost:5001/api/ai-status
+```
+
+AI runtime nap model theo tung luong video thay vi nap tat ca khi backend khoi
+dong. `/api/ai-status` tra ve trang thai va danh sach asset con thieu.

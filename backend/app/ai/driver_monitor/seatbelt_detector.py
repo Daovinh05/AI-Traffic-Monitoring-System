@@ -6,4 +6,4 @@ from backend.app.ai import runtime
 
 
 def model():
-    return runtime.seatbelt_mau
+    return runtime.get_seatbelt_model()

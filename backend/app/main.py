@@ -9,6 +9,7 @@ from pathlib import Path
 from flask import Flask
 
 from backend.app.api import register_app_routes, validate_routes
+from backend.app.ai import status as ai_status
 from backend.app.core.config import Settings, apply_to_flask, settings
 from backend.app.extensions import init_extensions
 
@@ -51,6 +52,7 @@ app = create_app()
 
 def _run_ai_workers() -> None:
     try:
+        ai_status.update(loading=True, message="AI runtime is loading")
         from backend.app.ai import runtime
 
         runtime.init_app()
@@ -59,8 +61,21 @@ def _run_ai_workers() -> None:
             daemon=True,
             name="reset-temporary-counts",
         ).start()
+        ai_status.update(
+            enabled=True,
+            ready=True,
+            loading=False,
+            message="AI runtime is ready",
+            missing_assets=[],
+        )
         print("[AI] Runtime initialized successfully")
     except Exception as exc:
+        ai_status.update(
+            enabled=True,
+            ready=False,
+            loading=False,
+            message=str(exc),
+        )
         print(f"[AI] Runtime initialization failed; API remains available: {exc}")
 
 
@@ -70,7 +85,26 @@ def start_background_workers(flask_app: Flask = app) -> None:
     global _workers_started
 
     if os.environ.get("AI_ENABLED", "false").lower() != "true":
+        ai_status.update(
+            enabled=False,
+            ready=False,
+            loading=False,
+            message="AI runtime is disabled by AI_ENABLED=false",
+            missing_assets=ai_status.missing_assets(),
+        )
         print("[AI] Runtime disabled by AI_ENABLED=false")
+        return
+
+    missing = ai_status.missing_assets()
+    if missing:
+        ai_status.update(
+            enabled=True,
+            ready=False,
+            loading=False,
+            message="AI assets are incomplete",
+            missing_assets=missing,
+        )
+        print(f"[AI] Missing required assets: {', '.join(missing)}")
         return
 
     with _workers_lock:

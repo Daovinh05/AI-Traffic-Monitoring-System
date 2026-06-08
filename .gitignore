@@ -17,5 +17,7 @@ __pycache__/
 data/
 dataset/
 
-# Environment variables (CHỨA API KEYS - KHÔNG COMMIT!)
+# Environment variables
 .env
+.env.*
+!.env.example

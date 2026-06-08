@@ -78,7 +78,7 @@ def add_ai_alert(alert_type, message, vehicle_id=None):
 # ========================================
 latest_warning = ""
 lock = threading.Lock()
-pygame.init()
+pygame.mixer.init()
 
 # Sound files
 SOUND_DIR = asset_path("sounds")
@@ -138,14 +138,85 @@ if not os.path.exists('recordings'):
 # ========================================
 # AI MODELS
 # ========================================
-detector = dlib.get_frontal_face_detector()
-predictor = dlib.shape_predictor(asset_path("shape_predictor_68_face_landmarks.dat"))
-phone_mau = YOLO(asset_path("weights", "yolov8n.pt"))
-seatbelt_mau = YOLO(asset_path("weights", "day_an_toan.pt"))
-bienbao_model = YOLO(asset_path("weights", "bien_bao.pt"))
-model_vehicle = YOLO(asset_path("weights", "yolov8n.pt"))
-model_lane = YOLO(asset_path("weights", "lech_lan.pt"))
-model_hole = YOLO(asset_path("weights", "vat_can.pt"))
+detector = None
+predictor = None
+phone_mau = None
+seatbelt_mau = None
+bienbao_model = None
+model_vehicle = None
+model_lane = None
+model_hole = None
+model_lock = threading.Lock()
+
+
+def _load_once(name, factory):
+    global detector, predictor, phone_mau, seatbelt_mau
+    global bienbao_model, model_vehicle, model_lane, model_hole
+
+    value = globals()[name]
+    if value is None:
+        with model_lock:
+            value = globals()[name]
+            if value is None:
+                print(f"[AI] Loading model: {name}")
+                value = factory()
+                globals()[name] = value
+    return value
+
+
+def get_face_detector():
+    return _load_once("detector", dlib.get_frontal_face_detector)
+
+
+def get_shape_predictor():
+    return _load_once(
+        "predictor",
+        lambda: dlib.shape_predictor(
+            asset_path("shape_predictor_68_face_landmarks.dat")
+        ),
+    )
+
+
+def get_phone_model():
+    return _load_once(
+        "phone_mau",
+        lambda: YOLO(asset_path("weights", "yolov8n.pt")),
+    )
+
+
+def get_seatbelt_model():
+    return _load_once(
+        "seatbelt_mau",
+        lambda: YOLO(asset_path("weights", "day_an_toan.pt")),
+    )
+
+
+def get_traffic_sign_model():
+    return _load_once(
+        "bienbao_model",
+        lambda: YOLO(asset_path("weights", "bien_bao.pt")),
+    )
+
+
+def get_vehicle_model():
+    return _load_once(
+        "model_vehicle",
+        lambda: YOLO(asset_path("weights", "yolov8n.pt")),
+    )
+
+
+def get_lane_model():
+    return _load_once(
+        "model_lane",
+        lambda: YOLO(asset_path("weights", "lech_lan.pt")),
+    )
+
+
+def get_obstacle_model():
+    return _load_once(
+        "model_hole",
+        lambda: YOLO(asset_path("weights", "vat_can.pt")),
+    )
 
 # ========================================
 # FACE LANDMARK CONFIG
@@ -715,17 +786,15 @@ def get_region_points(region_type):
 
 def init_app():
     global counter, video_capture, current_region_type
-    object_classes = [2, 3, 5, 7]
 
     region_data = get_region_points(current_region_type)
-    region_points = region_data['regions']
     video_source = region_data['video_source']
 
     video_capture = cv2.VideoCapture(video_source)
 
     if not video_capture.isOpened():
         raise Exception("Không thể mở video")
-    counter = MultipleObjectCounter(regions=region_points, classes=object_classes)
+    counter = None
 
 
 # ========================================
@@ -735,8 +804,22 @@ def driver_monitor(vehicle_id=None):
     """Generator function for driver monitoring video stream"""
     global latest_warning, warnings, video_writer, is_recording, active_video_stream, warning_states
     try:
+        face_detector = get_face_detector()
+        landmark_predictor = get_shape_predictor()
+        phone_model = get_phone_model()
+        seatbelt_model = get_seatbelt_model()
         active_video_stream = 'driver'
-        cap = cv2.VideoCapture(0)
+        configured_source = os.environ.get("DRIVER_VIDEO_SOURCE", "0")
+        video_source = (
+            int(configured_source)
+            if configured_source.isdigit()
+            else configured_source
+        )
+        cap = cv2.VideoCapture(video_source)
+        if not cap.isOpened() and video_source == 0:
+            fallback_source = asset_path("videos", "ca_bin.mp4")
+            print(f"[AI] Camera 0 unavailable, using {fallback_source}")
+            cap = cv2.VideoCapture(fallback_source)
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         cap.set(cv2.CAP_PROP_FPS, 20)
@@ -753,7 +836,7 @@ def driver_monitor(vehicle_id=None):
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
             try:
-                faces = detector(gray)
+                faces = face_detector(gray)
             except:
                 faces = []
 
@@ -765,7 +848,7 @@ def driver_monitor(vehicle_id=None):
             warnings["hand"] = ""
 
             for face in faces:
-                shape = predictor(gray, face)
+                shape = landmark_predictor(gray, face)
                 points = [(shape.part(i).x, shape.part(i).y) for i in range(68)]
 
                 for idx in left_eye_indexes + right_eye_indexes + mouth_indexes:
@@ -878,12 +961,12 @@ def driver_monitor(vehicle_id=None):
 
             # Phone detection
             if warning_states["phone"]:
-                results = phone_mau(frame)
+                results = phone_model(frame)
                 for result in results:
                     for box in result.boxes.data:
                         x1, y1, x2, y2, conf, cls = box
                         x1, y1, x2, y2 = map(int, [x1, y1, x2, y2])
-                        label = phone_mau.names[int(cls)]
+                        label = phone_model.names[int(cls)]
                         if "phone" in label.lower() and conf > 0.5:
                             if can_play_warning("phone"):
                                 phone_baodong.play()
@@ -897,7 +980,7 @@ def driver_monitor(vehicle_id=None):
             # Seatbelt detection
             if warning_states["seatbelt"]:
                 seatbelt_detected = False
-                seatbelt_results = seatbelt_mau.predict(source=frame, stream=False)
+                seatbelt_results = seatbelt_model.predict(source=frame, stream=False)
                 for result in seatbelt_results:
                     for box in result.boxes.data:
                         x1, y1, x2, y2, conf, cls = box
@@ -948,6 +1031,7 @@ def traffic_sign_monitor(vehicle_id=None):
     """Generator function for traffic sign monitoring video stream"""
     global warnings, video_writer, is_recording, active_video_stream, latest_sign_image_path, latest_sign_label
     try:
+        traffic_sign_model = get_traffic_sign_model()
         active_video_stream = 'sign'
         cap = cv2.VideoCapture(asset_path("videos", "bien_bao.mp4"))
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
@@ -961,7 +1045,7 @@ def traffic_sign_monitor(vehicle_id=None):
             if not ret:
                 print("Failed to grab frame from traffic sign camera")
                 break
-            results = bienbao_model(frame, imgsz=640, conf=0.4)
+            results = traffic_sign_model(frame, imgsz=640, conf=0.4)
             boxes = results[0].boxes
             annotated = results[0].plot()
             num_detections = len(boxes) if boxes is not None else 0
@@ -976,7 +1060,7 @@ def traffic_sign_monitor(vehicle_id=None):
             if boxes is not None:
                 for i in range(len(boxes)):
                     cls_id = int(boxes.cls[i])
-                    label = bienbao_model.names[cls_id]
+                    label = traffic_sign_model.names[cls_id]
                     x1, y1, x2, y2 = map(int, boxes.xyxy[i])
 
                     if "speed" in label.lower():
@@ -1027,6 +1111,21 @@ def collision_monitor(vehicle_id=None):
     """Generator function for collision monitoring video stream"""
     global warnings, video_writer, is_recording, active_video_stream, last_collision_warning
     try:
+        obstacle_model = (
+            get_obstacle_model()
+            if warning_states.get("obstacle", True)
+            else None
+        )
+        vehicle_model = (
+            get_vehicle_model()
+            if warning_states.get("collision", True)
+            else None
+        )
+        lane_model = (
+            get_lane_model()
+            if warning_states.get("lane", True)
+            else None
+        )
         active_video_stream = 'vacham'
         cap = cv2.VideoCapture(asset_path("videos", "lech_lan.mp4"))
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
@@ -1063,7 +1162,7 @@ def collision_monitor(vehicle_id=None):
 
             # Obstacle detection
             if need_obstacle_detection:
-                results_hole = model_hole(frame, verbose=False)
+                results_hole = obstacle_model(frame, verbose=False)
                 obstacle_detected = False
                 obstacle_count = 0
                 max_conf = 0.0
@@ -1117,14 +1216,14 @@ def collision_monitor(vehicle_id=None):
 
             # Vehicle detection
             if need_collision_detection:
-                results_v = model_vehicle(frame)[0]
+                results_v = vehicle_model(frame)[0]
                 supported_labels = {'car', 'truck', 'bus', 'motorbike', 'person'}
 
                 for box in results_v.boxes:
                     cls = int(box.cls[0])
                     conf = float(box.conf[0])
                     x1, y1, x2, y2 = map(int, box.xyxy[0])
-                    label = model_vehicle.names[cls]
+                    label = vehicle_model.names[cls]
 
                     if label not in supported_labels:
                         continue
@@ -1164,7 +1263,7 @@ def collision_monitor(vehicle_id=None):
 
             # Lane detection
             if need_lane_detection:
-                results_l = model_lane(frame)[0]
+                results_l = lane_model(frame)[0]
                 frame = draw_lane_points(frame, results_l, width)
                 frame, classic_lines = draw_lane_classic(frame)
                 frame = detect_lane_deviation_combined(results_l, frame, width, classic_lines)
@@ -1215,6 +1314,13 @@ def traffic_monitor():
                 print("Failed to grab frame, resetting video...")
                 cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
                 continue
+
+            if counter is None:
+                region_data = get_region_points(current_region_type)
+                counter = MultipleObjectCounter(
+                    regions=region_data["regions"],
+                    classes=[2, 3, 5, 7],
+                )
 
             if counter:
                 try:
