@@ -74,6 +74,8 @@ def check_auth():
             "username": session.get("username"),
             "full_name": session.get("full_name"),
             "role": role,
+            "driver_id": session.get("tai_xe_id"),
+            "vehicle_id": session.get("vehicle_id"),
         },
         redirect="/dashboard" if role == "admin" else "/trang_chu",
     )

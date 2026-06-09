@@ -33,7 +33,12 @@ def create_app(app_settings: Settings = settings) -> Flask:
     """Create the modular Flask API application."""
     _configure_runtime_paths()
 
-    app = Flask(__name__, static_folder=None)
+    app = Flask(
+        __name__,
+        static_folder=str(ROOT_DIR / "frontend" / "public" / "legacy"),
+        static_url_path="/static",
+        template_folder=str(ROOT_DIR / "frontend" / "legacy-templates"),
+    )
     apply_to_flask(app, app_settings)
     init_extensions(app)
 

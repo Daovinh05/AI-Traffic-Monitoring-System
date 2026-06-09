@@ -10,17 +10,6 @@ type AlertState = {
   type: AlertType;
 } | null;
 
-async function readJsonResponse(response: Response) {
-  const body = await response.text();
-  try {
-    return JSON.parse(body);
-  } catch {
-    throw new Error(
-      `Backend trả về HTTP ${response.status}: ${body || response.statusText}`,
-    );
-  }
-}
-
 export default function LoginPage() {
   const [alert, setAlert] = useState<AlertState>(null);
   const [loading, setLoading] = useState(false);
@@ -42,7 +31,7 @@ export default function LoginPage() {
       const response = await fetch("/api/check-auth", {
         credentials: "include",
       });
-      const data = await readJsonResponse(response);
+      const data = await response.json();
       if (data.authenticated) {
         window.location.href = normalizeRedirect(data.redirect);
       }
@@ -69,7 +58,7 @@ export default function LoginPage() {
         body: JSON.stringify({ username, password, remember }),
       });
 
-      const data = await readJsonResponse(response);
+      const data = await response.json();
       if (data.success) {
         setAlert({ message: data.message, type: "success" });
         window.setTimeout(() => {
@@ -80,13 +69,7 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error("Login error:", error);
-      setAlert({
-        message:
-          error instanceof Error
-            ? error.message
-            : "Có lỗi xảy ra. Vui lòng thử lại sau.",
-        type: "error",
-      });
+      setAlert({ message: "Có lỗi xảy ra. Vui lòng thử lại sau.", type: "error" });
     } finally {
       setLoading(false);
     }

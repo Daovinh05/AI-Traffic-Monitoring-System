@@ -20,6 +20,23 @@ const nextConfig: NextConfig = {
         source: "/sound/:path*",
         destination: `${backendUrl}/sound/:path*`,
       },
+      {
+        source: "/static/:path*",
+        destination: "/legacy/:path*",
+      },
+      ...[
+        "dashboard",
+        "trang_chu",
+        "lai_xe",
+        "lai_xe_v2",
+        "lich_su",
+        "tu_van",
+        "tu_van.html",
+        "traffic_bus",
+      ].map((path) => ({
+        source: `/${path}`,
+        destination: `${backendUrl}/${path}`,
+      })),
       ...[
         "video_driver",
         "video_traffic",

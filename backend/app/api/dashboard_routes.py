@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from functools import wraps
-from flask import jsonify, redirect, request, session, url_for
+from flask import jsonify, redirect, render_template, request, session, url_for
 
 from backend.app.core.config import settings
 from backend.app.services import dashboard_service
@@ -33,7 +34,20 @@ def _user_context():
 
 @login_required
 def dashboard():
-    return redirect(f"{settings.frontend_url}/admin/dashboard")
+    if session.get("role") != "admin":
+        return redirect(f"{settings.frontend_url}/user/dashboard")
+    try:
+        page = request.args.get("page", 1, type=int)
+        context = dashboard_service.build_dashboard(page)
+        return render_template(
+            "Dashboard.html",
+            **context,
+            user=session.get("username"),
+            user_role=session.get("role"),
+            now=datetime.now().strftime("%H:%M %d/%m/%Y"),
+        )
+    except Exception as exc:
+        return f"Lỗi tải dashboard: {exc}", 500
 
 
 @login_required
@@ -48,38 +62,43 @@ def dashboard_data():
 
 
 @login_required
+def legacy_admin_dashboard():
+    return dashboard()
+
+
+@login_required
 def trang_chu_page():
-    return redirect(f"{settings.frontend_url}/user/dashboard")
+    return render_template("trang_chu.html", **_user_context())
 
 
 @login_required
 def tu_van_page():
-    return redirect(f"{settings.frontend_url}/user/chatbot")
+    return render_template("tu_van.html", **_user_context())
 
 
 @login_required
 def tu_van_html():
-    return redirect(f"{settings.frontend_url}/user/chatbot")
+    return tu_van_page()
 
 
 @login_required
 def lai_xe_page():
-    return redirect(f"{settings.frontend_url}/user/drive")
+    return render_template("lai_xe.html", **_user_context())
 
 
 @login_required
 def lai_xe_v2_page():
-    return redirect(f"{settings.frontend_url}/user/drive")
+    return lai_xe_page()
 
 
 @login_required
 def lich_su_page():
-    return redirect(f"{settings.frontend_url}/user/history")
+    return render_template("lich_su.html", **_user_context())
 
 
 @login_required
 def traffic_bus():
-    return redirect(f"{settings.frontend_url}/admin/dashboard")
+    return dashboard()
 
 
 ROUTES = (
@@ -89,6 +108,12 @@ ROUTES = (
         "dashboard_data",
         "dashboard_data",
         handler=dashboard_data,
+    ),
+    AppRoute(
+        "/legacy/admin-dashboard",
+        "legacy_admin_dashboard",
+        "legacy_admin_dashboard",
+        handler=legacy_admin_dashboard,
     ),
     AppRoute(
         "/trang_chu",
