@@ -32,15 +32,24 @@ không còn iframe hoặc Flask template. Thư mục `py/` và compatibility run
 
 ## Chạy local
 
+Mô hình chạy local không dùng Docker:
+
+- MySQL chạy trực tiếp trên máy ở cổng `3306`.
+- Backend chạy trong `.venv` ở cổng `5001`.
+- Frontend chạy bằng npm ở cổng `3001`.
+
+Tạo database lần đầu:
+
 ```bash
-docker compose up mysql
+mysql -uroot -p -e "CREATE DATABASE IF NOT EXISTS giam_sat CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -uroot -p giam_sat < database_schema.sql
 ```
 
 Backend:
 
 ```bash
 source .venv/bin/activate
-SDL_AUDIODRIVER=dummy MQTT_ENABLED=false python -m backend.app.main
+python -m backend.app.main
 ```
 
 Frontend:
@@ -52,6 +61,24 @@ npm run dev
 ```
 
 Mở `http://localhost:3001/login`.
+
+Backend tự đọc `backend/.env`. Khi MySQL có mật khẩu, sửa:
+
+```dotenv
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_USER=root
+MYSQL_PASSWORD=mat_khau_mysql
+MYSQL_DB=giam_sat
+AI_ENABLED=true
+MQTT_ENABLED=false
+```
+
+Nếu máy chạy backend không có thiết bị phát âm thanh:
+
+```bash
+SDL_AUDIODRIVER=dummy python -m backend.app.main
+```
 
 ## Kiểm tra
 

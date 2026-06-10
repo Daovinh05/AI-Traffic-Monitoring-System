@@ -21,8 +21,15 @@ api -> ai/runtime -> services/repositories/mqtt
 - `ai/runtime.py`: model, stream, warning state và traffic counter.
 - `assets/`: weights, videos, sounds, pictures và Dlib landmark.
 
-Backend không render template. Các page URL cũ redirect sang Next.js qua
-`FRONTEND_URL`.
+Backend render các giao diện cũ trong `frontend/legacy-templates` và cung cấp
+API, AI runtime cho frontend Next.js.
+
+Chạy bằng `.venv` và MySQL local:
+
+```bash
+source .venv/bin/activate
+python -m backend.app.main
+```
 
 Trong môi trường không có audio device:
 

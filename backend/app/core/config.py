@@ -5,6 +5,14 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from datetime import timedelta
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+
+ROOT_DIR = Path(__file__).resolve().parents[3]
+load_dotenv(ROOT_DIR / "backend" / ".env")
+load_dotenv(ROOT_DIR / ".env")
 
 
 @dataclass(frozen=True)
