@@ -1,7 +1,5 @@
-import { LegacyFrame } from "@/components/LegacyFrame";
+import { redirect } from "next/navigation";
 
 export default function AdminDashboardPage() {
-  return (
-    <LegacyFrame title="AI Traffic Monitoring Admin Dashboard" path="/dashboard" />
-  );
+  redirect("/dashboard");
 }

@@ -84,7 +84,7 @@ export default function LoginPage() {
 
   function normalizeRedirect(redirect: string) {
     if (redirect === "/dashboard") {
-      return "/admin/dashboard";
+      return "/dashboard";
     }
     if (redirect === "/trang_chu") {
       return "/user/dashboard";
