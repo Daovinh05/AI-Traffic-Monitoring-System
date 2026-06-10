@@ -42,3 +42,16 @@ FRONTEND_URL=http://localhost:3001
 ```
 
 Nếu muốn bật AI runtime, đảm bảo có đủ file trong `backend/assets/weights`, `backend/assets/videos`, `backend/assets/sounds` và đặt `AI_ENABLED=true`.
+
+
+brew services start mosquitto
+.venv/bin/python -m backend.app.main
+
+.venv/bin/python -m backend.app.main
+Terminal khác chạy frontend:
+
+cd frontend
+npm run dev
+MySQL local cổng 3306 hiện đang tắt. Hãy bật MySQL trước, sau đó mở:
+
+http://localhost:3001/login
