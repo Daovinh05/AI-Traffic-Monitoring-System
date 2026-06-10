@@ -30,7 +30,7 @@ const char* WIFI_PASSWORD = "123456789";
 // ========================================
 // CẤU HÌNH MQTT - PHẢI KHỚP VỚI FILE .env
 // ========================================
-const char* MQTT_SERVER = "192.168.0.131";  // IP máy tính chạy Mosquitto
+const char* MQTT_SERVER = "192.168.0.103";  // IP máy tính chạy Mosquitto
 const int   MQTT_PORT = 1883;
 const char* MQTT_TOPIC = "traffic/alert";
 const char* MQTT_STATUS_TOPIC = "traffic/esp32/status";

@@ -15,10 +15,13 @@ import threading
 import time
 import os
 from datetime import datetime
+from pathlib import Path
 from dotenv import load_dotenv
 
-# Đảm bảo load cấu hình từ .env
-load_dotenv()
+# Luôn đọc cấu hình backend trước khi khởi tạo MQTT.
+ROOT_DIR = Path(__file__).resolve().parents[3]
+load_dotenv(ROOT_DIR / "backend" / ".env")
+load_dotenv(ROOT_DIR / ".env")
 
 # Flag để kiểm tra paho-mqtt đã cài chưa
 _mqtt_available = False
