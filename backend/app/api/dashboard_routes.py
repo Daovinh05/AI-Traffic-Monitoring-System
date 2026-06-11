@@ -4,12 +4,50 @@ from __future__ import annotations
 
 from datetime import datetime
 from functools import wraps
+from pathlib import Path
+from uuid import uuid4
+
 from flask import jsonify, redirect, render_template, request, session, url_for
+from pymysql.err import IntegrityError
+from werkzeug.utils import secure_filename
 
 from backend.app.core.config import settings
 from backend.app.services import dashboard_service
 
 from .route_registry import AppRoute
+
+
+VEHICLE_IMAGE_DIR = (
+    Path(__file__).resolve().parents[3] / "frontend" / "public" / "legacy" / "images"
+)
+ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+MAX_VEHICLE_IMAGE_SIZE = 5 * 1024 * 1024
+
+
+def _save_vehicle_image(image):
+    if not image or not image.filename:
+        return None, None
+
+    extension = Path(secure_filename(image.filename)).suffix.lower()
+    if extension not in ALLOWED_IMAGE_EXTENSIONS:
+        raise ValueError("Ảnh xe chỉ hỗ trợ JPG, PNG hoặc WebP")
+
+    image.stream.seek(0, 2)
+    image_size = image.stream.tell()
+    image.stream.seek(0)
+    if image_size > MAX_VEHICLE_IMAGE_SIZE:
+        raise ValueError("Ảnh xe không được vượt quá 5 MB")
+
+    VEHICLE_IMAGE_DIR.mkdir(parents=True, exist_ok=True)
+    image_filename = f"vehicle-{uuid4().hex}{extension}"
+    saved_image = VEHICLE_IMAGE_DIR / image_filename
+    image.save(saved_image)
+    return image_filename, saved_image
+
+
+def _delete_uploaded_vehicle_image(filename):
+    if filename and Path(filename).name.startswith("vehicle-"):
+        (VEHICLE_IMAGE_DIR / Path(filename).name).unlink(missing_ok=True)
 
 
 def login_required(view):
@@ -62,6 +100,110 @@ def dashboard_data():
 
 
 @login_required
+def create_vehicle():
+    if session.get("role") != "admin":
+        return jsonify(success=False, message="Không có quyền truy cập"), 403
+
+    image = request.files.get("image")
+    image_filename = None
+    saved_image = None
+
+    try:
+        image_filename, saved_image = _save_vehicle_image(image)
+
+        vehicle = dashboard_service.create_vehicle(request.form, image_filename)
+        return jsonify(
+            success=True,
+            message="Đã thêm xe mới thành công",
+            vehicle=vehicle,
+        ), 201
+    except ValueError as exc:
+        if saved_image:
+            saved_image.unlink(missing_ok=True)
+        return jsonify(success=False, message=str(exc)), 400
+    except IntegrityError:
+        if saved_image:
+            saved_image.unlink(missing_ok=True)
+        return jsonify(
+            success=False,
+            message="Biển số xe đã tồn tại trong hệ thống",
+        ), 409
+    except Exception as exc:
+        if saved_image:
+            saved_image.unlink(missing_ok=True)
+        return jsonify(success=False, message=f"Không thể thêm xe: {exc}"), 500
+
+
+@login_required
+def get_vehicle(vehicle_id):
+    if session.get("role") != "admin":
+        return jsonify(success=False, message="Không có quyền truy cập"), 403
+    try:
+        vehicle = dashboard_service.get_vehicle(vehicle_id)
+        if not vehicle:
+            return jsonify(success=False, message="Phương tiện không tồn tại"), 404
+        return jsonify(success=True, vehicle=vehicle)
+    except Exception as exc:
+        return jsonify(success=False, message=f"Không thể tải thông tin xe: {exc}"), 500
+
+
+@login_required
+def update_vehicle(vehicle_id):
+    if session.get("role") != "admin":
+        return jsonify(success=False, message="Không có quyền truy cập"), 403
+
+    image_filename = None
+    saved_image = None
+    current = dashboard_service.get_vehicle(vehicle_id)
+    if not current:
+        return jsonify(success=False, message="Phương tiện không tồn tại"), 404
+
+    try:
+        image_filename, saved_image = _save_vehicle_image(request.files.get("image"))
+        vehicle = dashboard_service.update_vehicle(
+            vehicle_id,
+            request.form,
+            image_filename,
+        )
+        if image_filename:
+            _delete_uploaded_vehicle_image(current["image"])
+        return jsonify(
+            success=True,
+            message="Đã cập nhật phương tiện",
+            vehicle=vehicle,
+        )
+    except ValueError as exc:
+        if saved_image:
+            saved_image.unlink(missing_ok=True)
+        return jsonify(success=False, message=str(exc)), 400
+    except IntegrityError:
+        if saved_image:
+            saved_image.unlink(missing_ok=True)
+        return jsonify(
+            success=False,
+            message="Biển số xe đã tồn tại trong hệ thống",
+        ), 409
+    except Exception as exc:
+        if saved_image:
+            saved_image.unlink(missing_ok=True)
+        return jsonify(success=False, message=f"Không thể cập nhật xe: {exc}"), 500
+
+
+@login_required
+def delete_vehicle(vehicle_id):
+    if session.get("role") != "admin":
+        return jsonify(success=False, message="Không có quyền truy cập"), 403
+    try:
+        vehicle = dashboard_service.delete_vehicle(vehicle_id)
+        if not vehicle:
+            return jsonify(success=False, message="Phương tiện không tồn tại"), 404
+        _delete_uploaded_vehicle_image(vehicle["image"])
+        return jsonify(success=True, message="Đã xóa phương tiện")
+    except Exception as exc:
+        return jsonify(success=False, message=f"Không thể xóa xe: {exc}"), 500
+
+
+@login_required
 def legacy_admin_dashboard():
     return dashboard()
 
@@ -108,6 +250,33 @@ ROUTES = (
         "dashboard_data",
         "dashboard_data",
         handler=dashboard_data,
+    ),
+    AppRoute(
+        "/api/vehicles",
+        "create_vehicle",
+        "create_vehicle",
+        ("POST",),
+        handler=create_vehicle,
+    ),
+    AppRoute(
+        "/api/vehicles/<int:vehicle_id>",
+        "get_vehicle",
+        "get_vehicle",
+        handler=get_vehicle,
+    ),
+    AppRoute(
+        "/api/vehicles/<int:vehicle_id>",
+        "update_vehicle",
+        "update_vehicle",
+        ("PUT",),
+        handler=update_vehicle,
+    ),
+    AppRoute(
+        "/api/vehicles/<int:vehicle_id>",
+        "delete_vehicle",
+        "delete_vehicle",
+        ("DELETE",),
+        handler=delete_vehicle,
     ),
     AppRoute(
         "/legacy/admin-dashboard",

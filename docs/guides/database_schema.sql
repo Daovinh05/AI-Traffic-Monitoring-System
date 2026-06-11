@@ -205,7 +205,7 @@ CREATE TABLE `phuong_tien` (
   `id_tai_xe` int(11) DEFAULT NULL,
   `id_tuyen_duong` varchar(50) DEFAULT NULL,
   `vi_tri` varchar(50) NOT NULL,
-  `trang_thai_hoat_dong` varchar(50) DEFAULT 'Đang dừng',
+  `trang_thai_hoat_dong` varchar(50) DEFAULT 'Đang hoạt động',
   `toc_do_hien_tai` int(11) DEFAULT 0,
   `lat` double DEFAULT 21.0285,
   `lng` double DEFAULT 105.8542

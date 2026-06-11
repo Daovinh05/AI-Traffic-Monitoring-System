@@ -18,7 +18,8 @@ def list_vehicle_statuses():
 def list_dashboard_vehicles(limit: int | None = None, offset: int = 0):
     sql = """
         SELECT p.id, p.bien_so as plate_number, p.loai_xe as type,
-               p.hinh_anh_xe as image, t.ho_ten as driver_name,
+               p.hinh_anh_xe as image, p.id_tai_xe AS driver_id,
+               p.id_tuyen_duong AS route_id, t.ho_ten as driver_name,
                t.so_dien_thoai as phone, t.diem_danh_gia as score,
                t.anh_dai_dien as driver_image, td.ten_tuyen as location,
                p.vi_tri as vi_tri, p.trang_thai_hoat_dong as status,
@@ -40,6 +41,127 @@ def list_dashboard_vehicles(limit: int | None = None, offset: int = 0):
         with conn.cursor() as cur:
             cur.execute(sql, params)
             return cur.fetchall()
+    finally:
+        conn.close()
+
+
+def create_vehicle(
+    plate: str,
+    vehicle_type: str,
+    image: str | None,
+    driver_id: int | None,
+    route_id: str | None,
+    location: str,
+    status: str,
+    latitude: float,
+    longitude: float,
+):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO phuong_tien
+                    (bien_so, loai_xe, hinh_anh_xe, id_tai_xe,
+                     id_tuyen_duong, vi_tri, trang_thai_hoat_dong,
+                     toc_do_hien_tai, lat, lng)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, 0, %s, %s)
+                """,
+                (
+                    plate,
+                    vehicle_type,
+                    image,
+                    driver_id,
+                    route_id,
+                    location,
+                    status,
+                    latitude,
+                    longitude,
+                ),
+            )
+            vehicle_id = cur.lastrowid
+        conn.commit()
+        return vehicle_id
+    finally:
+        conn.close()
+
+
+def get_vehicle(vehicle_id: int):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT p.id, p.bien_so AS plate, p.loai_xe AS type,
+                       p.hinh_anh_xe AS image, p.id_tai_xe AS driver_id,
+                       p.id_tuyen_duong AS route_id, p.vi_tri AS location,
+                       p.trang_thai_hoat_dong AS status,
+                       p.toc_do_hien_tai AS speed, p.lat, p.lng,
+                       t.ho_ten AS driver_name, t.so_dien_thoai AS driver_phone,
+                       td.ten_tuyen AS route_name
+                FROM phuong_tien p
+                LEFT JOIN tai_xe t ON p.id_tai_xe = t.id
+                LEFT JOIN tuyen_duong td ON p.id_tuyen_duong = td.id
+                WHERE p.id = %s
+                """,
+                (vehicle_id,),
+            )
+            return cur.fetchone()
+    finally:
+        conn.close()
+
+
+def update_vehicle(
+    vehicle_id: int,
+    plate: str,
+    vehicle_type: str,
+    image: str | None,
+    driver_id: int | None,
+    route_id: str | None,
+    location: str,
+    status: str,
+    latitude: float,
+    longitude: float,
+):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE phuong_tien
+                SET bien_so = %s, loai_xe = %s, hinh_anh_xe = %s,
+                    id_tai_xe = %s, id_tuyen_duong = %s, vi_tri = %s,
+                    trang_thai_hoat_dong = %s, lat = %s, lng = %s
+                WHERE id = %s
+                """,
+                (
+                    plate,
+                    vehicle_type,
+                    image,
+                    driver_id,
+                    route_id,
+                    location,
+                    status,
+                    latitude,
+                    longitude,
+                    vehicle_id,
+                ),
+            )
+            updated = cur.rowcount > 0
+        conn.commit()
+        return updated
+    finally:
+        conn.close()
+
+
+def delete_vehicle(vehicle_id: int):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM phuong_tien WHERE id = %s", (vehicle_id,))
+            deleted = cur.rowcount > 0
+        conn.commit()
+        return deleted
     finally:
         conn.close()
 

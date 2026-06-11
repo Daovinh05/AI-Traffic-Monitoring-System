@@ -2146,6 +2146,131 @@ tr:hover {
   color: var(--text-muted);
 }
 
+.vehicle-form-modal {
+  max-width: 860px;
+}
+
+.vehicle-form-intro {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(74, 158, 255, 0.25);
+  border-radius: 10px;
+  background: rgba(74, 158, 255, 0.08);
+}
+
+.vehicle-form-intro i {
+  color: var(--accent);
+  font-size: 24px;
+}
+
+.vehicle-form-intro strong,
+.vehicle-form-intro span {
+  display: block;
+}
+
+.vehicle-form-intro span {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.vehicle-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.vehicle-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.vehicle-form-field.full-width {
+  grid-column: 1 / -1;
+}
+
+.vehicle-form-field label {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.vehicle-form-field label span {
+  color: var(--danger);
+}
+
+.vehicle-form-field input,
+.vehicle-form-field select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.vehicle-form-field input:focus,
+.vehicle-form-field select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.12);
+}
+
+.vehicle-image-upload {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 14px;
+  border: 1px dashed var(--border-color);
+  border-radius: 10px;
+  background: var(--bg-input);
+}
+
+.vehicle-image-preview {
+  width: 180px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.vehicle-upload-help {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin-top: 7px;
+}
+
+.vehicle-form-error {
+  display: none;
+  margin-top: 16px;
+  padding: 11px 13px;
+  color: var(--danger);
+  background: rgba(255, 82, 82, 0.1);
+  border: 1px solid rgba(255, 82, 82, 0.25);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+@media (max-width: 700px) {
+  .vehicle-form-grid,
+  .vehicle-image-upload {
+    grid-template-columns: 1fr;
+  }
+
+  .vehicle-image-preview {
+    width: 100%;
+    height: 180px;
+  }
+}
+
 .modal-footer {
   display: flex;
   gap: 10px;
@@ -2735,12 +2860,12 @@ tr:hover {
             <td>{{ v.location }} </td>
             <td>08:00 {{ now }}</td>
             <td>
-              {% if v.status == 'Đang chạy' %}
-                <span class="status-badge status-running">Đang chạy</span>
-              {% elif v.status == 'Đang dừng' %}
-                <span class="status-badge status-stopped">Đã dừng</span>
+              {% if v.status in ['Đang chạy', 'Đang hoạt động'] %}
+                <span class="status-badge status-running">Đang hoạt động</span>
+              {% elif v.status in ['Đang dừng', 'Bảo trì'] %}
+                <span class="status-badge status-stopped">Bảo trì</span>
               {% else %}
-                <span class="status-badge status-offline">Offline</span>
+                <span class="status-badge status-offline">Ngừng hoạt động</span>
               {% endif %}
             </td>
             <td>
@@ -4353,19 +4478,77 @@ function printAlert(index) {
 
 // Vehicles Management
 var rawVehiclesData = {{ all_vehicles|default([])|tojson|safe }};
+var vehicleDriversData = {{ drivers|default([])|tojson|safe }};
+var vehicleRoutesData = {{ routes|default([])|tojson|safe }};
 var vehiclesData = rawVehiclesData.map(v => ({
+    id: v.id,
     plate: v.plate_number,
     type: v.type || 'car',
-    typeLabel: v.type === 'car' ? 'Ô tô 4 chỗ' : v.type === 'bus' ? 'Xe khách' : v.type === 'truck' ? 'Xe tải' : 'Xe máy',
-    status: v.status === 'Đang chạy' ? 'active' : v.status === 'Đang dừng' ? 'maintenance' : 'inactive',
+    typeLabel: getVehicleTypeLabel(v.type),
+    status: getVehicleStatusKey(v.status),
+    rawStatus: getVehicleStatusLabel(v.status),
     company: 'Công ty ABC',
     image: v.image ? '/static/images/' + v.image : 'https://images.unsplash.com/photo-1549317661-bd32c8ce0be2?w=500',
+    imageFilename: v.image || null,
     owner: 'Công ty ABC',
     driver: v.driver_name || 'Chưa phân công',
+    driverId: v.driver_id || null,
+    routeId: v.route_id || null,
+    routeName: v.location || 'Chưa phân tuyến',
+    location: v.vi_tri || 'Chưa cập nhật',
+    lat: v.lat,
+    lng: v.lng,
+    speed: v.speed || 0,
     driver_image: v.driver_image,
     year: '2023',
     km: '15,000'
 }));
+
+function getVehicleTypeLabel(type) {
+  return type === 'bus' ? 'Xe khách'
+    : type === 'truck' ? 'Xe tải'
+    : type === 'taxi' ? 'Taxi' : 'Ô tô';
+}
+
+function getVehicleStatusLabel(status) {
+  return status === 'Đang chạy' ? 'Đang hoạt động'
+    : status === 'Đang dừng' ? 'Bảo trì'
+    : status === 'Mất tín hiệu' ? 'Ngừng hoạt động'
+    : status || 'Ngừng hoạt động';
+}
+
+function getVehicleStatusKey(status) {
+  const label = getVehicleStatusLabel(status);
+  return label === 'Đang hoạt động' ? 'active'
+    : label === 'Bảo trì' ? 'maintenance' : 'inactive';
+}
+
+function mapVehicleFromApi(vehicle) {
+  return {
+    id: vehicle.id,
+    plate: vehicle.plate,
+    type: vehicle.type || 'car',
+    typeLabel: getVehicleTypeLabel(vehicle.type),
+    status: getVehicleStatusKey(vehicle.status),
+    rawStatus: getVehicleStatusLabel(vehicle.status),
+    company: 'Chưa cập nhật',
+    image: vehicle.image
+      ? `/static/images/${vehicle.image}`
+      : 'https://images.unsplash.com/photo-1549317661-bd32c8ce0be2?w=500',
+    imageFilename: vehicle.image || null,
+    owner: 'Chưa cập nhật',
+    driver: vehicle.driver_name || 'Chưa phân công',
+    driverId: vehicle.driver_id || null,
+    routeId: vehicle.route_id || null,
+    routeName: vehicle.route_name || 'Chưa phân tuyến',
+    location: vehicle.location || 'Chưa cập nhật',
+    lat: vehicle.lat,
+    lng: vehicle.lng,
+    speed: vehicle.speed || 0,
+    year: 'Chưa cập nhật',
+    km: '0'
+  };
+}
 
 function loadVehiclesData() {
   const grid = document.getElementById('vehicleGrid');
@@ -4408,11 +4591,9 @@ function loadVehiclesData() {
             <div class="detail-value" style="font-size: 12px; color: var(--text-primary); font-weight: 600;">${v.km}</div>
           </div>
         </div>
-        <div class="vehicle-actions" style="display: flex; gap: 5px;">
-          <button class="btn btn-primary" onclick="viewVehicle('${v.plate}')" style="flex: 1; padding: 8px; background: var(--accent); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 600;"><i class="fa-solid fa-eye"></i> Xem 
-            </button>
-          <button class="btn btn-outline" onclick="editVehicle('${v.plate}')" style="flex: 1; padding: 8px; background: var(--bg-input); color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 600;"><i class="fa-solid fa-pen"></i> Sửa</button>
-          <button class="btn btn-success" onclick="trackVehicle('${v.plate}')" style="flex: 1; padding: 8px; background: rgba(0, 200, 83, 0.15); color: var(--success); border: 1px solid rgba(0, 200, 83, 0.3); border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 600;"><i class="fa-solid fa-location-dot"></i> Theo dõi</button>
+        <div class="vehicle-actions" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px;">
+          <button class="btn btn-outline" onclick="editVehicle(${v.id})" style="padding: 8px; background: var(--bg-input); color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 600;"><i class="fa-solid fa-pen"></i> Sửa</button>
+          <button class="btn btn-success" onclick="trackVehicle(${v.id})" style="padding: 8px; background: rgba(0, 200, 83, 0.15); color: var(--success); border: 1px solid rgba(0, 200, 83, 0.3); border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 600;"><i class="fa-solid fa-location-dot"></i> Theo dõi</button>
         </div>
       </div>
     </div>
@@ -4427,16 +4608,283 @@ function loadVehiclesData() {
   setTimeout(() => animateValue('totalTrips', 0, 156, 600));
 }
 
-function viewVehicle(plate) {
-  showToast('info', 'Thông tin xe', `Đang xem thông tin xe ${plate}`);
+async function fetchVehicleDetail(vehicleId) {
+  const response = await fetch(`/api/vehicles/${vehicleId}`);
+  const data = await response.json();
+  if (!response.ok || !data.success) {
+    throw new Error(data.message || 'Không thể tải thông tin phương tiện');
+  }
+  return data.vehicle;
 }
 
-function editVehicle(plate) {
-  showToast('info', 'Chỉnh sửa', `Đang chỉnh sửa xe ${plate}`);
+async function viewVehicle(vehicleId) {
+  try {
+    const vehicle = await fetchVehicleDetail(vehicleId);
+    const modal = document.createElement('div');
+    modal.id = 'vehicleDetailModal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width: 760px;">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-car-side"></i> Chi tiết phương tiện</h3>
+          <button class="modal-close" onclick="closeVehicleModal('vehicleDetailModal')" aria-label="Đóng">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div style="display:grid;grid-template-columns:minmax(240px, 1fr) 1.3fr;gap:22px;">
+            <img src="${vehicle.image ? `/static/images/${vehicle.image}` : 'https://images.unsplash.com/photo-1549317661-bd32c8ce0be2?w=500'}"
+                 alt="Xe ${escapeVehicleFormText(vehicle.plate)}"
+                 style="width:100%;height:240px;object-fit:cover;border-radius:10px;border:1px solid var(--border-color);">
+            <div class="warning-info" style="margin:0;">
+              ${vehicleDetailRow('Biển số', vehicle.plate, true)}
+              ${vehicleDetailRow('Loại xe', getVehicleTypeLabel(vehicle.type))}
+              ${vehicleDetailRow('Tài xế', vehicle.driver_name || 'Chưa phân công')}
+              ${vehicleDetailRow('Số điện thoại', vehicle.driver_phone || 'Chưa cập nhật')}
+              ${vehicleDetailRow('Tuyến đường', vehicle.route_name || 'Chưa phân tuyến')}
+              ${vehicleDetailRow('Vị trí', vehicle.location)}
+              ${vehicleDetailRow('Trạng thái', vehicle.status)}
+              ${vehicleDetailRow('Tốc độ', `${vehicle.speed || 0} km/h`)}
+              ${vehicleDetailRow('Tọa độ', `${vehicle.lat ?? '-'}, ${vehicle.lng ?? '-'}`)}
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeVehicleModal('vehicleDetailModal')">Đóng</button>
+          <button class="btn btn-primary" onclick="closeVehicleModal('vehicleDetailModal'); editVehicle(${vehicle.id})">
+            <i class="fa-solid fa-pen"></i> Chỉnh sửa
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  } catch (error) {
+    showToast('error', 'Không thể xem xe', error.message);
+  }
 }
 
-function trackVehicle(plate) {
-  showToast('success', 'Theo dõi', `Đang theo dõi xe ${plate} trên bản đồ`);
+function vehicleDetailRow(label, value, highlight = false) {
+  return `
+    <div class="warning-info-item">
+      <label>${label}</label>
+      <span class="${highlight ? 'plate-highlight' : ''}">${escapeVehicleFormText(value)}</span>
+    </div>
+  `;
+}
+
+function closeVehicleModal(modalId) {
+  const preview = document.querySelector(`#${modalId} .vehicle-image-preview`);
+  if (preview?.dataset.objectUrl) URL.revokeObjectURL(preview.dataset.objectUrl);
+  document.getElementById(modalId)?.remove();
+}
+
+async function editVehicle(vehicleId) {
+  try {
+    const vehicle = await fetchVehicleDetail(vehicleId);
+    document.getElementById('editVehicleModal')?.remove();
+
+    const driverOptions = vehicleDriversData.map(driver =>
+      `<option value="${driver.id}" ${Number(vehicle.driver_id) === Number(driver.id) ? 'selected' : ''}>${escapeVehicleFormText(driver.name)} (${escapeVehicleFormText(driver.code || 'Chưa có mã')})</option>`
+    ).join('');
+    const routeOptions = vehicleRoutesData.map(route =>
+      `<option value="${escapeVehicleFormText(route.code)}" ${String(vehicle.route_id || '') === String(route.code) ? 'selected' : ''}>${escapeVehicleFormText(route.name)}</option>`
+    ).join('');
+
+    const modal = document.createElement('div');
+    modal.id = 'editVehicleModal';
+    modal.className = 'modal-overlay';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'editVehicleModalTitle');
+    modal.innerHTML = `
+      <div class="modal-content vehicle-form-modal">
+        <div class="modal-header">
+          <h3 id="editVehicleModalTitle">
+            <i class="fa-solid fa-car-side"></i> Sửa thông tin xe
+          </h3>
+          <button class="modal-close" type="button" onclick="closeVehicleModal('editVehicleModal')" aria-label="Đóng">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <form onsubmit="submitVehicleUpdate(event, ${vehicle.id})">
+          <div class="modal-body">
+            <div class="vehicle-form-intro">
+              <i class="fa-solid fa-circle-info"></i>
+              <div>
+                <strong>Thông tin phương tiện</strong>
+                <span>Dữ liệu hiện tại đã được điền sẵn. Chỉnh sửa trường cần thay đổi rồi nhấn Lưu.</span>
+              </div>
+            </div>
+
+            <div class="vehicle-form-grid">
+              <div class="vehicle-form-field">
+                <label for="editVehiclePlate">Biển số xe <span>*</span></label>
+                <input id="editVehiclePlate" name="plate" type="text" maxlength="20"
+                       value="${escapeVehicleFormText(vehicle.plate)}"
+                       placeholder="Ví dụ: 29A-123.45" autocomplete="off" required>
+              </div>
+              <div class="vehicle-form-field">
+                <label for="editVehicleType">Loại xe <span>*</span></label>
+                <select id="editVehicleType" name="type" required>
+                  <option value="car" ${vehicle.type === 'car' ? 'selected' : ''}>Ô tô</option>
+                  <option value="taxi" ${vehicle.type === 'taxi' ? 'selected' : ''}>Taxi</option>
+                  <option value="bus" ${vehicle.type === 'bus' ? 'selected' : ''}>Xe khách</option>
+                  <option value="truck" ${vehicle.type === 'truck' ? 'selected' : ''}>Xe tải</option>
+                </select>
+              </div>
+              <div class="vehicle-form-field">
+                <label for="editVehicleDriver">Tài xế phụ trách</label>
+                <select id="editVehicleDriver" name="driver_id">
+                  <option value="">Chưa phân công</option>${driverOptions}
+                </select>
+              </div>
+              <div class="vehicle-form-field">
+                <label for="editVehicleRoute">Tuyến đường</label>
+                <select id="editVehicleRoute" name="route_id">
+                  <option value="">Chưa phân tuyến</option>${routeOptions}
+                </select>
+              </div>
+              <div class="vehicle-form-field">
+                <label for="editVehicleLocation">Vị trí hiện tại <span>*</span></label>
+                <input id="editVehicleLocation" name="location" type="text" maxlength="50"
+                       value="${escapeVehicleFormText(vehicle.location)}"
+                       placeholder="Ví dụ: Thanh Xuân, Hà Nội" required>
+              </div>
+              <div class="vehicle-form-field">
+                <label for="editVehicleStatus">Trạng thái hoạt động <span>*</span></label>
+                <select id="editVehicleStatus" name="status" required>
+                  <option value="Đang hoạt động" ${vehicle.status === 'Đang hoạt động' ? 'selected' : ''}>Đang hoạt động</option>
+                  <option value="Bảo trì" ${vehicle.status === 'Bảo trì' ? 'selected' : ''}>Bảo trì</option>
+                  <option value="Ngừng hoạt động" ${vehicle.status === 'Ngừng hoạt động' ? 'selected' : ''}>Ngừng hoạt động</option>
+                </select>
+              </div>
+              <div class="vehicle-form-field">
+                <label for="editVehicleLat">Vĩ độ</label>
+                <input id="editVehicleLat" name="lat" type="number" step="any" value="${vehicle.lat ?? 21.0285}">
+              </div>
+              <div class="vehicle-form-field">
+                <label for="editVehicleLng">Kinh độ</label>
+                <input id="editVehicleLng" name="lng" type="number" step="any" value="${vehicle.lng ?? 105.8542}">
+              </div>
+              <div class="vehicle-form-field full-width">
+                <label for="editVehicleImage">Ảnh xe</label>
+                <div class="vehicle-image-upload">
+                  <img id="editVehicleImagePreview" class="vehicle-image-preview"
+                       src="${vehicle.image ? `/static/images/${vehicle.image}` : 'https://images.unsplash.com/photo-1549317661-bd32c8ce0be2?w=500'}"
+                       alt="Ảnh xem trước xe ${escapeVehicleFormText(vehicle.plate)}">
+                  <div>
+                    <input id="editVehicleImage" name="image" type="file"
+                           accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                           onchange="previewVehicleEditImage(event)">
+                    <div class="vehicle-upload-help">
+                      Hỗ trợ JPG, PNG, WebP. Dung lượng tối đa 5 MB.<br>
+                      Để trống trường này nếu muốn giữ ảnh hiện tại.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="editVehicleError" class="vehicle-form-error" role="alert"></div>
+          </div>
+          <div class="modal-footer" style="justify-content: space-between;">
+            <button class="btn btn-danger" type="button" onclick="deleteVehicle(${vehicle.id})"
+                    style="background: rgba(255, 82, 82, 0.12); color: var(--danger); border: 1px solid rgba(255, 82, 82, 0.35);">
+              <i class="fa-solid fa-trash"></i> Xóa phương tiện
+            </button>
+            <div style="display:flex;gap:10px;">
+              <button class="btn btn-secondary" type="button" onclick="closeVehicleModal('editVehicleModal')">
+                <i class="fa-solid fa-xmark"></i> Hủy
+              </button>
+              <button class="btn btn-primary" id="updateVehicleButton" type="submit">
+                <i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    `;
+    modal.addEventListener('click', event => {
+      if (event.target === modal) closeVehicleModal('editVehicleModal');
+    });
+    document.body.appendChild(modal);
+    document.getElementById('editVehiclePlate').focus();
+    document.getElementById('editVehiclePlate').select();
+  } catch (error) {
+    showToast('error', 'Không thể sửa xe', error.message);
+  }
+}
+
+function previewVehicleEditImage(event) {
+  const file = event.target.files[0];
+  const preview = document.getElementById('editVehicleImagePreview');
+  const error = document.getElementById('editVehicleError');
+  error.style.display = 'none';
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    event.target.value = '';
+    error.textContent = 'Ảnh xe không được vượt quá 5 MB.';
+    error.style.display = 'block';
+    return;
+  }
+  if (preview.dataset.objectUrl) URL.revokeObjectURL(preview.dataset.objectUrl);
+  const objectUrl = URL.createObjectURL(file);
+  preview.src = objectUrl;
+  preview.dataset.objectUrl = objectUrl;
+}
+
+async function submitVehicleUpdate(event, vehicleId) {
+  event.preventDefault();
+  const button = document.getElementById('updateVehicleButton');
+  const error = document.getElementById('editVehicleError');
+  button.disabled = true;
+  button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+  error.style.display = 'none';
+
+  try {
+    const response = await fetch(`/api/vehicles/${vehicleId}`, {
+      method: 'PUT',
+      body: new FormData(event.currentTarget)
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.message || 'Không thể cập nhật xe');
+
+    const index = vehiclesData.findIndex(vehicle => vehicle.id === vehicleId);
+    if (index !== -1) vehiclesData[index] = mapVehicleFromApi(data.vehicle);
+    closeVehicleModal('editVehicleModal');
+    loadVehiclesData();
+    showToast('success', 'Cập nhật thành công', `Đã cập nhật xe ${data.vehicle.plate}`);
+  } catch (requestError) {
+    error.textContent = requestError.message;
+    error.style.display = 'block';
+  } finally {
+    if (document.body.contains(button)) {
+      button.disabled = false;
+      button.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi';
+    }
+  }
+}
+
+async function deleteVehicle(vehicleId) {
+  const vehicle = vehiclesData.find(item => item.id === vehicleId);
+  if (!vehicle || !confirm(`Bạn có chắc muốn xóa xe ${vehicle.plate}? Dữ liệu này không thể khôi phục.`)) return;
+
+  try {
+    const response = await fetch(`/api/vehicles/${vehicleId}`, { method: 'DELETE' });
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.message || 'Không thể xóa xe');
+
+    vehiclesData = vehiclesData.filter(item => item.id !== vehicleId);
+    closeVehicleModal('editVehicleModal');
+    loadVehiclesData();
+    showToast('success', 'Đã xóa xe', `Xe ${vehicle.plate} đã được xóa khỏi hệ thống`);
+  } catch (error) {
+    showToast('error', 'Không thể xóa xe', error.message);
+  }
+}
+
+function trackVehicle(vehicleId) {
+  const vehicle = vehiclesData.find(item => item.id === vehicleId);
+  if (vehicle) showToast('success', 'Theo dõi', `Đang theo dõi xe ${vehicle.plate} trên bản đồ`);
 }
 
 function exportVehicles() {
@@ -4444,7 +4892,202 @@ function exportVehicles() {
 }
 
 function openAddVehicleModal() {
-  showToast('info', 'Thông báo', 'Chức năng thêm xe đang được phát triển');
+  document.getElementById('addVehicleModal')?.remove();
+
+  const driverOptions = vehicleDriversData.map(driver =>
+    `<option value="${driver.id}">${escapeVehicleFormText(driver.name)} (${escapeVehicleFormText(driver.code || 'Chưa có mã')})</option>`
+  ).join('');
+  const routeOptions = vehicleRoutesData.map(route =>
+    `<option value="${escapeVehicleFormText(route.code)}">${escapeVehicleFormText(route.name)}</option>`
+  ).join('');
+
+  const modal = document.createElement('div');
+  modal.id = 'addVehicleModal';
+  modal.className = 'modal-overlay';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-labelledby', 'addVehicleModalTitle');
+  modal.innerHTML = `
+    <div class="modal-content vehicle-form-modal">
+      <div class="modal-header">
+        <h3 id="addVehicleModalTitle">
+          <i class="fa-solid fa-car-side"></i> Thêm xe mới
+        </h3>
+        <button class="modal-close" type="button" onclick="closeAddVehicleModal()" aria-label="Đóng">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form id="addVehicleForm" onsubmit="submitNewVehicle(event)">
+        <div class="modal-body">
+          <div class="vehicle-form-intro">
+            <i class="fa-solid fa-circle-info"></i>
+            <div>
+              <strong>Thông tin phương tiện</strong>
+              <span>Các trường có dấu * là bắt buộc. Ảnh rõ nét giúp nhận diện xe dễ dàng hơn.</span>
+            </div>
+          </div>
+
+          <div class="vehicle-form-grid">
+            <div class="vehicle-form-field">
+              <label for="newVehiclePlate">Biển số xe <span>*</span></label>
+              <input id="newVehiclePlate" name="plate" type="text" maxlength="20"
+                     placeholder="Ví dụ: 29A-123.45" autocomplete="off" required>
+            </div>
+            <div class="vehicle-form-field">
+              <label for="newVehicleType">Loại xe <span>*</span></label>
+              <select id="newVehicleType" name="type" required>
+                <option value="car">Ô tô</option>
+                <option value="taxi">Taxi</option>
+                <option value="bus">Xe khách</option>
+                <option value="truck">Xe tải</option>
+              </select>
+            </div>
+            <div class="vehicle-form-field">
+              <label for="newVehicleDriver">Tài xế phụ trách</label>
+              <select id="newVehicleDriver" name="driver_id">
+                <option value="">Chưa phân công</option>
+                ${driverOptions}
+              </select>
+            </div>
+            <div class="vehicle-form-field">
+              <label for="newVehicleRoute">Tuyến đường</label>
+              <select id="newVehicleRoute" name="route_id">
+                <option value="">Chưa phân tuyến</option>
+                ${routeOptions}
+              </select>
+            </div>
+            <div class="vehicle-form-field">
+              <label for="newVehicleLocation">Vị trí hiện tại <span>*</span></label>
+              <input id="newVehicleLocation" name="location" type="text"
+                     maxlength="50" placeholder="Ví dụ: Thanh Xuân, Hà Nội" required>
+            </div>
+            <div class="vehicle-form-field">
+              <label for="newVehicleStatus">Trạng thái hoạt động <span>*</span></label>
+              <select id="newVehicleStatus" name="status" required>
+                <option value="Đang hoạt động">Đang hoạt động</option>
+                <option value="Bảo trì">Bảo trì</option>
+                <option value="Ngừng hoạt động">Ngừng hoạt động</option>
+              </select>
+            </div>
+            <div class="vehicle-form-field">
+              <label for="newVehicleLat">Vĩ độ</label>
+              <input id="newVehicleLat" name="lat" type="number" step="any" value="21.0285">
+            </div>
+            <div class="vehicle-form-field">
+              <label for="newVehicleLng">Kinh độ</label>
+              <input id="newVehicleLng" name="lng" type="number" step="any" value="105.8542">
+            </div>
+            <div class="vehicle-form-field full-width">
+              <label for="newVehicleImage">Ảnh xe</label>
+              <div class="vehicle-image-upload">
+                <img id="newVehicleImagePreview" class="vehicle-image-preview"
+                     src="https://images.unsplash.com/photo-1549317661-bd32c8ce0be2?w=500"
+                     alt="Ảnh xem trước của xe mới">
+                <div>
+                  <input id="newVehicleImage" name="image" type="file"
+                         accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                         onchange="previewNewVehicleImage(event)">
+                  <div class="vehicle-upload-help">
+                    Hỗ trợ JPG, PNG, WebP. Dung lượng tối đa 5 MB.<br>
+                    Nên dùng ảnh ngang, rõ biển số và toàn bộ thân xe.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="addVehicleError" class="vehicle-form-error" role="alert"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" onclick="closeAddVehicleModal()">
+            <i class="fa-solid fa-xmark"></i> Hủy
+          </button>
+          <button class="btn btn-primary" id="saveVehicleButton" type="submit">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu xe mới
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  modal.addEventListener('click', event => {
+    if (event.target === modal) closeAddVehicleModal();
+  });
+  document.body.appendChild(modal);
+  document.getElementById('newVehiclePlate').focus();
+}
+
+function escapeVehicleFormText(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function closeAddVehicleModal() {
+  const preview = document.getElementById('newVehicleImagePreview');
+  if (preview?.dataset.objectUrl) URL.revokeObjectURL(preview.dataset.objectUrl);
+  document.getElementById('addVehicleModal')?.remove();
+}
+
+function previewNewVehicleImage(event) {
+  const file = event.target.files[0];
+  const preview = document.getElementById('newVehicleImagePreview');
+  const error = document.getElementById('addVehicleError');
+  error.style.display = 'none';
+
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    event.target.value = '';
+    error.textContent = 'Ảnh xe không được vượt quá 5 MB.';
+    error.style.display = 'block';
+    return;
+  }
+
+  if (preview.dataset.objectUrl) URL.revokeObjectURL(preview.dataset.objectUrl);
+  const objectUrl = URL.createObjectURL(file);
+  preview.src = objectUrl;
+  preview.dataset.objectUrl = objectUrl;
+}
+
+async function submitNewVehicle(event) {
+  event.preventDefault();
+
+  const form = event.currentTarget;
+  const button = document.getElementById('saveVehicleButton');
+  const error = document.getElementById('addVehicleError');
+  const formData = new FormData(form);
+
+  button.disabled = true;
+  button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+  error.style.display = 'none';
+
+  try {
+    const response = await fetch('/api/vehicles', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Không thể thêm xe mới');
+    }
+
+    const vehicle = data.vehicle;
+    vehiclesData.unshift(mapVehicleFromApi(vehicle));
+
+    closeAddVehicleModal();
+    loadVehiclesData();
+    showToast('success', 'Thêm xe thành công', `Đã thêm xe ${vehicle.plate}`);
+  } catch (requestError) {
+    error.textContent = requestError.message;
+    error.style.display = 'block';
+  } finally {
+    if (document.body.contains(button)) {
+      button.disabled = false;
+      button.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Lưu xe mới';
+    }
+  }
 }
 
 // Vehicle filters
@@ -5018,27 +5661,12 @@ function loadDriversData() {
   setTimeout(() => animateValue('topDrivers', 0, 8, 1000), 600);
 }
 
-// Placeholder modal functions
-function showAddVehicleModal() {
-  showToast('info', 'Thông báo', 'Chức năng thêm xe đang được phát triển');
-}
-
 function showAddRouteModal() {
   showToast('info', 'Thông báo', 'Chức năng thêm tuyến đang được phát triển');
 }
 
 function showAddDriverModal() {
   showToast('info', 'Thông báo', 'Chức năng thêm tài xế đang được phát triển');
-}
-
-function editVehicle(plate) {
-  showToast('info', 'Chỉnh sửa', `Đang chỉnh sửa xe ${plate}...`);
-}
-
-function deleteVehicle(plate) {
-  if (confirm(`Bạn có chắc muốn xóa xe ${plate}?`)) {
-    showToast('success', 'Xóa thành công', `Xe ${plate} đã được xóa`);
-  }
 }
 
 function editRoute(code) {
@@ -5266,56 +5894,6 @@ function createModal(id, title, content, actions) {
   modal.appendChild(modalContent);
   document.body.appendChild(modal);
   modal.style.display = 'flex';
-}
-
-function showAddVehicleModal() {
-  const content = `
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-      <div>
-        <label style="color: var(--text-secondary); font-size: 13px; margin-bottom: 5px; display: block;">Biển số</label>
-        <input type="text" id="newVehiclePlate" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-input); color: var(--text-primary);">
-      </div>
-      <div>
-        <label style="color: var(--text-secondary); font-size: 13px; margin-bottom: 5px; display: block;">Loại xe</label>
-        <select id="newVehicleType" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-input); color: var(--text-primary);">
-          <option value="car">Xe con</option>
-          <option value="bus">Xe khách</option>
-          <option value="truck">Xe tải</option>
-        </select>
-      </div>
-      <div>
-        <label style="color: var(--text-secondary); font-size: 13px; margin-bottom: 5px; display: block;">Tài xế</label>
-        <input type="text" id="newVehicleDriver" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-input); color: var(--text-primary);">
-      </div>
-      <div>
-        <label style="color: var(--text-secondary); font-size: 13px; margin-bottom: 5px; display: block;">Số ghế</label>
-        <input type="number" id="newVehicleSeats" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-input); color: var(--text-primary);">
-      </div>
-    </div>
-  `;
-  
-  const actions = `
-    <button onclick="this.closest('.modal').remove()" style="padding: 10px 20px; background: var(--bg-input); color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 5px; cursor: pointer;">Hủy</button>
-    <button onclick="saveNewVehicle()" style="padding: 10px 20px; background: var(--accent); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">Thêm xe</button>
-  `;
-  
-  createModal('addVehicleModal', '🚗 Thêm xe mới', content, actions);
-}
-
-function saveNewVehicle() {
-  const plate = document.getElementById('newVehiclePlate').value;
-  const type = document.getElementById('newVehicleType').value;
-  const driver = document.getElementById('newVehicleDriver').value;
-  const seats = document.getElementById('newVehicleSeats').value;
-  
-  if (!plate || !driver || !seats) {
-    showToast('warning', 'Thiếu thông tin', 'Vui lòng điền đầy đủ thông tin');
-    return;
-  }
-  
-  showToast('success', 'Thành công', `Đã thêm xe ${plate}`);
-  document.getElementById('addVehicleModal').remove();
-  loadVehiclesData();
 }
 
 function showAddDriverModal() {
@@ -5911,7 +6489,7 @@ const vehicles = {{ all_vehicles|default([], true)|tojson|safe }}.map(v => ({
   route: (v.location || "Chưa rõ") + " -> ...",
   lat: v.lat || 21.0285,
   lng: v.lng || 105.8542,
-  status: v.status === 'Đang chạy' ? 1 : 0,
+  status: ['Đang chạy', 'Đang hoạt động'].includes(v.status) ? 1 : 0,
   imgVehicle: v.image ? '/static/images/' + v.image : 'https://via.placeholder.com/300x150?text=Vehicle',
   videoDashcam: '/recordings/car1.mp4',
   imgDriver: v.driver_image ? '/static/images/' + v.driver_image : 'https://randomuser.me/api/portraits/lego/1.jpg'
