@@ -2204,7 +2204,8 @@ tr:hover {
 }
 
 .vehicle-form-field input,
-.vehicle-form-field select {
+.vehicle-form-field select,
+.vehicle-form-field textarea {
   width: 100%;
   min-height: 44px;
   padding: 10px 12px;
@@ -2216,10 +2217,106 @@ tr:hover {
 }
 
 .vehicle-form-field input:focus,
-.vehicle-form-field select:focus {
+.vehicle-form-field select:focus,
+.vehicle-form-field textarea:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.12);
+}
+
+.vehicle-form-field textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.route-address-control {
+  display: flex;
+  gap: 8px;
+}
+
+.route-address-control input {
+  flex: 1;
+}
+
+.route-start-mode {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.route-start-mode label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.route-start-mode label:has(input:checked) {
+  border-color: var(--accent);
+  background: rgba(74, 158, 255, 0.12);
+  color: var(--accent);
+}
+
+.route-start-mode input {
+  width: auto;
+  min-height: auto;
+  accent-color: var(--accent);
+}
+
+.route-start-panel[hidden] {
+  display: none;
+}
+
+.route-gps-value {
+  cursor: default;
+}
+
+.route-gps-button {
+  min-width: 44px;
+  border: 1px solid rgba(74, 158, 255, 0.4);
+  border-radius: 8px;
+  background: rgba(74, 158, 255, 0.12);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.route-preview-map {
+  height: 300px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg-input);
+}
+
+.route-plan-summary {
+  display: none;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.route-plan-summary div {
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.route-plan-summary strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-primary);
+  font-size: 14px;
 }
 
 .vehicle-image-upload {
@@ -5192,7 +5289,8 @@ function loadRoutesData() {
         </div>
         <div class="route-actions" style="display: flex; gap: 5px;">
           <button class="btn btn-primary" onclick="viewRoute('${r.code}')" style="flex: 1; padding: 6px; background: ${routeColor}; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: 600;"><i class="fa-solid fa-eye"></i> Xem</button>
-          <button class="btn btn-outline" onclick="editRoute('${r.code}')" style="flex: 1; padding: 6px; background: var(--bg-input); color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: 600;"><i class="fa-solid fa-pen"></i> Sửa</button>
+          <button class="btn btn-outline" onclick="editRoute('${r.code}')" style="flex: 1; padding: 6px; background: rgba(255, 193, 7, 0.14); color: #ffd45c; border: 1px solid rgba(255, 193, 7, 0.55); border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: 700; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);" onmouseover="this.style.background='rgba(255,193,7,0.25)';this.style.color='#ffe28a'" onmouseout="this.style.background='rgba(255,193,7,0.14)';this.style.color='#ffd45c'"><i class="fa-solid fa-pen"></i> Sửa</button>
+          <button class="btn btn-outline" onclick="openRouteInGoogleMaps('${r.code}')" title="Mở chỉ đường trên Google Maps" style="flex: 1; padding: 6px; background: rgba(66, 133, 244, 0.12); color: #70a5ff; border: 1px solid rgba(66, 133, 244, 0.35); border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: 600;"><i class="fa-solid fa-diamond-turn-right"></i> Google Maps</button>
         </div>
       </div>
       `;
@@ -5238,14 +5336,21 @@ function viewRoute(code) {
     // Add start marker (first point)
     if (routePath.length > 0) {
       L.marker(routePath[0]).addTo(routesMap)
-        .bindPopup(`<b>${route.code}</b><br>📍 <b>Điểm đầu</b><br>${route.start}`)
+        .bindPopup(
+          `<b>${route.code}</b><br>📍 <b>Điểm đầu</b><br>${route.start}`,
+          { autoClose: false, closeOnClick: false }
+        )
         .openPopup();
     }
 
     // Add end marker (last point)
     if (routePath.length > 0) {
       L.marker(routePath[routePath.length - 1]).addTo(routesMap)
-        .bindPopup(`<b>${route.code}</b><br>🏁 <b>Điểm cuối</b><br>${route.end}`);
+        .bindPopup(
+          `<b>${route.code}</b><br>🏁 <b>Điểm cuối</b><br>${route.end}`,
+          { autoClose: false, closeOnClick: false }
+        )
+        .openPopup();
     }
 
     // Fit bounds to show entire route
@@ -5253,8 +5358,39 @@ function viewRoute(code) {
   }
 }
 
+function openRouteInGoogleMaps(code) {
+  const route = routesData.find(item => item.code === code);
+  if (!route) {
+    showToast('error', 'Không thể mở Google Maps', 'Không tìm thấy dữ liệu tuyến đường.');
+    return;
+  }
+
+  const path = Array.isArray(route.path) ? route.path : [];
+  const startLat = route.start_lat ?? path[0]?.[0];
+  const startLng = route.start_lng ?? path[0]?.[1];
+  const endLat = route.end_lat ?? path[path.length - 1]?.[0];
+  const endLng = route.end_lng ?? path[path.length - 1]?.[1];
+  if (![startLat, startLng, endLat, endLng].every(value => Number.isFinite(Number(value)))) {
+    showToast('error', 'Không thể mở Google Maps', 'Tuyến đường chưa có đủ tọa độ điểm đầu và điểm cuối.');
+    return;
+  }
+
+  const params = new URLSearchParams({
+    api: '1',
+    origin: `${startLat},${startLng}`,
+    destination: `${endLat},${endLng}`,
+    travelmode: 'driving'
+  });
+  window.open(`https://www.google.com/maps/dir/?${params.toString()}`, '_blank', 'noopener,noreferrer');
+}
+
 function editRoute(code) {
-  showToast('info', 'Chỉnh sửa', `Đang chỉnh sửa tuyến ${code}`);
+  const route = routesData.find(item => item.code === code);
+  if (!route) {
+    showToast('error', 'Không thể sửa tuyến', 'Không tìm thấy dữ liệu tuyến đường.');
+    return;
+  }
+  openAddModal(route);
 }
 
 function exportRoutes() {
@@ -5338,8 +5474,472 @@ document.getElementById('routeSearch')?.addEventListener('input', function(e) {
   });
 });
 
-function openAddModal() {
-  showToast('info', 'Thông báo', 'Chức năng thêm tuyến đang được phát triển');
+function routeStatusValue(status) {
+  if (!status) return 'active';
+  if (status === 'Hoạt động' || status === 'active') return 'active';
+  if (status === 'Chờ triển khai' || status === 'waiting') return 'waiting';
+  return 'offline';
+}
+
+function openAddModal(route = null) {
+  document.getElementById('addRouteModal')?.remove();
+
+  const isEditing = Boolean(route);
+  const routePlan = isEditing && Array.isArray(route.path) && route.path.length >= 2
+    ? {
+        start: {
+          address: route.start || '',
+          lat: route.start_lat ?? route.path[0][0],
+          lng: route.start_lng ?? route.path[0][1]
+        },
+        end: {
+          address: route.end || '',
+          lat: route.end_lat ?? route.path[route.path.length - 1][0],
+          lng: route.end_lng ?? route.path[route.path.length - 1][1]
+        },
+        path: route.path,
+        distance: Number(route.distance || 0),
+        duration: Number(route.duration || 0)
+      }
+    : null;
+  const modal = document.createElement('div');
+  modal.id = 'addRouteModal';
+  modal.className = 'modal-overlay';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-labelledby', 'addRouteModalTitle');
+  modal.innerHTML = `
+    <div class="modal-content vehicle-form-modal">
+      <div class="modal-header">
+        <h3 id="addRouteModalTitle">
+          <i class="fa-solid fa-route"></i> ${isEditing ? 'Sửa tuyến đường' : 'Thêm tuyến mới'}
+        </h3>
+        <button class="modal-close" type="button" onclick="closeAddRouteModal()" aria-label="Đóng">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form id="addRouteForm" onsubmit="submitNewRoute(event)">
+        <div class="modal-body">
+          <div class="vehicle-form-intro">
+            <i class="fa-solid fa-circle-info"></i>
+            <div>
+              <strong>Thông tin tuyến đường</strong>
+              <span>${isEditing
+                ? 'Dữ liệu hiện tại đã được điền sẵn. Chỉnh sửa trường cần thay đổi rồi nhấn Lưu.'
+                : 'Nhập địa chỉ điểm đi và điểm đến, sau đó tìm đường để xem lộ trình thực tế.'}</span>
+            </div>
+          </div>
+
+          <div class="vehicle-form-grid">
+            <div class="vehicle-form-field">
+              <label for="newRouteCode">Mã tuyến <span>*</span></label>
+              <input id="newRouteCode" name="id" type="text" maxlength="50"
+                     value="${escapeVehicleFormText(route?.code || '')}"
+                     placeholder="Ví dụ: T006" autocomplete="off" ${isEditing ? 'readonly' : ''} required>
+            </div>
+            <div class="vehicle-form-field">
+              <label for="newRouteName">Tên tuyến <span>*</span></label>
+              <input id="newRouteName" name="name" type="text" maxlength="100"
+                     value="${escapeVehicleFormText(route?.name || '')}"
+                     placeholder="Ví dụ: Hà Nội - Bắc Ninh" required>
+            </div>
+            <div class="vehicle-form-field full-width">
+              <label for="newRouteDescription">Mô tả</label>
+              <textarea id="newRouteDescription" name="description"
+                        placeholder="Mô tả lộ trình, khu vực hoặc mục đích khai thác">${escapeVehicleFormText(route?.description || '')}</textarea>
+            </div>
+            <div class="vehicle-form-field full-width">
+              <label>Điểm đi <span>*</span></label>
+              <div class="route-start-mode" role="radiogroup" aria-label="Cách chọn điểm đi">
+                <label>
+                  <input type="radio" name="start_mode" value="address" checked
+                         onchange="switchRouteStartMode('address')">
+                  <i class="fa-solid fa-keyboard"></i> Nhập địa chỉ
+                </label>
+                <label>
+                  <input type="radio" name="start_mode" value="gps"
+                         onchange="switchRouteStartMode('gps')">
+                  <i class="fa-solid fa-location-crosshairs"></i> Dùng GPS
+                </label>
+              </div>
+              <div id="routeStartAddressPanel" class="route-start-panel">
+                <input id="newRouteStartAddress" name="start_address" type="text"
+                       value="${escapeVehicleFormText(route?.start || '')}"
+                       placeholder="Ví dụ: 207 Phố Triều Khúc, Thanh Xuân, Hà Nội">
+              </div>
+              <div id="routeStartGpsPanel" class="route-start-panel" hidden>
+                <div class="route-address-control">
+                  <input id="newRouteStartGps" class="route-gps-value" type="text"
+                         placeholder="Chưa lấy vị trí GPS" readonly>
+                  <button class="route-gps-button" type="button" onclick="useCurrentLocationForRoute()"
+                          title="Lấy vị trí hiện tại" aria-label="Lấy vị trí hiện tại">
+                    <i class="fa-solid fa-location-crosshairs"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="vehicle-form-field full-width">
+              <label for="newRouteEndAddress">Điểm đến <span>*</span></label>
+              <input id="newRouteEndAddress" name="end_address" type="text"
+                     value="${escapeVehicleFormText(route?.end || '')}"
+                     placeholder="Ví dụ: Bến xe Mỹ Đình, Nam Từ Liêm, Hà Nội" required>
+            </div>
+            <div class="vehicle-form-field full-width">
+              <button class="btn btn-primary" id="planRouteButton" type="button"
+                      onclick="planNewRoute()" style="justify-content:center;">
+                <i class="fa-solid fa-route"></i> Tìm đường GPS
+              </button>
+            </div>
+            <div class="vehicle-form-field">
+              <label for="newRouteDistance">Khoảng cách (km)</label>
+              <input id="newRouteDistance" name="distance" type="number" min="0" step="0.1"
+                     value="${Number(route?.distance || 0)}">
+            </div>
+            <div class="vehicle-form-field">
+              <label for="newRouteDuration">Thời gian dự kiến (phút)</label>
+              <input id="newRouteDuration" name="duration" type="number" min="0" step="1"
+                     value="${Number(route?.duration || 0)}">
+            </div>
+            <div class="vehicle-form-field">
+              <label for="newRouteVehicles">Tần suất/Số xe</label>
+              <input id="newRouteVehicles" name="vehicles" type="text" maxlength="50"
+                     value="${escapeVehicleFormText(route?.vehicles || '')}"
+                     placeholder="Ví dụ: 12 xe/ngày">
+            </div>
+            <div class="vehicle-form-field">
+              <label for="newRouteStatus">Trạng thái <span>*</span></label>
+              <select id="newRouteStatus" name="status" required>
+                <option value="active" ${routeStatusValue(route?.status) === 'active' ? 'selected' : ''}>Hoạt động</option>
+                <option value="waiting" ${routeStatusValue(route?.status) === 'waiting' ? 'selected' : ''}>Chờ triển khai</option>
+                <option value="offline" ${routeStatusValue(route?.status) === 'offline' ? 'selected' : ''}>Ngừng hoạt động</option>
+              </select>
+            </div>
+            <div class="vehicle-form-field full-width">
+              <label for="newRouteColor">Màu hiển thị tuyến</label>
+              <input id="newRouteColor" name="color" type="color"
+                     value="${escapeVehicleFormText(route?.color || '#4a9eff')}"
+                     onchange="updateRoutePreviewColor()" style="height:48px;padding:5px;cursor:pointer;">
+            </div>
+            <div class="vehicle-form-field full-width">
+              <label>Lộ trình xem trước</label>
+              <div id="newRoutePreviewMap" class="route-preview-map"></div>
+              <div id="newRoutePlanSummary" class="route-plan-summary">
+                <div>Khoảng cách<strong id="newRoutePlanDistance">0 km</strong></div>
+                <div>Thời gian dự kiến<strong id="newRoutePlanDuration">0 phút</strong></div>
+              </div>
+            </div>
+          </div>
+          <input id="newRoutePlanData" type="hidden">
+          <div id="addRouteError" class="vehicle-form-error" role="alert"></div>
+        </div>
+        <div class="modal-footer" style="${isEditing ? 'justify-content:space-between;' : ''}">
+          ${isEditing ? `
+            <button class="btn btn-danger" type="button" onclick="deleteRoute('${escapeVehicleFormText(route.code)}')"
+                    style="background:rgba(255,82,82,.12);color:var(--danger);border:1px solid rgba(255,82,82,.35);">
+              <i class="fa-solid fa-trash"></i> Xóa tuyến
+            </button>
+          ` : ''}
+          <div style="display:flex;gap:10px;${isEditing ? '' : 'margin-left:auto;'}">
+            <button class="btn btn-secondary" type="button" onclick="closeAddRouteModal()">
+              <i class="fa-solid fa-xmark"></i> Hủy
+            </button>
+            <button class="btn btn-primary" id="saveRouteButton" type="submit"
+                    data-route-code="${escapeVehicleFormText(route?.code || '')}">
+              <i class="fa-solid fa-floppy-disk"></i> ${isEditing ? 'Lưu thay đổi' : 'Lưu tuyến mới'}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  `;
+
+  modal.addEventListener('click', event => {
+    if (event.target === modal) closeAddRouteModal();
+  });
+  document.body.appendChild(modal);
+  initNewRoutePreviewMap();
+  if (routePlan) {
+    document.getElementById('newRoutePlanData').value = JSON.stringify(routePlan);
+    document.getElementById('newRoutePlanDistance').textContent = `${routePlan.distance} km`;
+    document.getElementById('newRoutePlanDuration').textContent = `${routePlan.duration} phút`;
+    document.getElementById('newRoutePlanSummary').style.display = 'grid';
+    drawNewRoutePreview(routePlan);
+  }
+  ['newRouteStartAddress', 'newRouteStartGps', 'newRouteEndAddress'].forEach(id => {
+    document.getElementById(id).addEventListener('input', invalidateNewRoutePlan);
+  });
+  const focusField = document.getElementById(isEditing ? 'newRouteName' : 'newRouteCode');
+  focusField.focus();
+  if (isEditing) focusField.select();
+}
+
+var newRoutePreviewMap = null;
+var newRoutePreviewLine = null;
+var newRoutePreviewMarkers = [];
+
+function initNewRoutePreviewMap() {
+  newRoutePreviewMap = L.map('newRoutePreviewMap').setView([21.0285, 105.8542], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(newRoutePreviewMap);
+  setTimeout(() => newRoutePreviewMap.invalidateSize(), 100);
+}
+
+function closeAddRouteModal() {
+  if (newRoutePreviewMap) {
+    newRoutePreviewMap.remove();
+    newRoutePreviewMap = null;
+    newRoutePreviewLine = null;
+    newRoutePreviewMarkers = [];
+  }
+  document.getElementById('addRouteModal')?.remove();
+}
+
+function showRouteFormError(message) {
+  const error = document.getElementById('addRouteError');
+  error.textContent = message;
+  error.style.display = 'block';
+}
+
+function switchRouteStartMode(mode) {
+  const useGps = mode === 'gps';
+  document.getElementById('routeStartAddressPanel').hidden = useGps;
+  document.getElementById('routeStartGpsPanel').hidden = !useGps;
+  invalidateNewRoutePlan();
+}
+
+function getRouteStartValue() {
+  const mode = document.querySelector('input[name="start_mode"]:checked')?.value;
+  return mode === 'gps'
+    ? document.getElementById('newRouteStartGps').value.trim()
+    : document.getElementById('newRouteStartAddress').value.trim();
+}
+
+function invalidateNewRoutePlan() {
+  const planInput = document.getElementById('newRoutePlanData');
+  if (!planInput || !planInput.value) return;
+  planInput.value = '';
+  document.getElementById('newRoutePlanSummary').style.display = 'none';
+  if (newRoutePreviewLine && newRoutePreviewMap) {
+    newRoutePreviewMap.removeLayer(newRoutePreviewLine);
+    newRoutePreviewLine = null;
+  }
+  newRoutePreviewMarkers.forEach(marker => newRoutePreviewMap?.removeLayer(marker));
+  newRoutePreviewMarkers = [];
+}
+
+function useCurrentLocationForRoute() {
+  if (!navigator.geolocation) {
+    showRouteFormError('Trình duyệt không hỗ trợ định vị GPS.');
+    return;
+  }
+
+  const button = document.querySelector('.route-gps-button');
+  button.disabled = true;
+  button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+  navigator.geolocation.getCurrentPosition(
+    position => {
+      const latitude = position.coords.latitude.toFixed(6);
+      const longitude = position.coords.longitude.toFixed(6);
+      document.getElementById('newRouteStartGps').value = `${latitude}, ${longitude}`;
+      invalidateNewRoutePlan();
+      button.disabled = false;
+      button.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i>';
+    },
+    () => {
+      showRouteFormError('Không thể lấy vị trí hiện tại. Hãy cấp quyền GPS cho trình duyệt.');
+      button.disabled = false;
+      button.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i>';
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+async function planNewRoute() {
+  const startAddress = getRouteStartValue();
+  const endAddress = document.getElementById('newRouteEndAddress').value.trim();
+  const button = document.getElementById('planRouteButton');
+  const error = document.getElementById('addRouteError');
+  if (!startAddress || !endAddress) {
+    const mode = document.querySelector('input[name="start_mode"]:checked')?.value;
+    showRouteFormError(
+      mode === 'gps' && !startAddress
+        ? 'Hãy bấm nút định vị để lấy điểm đi GPS.'
+        : 'Vui lòng nhập đầy đủ điểm đi và điểm đến.'
+    );
+    return;
+  }
+
+  button.disabled = true;
+  button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tìm đường...';
+  error.style.display = 'none';
+
+  try {
+    const response = await fetch('/api/routes/plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        start_address: startAddress,
+        end_address: endAddress
+      })
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Không thể tìm đường');
+    }
+
+    const plan = data.plan;
+    document.getElementById('newRoutePlanData').value = JSON.stringify(plan);
+    document.getElementById('newRouteDistance').value = plan.distance;
+    document.getElementById('newRouteDuration').value = plan.duration;
+    document.getElementById('newRoutePlanDistance').textContent = `${plan.distance} km`;
+    document.getElementById('newRoutePlanDuration').textContent = `${plan.duration} phút`;
+    document.getElementById('newRoutePlanSummary').style.display = 'grid';
+    drawNewRoutePreview(plan);
+  } catch (requestError) {
+    document.getElementById('newRoutePlanData').value = '';
+    showRouteFormError(requestError.message);
+  } finally {
+    button.disabled = false;
+    button.innerHTML = '<i class="fa-solid fa-route"></i> Tìm đường GPS';
+  }
+}
+
+function drawNewRoutePreview(plan) {
+  if (!newRoutePreviewMap) return;
+  if (newRoutePreviewLine) newRoutePreviewMap.removeLayer(newRoutePreviewLine);
+  newRoutePreviewMarkers.forEach(marker => newRoutePreviewMap.removeLayer(marker));
+  newRoutePreviewMarkers = [];
+
+  newRoutePreviewLine = L.polyline(plan.path, {
+    color: document.getElementById('newRouteColor').value,
+    weight: 6,
+    opacity: 0.9
+  }).addTo(newRoutePreviewMap);
+  newRoutePreviewMarkers.push(
+    L.marker(plan.path[0]).addTo(newRoutePreviewMap).bindPopup(`Điểm đi: ${escapeVehicleFormText(plan.start.address)}`),
+    L.marker(plan.path[plan.path.length - 1]).addTo(newRoutePreviewMap).bindPopup(`Điểm đến: ${escapeVehicleFormText(plan.end.address)}`)
+  );
+  newRoutePreviewMap.fitBounds(newRoutePreviewLine.getBounds(), { padding: [30, 30] });
+}
+
+function updateRoutePreviewColor() {
+  if (newRoutePreviewLine) {
+    newRoutePreviewLine.setStyle({ color: document.getElementById('newRouteColor').value });
+  }
+}
+
+async function submitNewRoute(event) {
+  event.preventDefault();
+
+  const form = event.currentTarget;
+  const button = document.getElementById('saveRouteButton');
+  const error = document.getElementById('addRouteError');
+  const formData = new FormData(form);
+  const editingCode = button.dataset.routeCode;
+  const isEditing = Boolean(editingCode);
+  const planValue = document.getElementById('newRoutePlanData').value;
+  if (!planValue) {
+    showRouteFormError('Hãy bấm Tìm đường GPS và kiểm tra lộ trình trước khi lưu.');
+    return;
+  }
+  const plan = JSON.parse(planValue);
+  const payload = {
+    id: String(formData.get('id')).trim().toUpperCase(),
+    name: String(formData.get('name')).trim(),
+    description: String(formData.get('description') || '').trim(),
+    start_address: plan.start.address,
+    end_address: plan.end.address,
+    distance: Number(formData.get('distance') || 0),
+    duration: Number(formData.get('duration') || 0),
+    vehicles: String(formData.get('vehicles') || '').trim(),
+    color: String(formData.get('color') || '#4a9eff'),
+    status: String(formData.get('status') || 'active'),
+    path: plan.path
+  };
+
+  button.disabled = true;
+  button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+  error.style.display = 'none';
+
+  try {
+    const response = await fetch(isEditing ? `/api/routes/${encodeURIComponent(editingCode)}` : '/api/routes', {
+      method: isEditing ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || (isEditing ? 'Không thể cập nhật tuyến' : 'Không thể thêm tuyến mới'));
+    }
+
+    const savedRoute = {
+      code: payload.id,
+      id: payload.id,
+      name: payload.name,
+      description: payload.description,
+      start: plan.start.address,
+      end: plan.end.address,
+      start_lat: plan.start.lat,
+      start_lng: plan.start.lng,
+      end_lat: plan.end.lat,
+      end_lng: plan.end.lng,
+      distance: payload.distance,
+      duration: payload.duration,
+      vehicles: payload.vehicles,
+      color: payload.color,
+      status: payload.status === 'active'
+        ? 'Hoạt động'
+        : payload.status === 'waiting' ? 'Chờ triển khai' : 'Ngừng hoạt động',
+      path: payload.path
+    };
+    if (isEditing) {
+      const routeIndex = routesData.findIndex(item => item.code === editingCode);
+      if (routeIndex !== -1) routesData[routeIndex] = savedRoute;
+    } else {
+      routesData.push(savedRoute);
+    }
+
+    closeAddRouteModal();
+    loadRoutesData();
+    initRoutesMap();
+    showToast(
+      'success',
+      isEditing ? 'Cập nhật thành công' : 'Thêm tuyến thành công',
+      `${isEditing ? 'Đã cập nhật' : 'Đã thêm'} tuyến ${payload.id}`
+    );
+  } catch (requestError) {
+    error.textContent = requestError.message;
+    error.style.display = 'block';
+  } finally {
+    if (document.body.contains(button)) {
+      button.disabled = false;
+      button.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> ${isEditing ? 'Lưu thay đổi' : 'Lưu tuyến mới'}`;
+    }
+  }
+}
+
+async function deleteRoute(code) {
+  const route = routesData.find(item => item.code === code);
+  if (!route || !confirm(`Bạn có chắc muốn xóa tuyến ${code}: ${route.name}? Dữ liệu này không thể khôi phục.`)) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/routes/${encodeURIComponent(code)}`, { method: 'DELETE' });
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Không thể xóa tuyến đường');
+    }
+
+    routesData = routesData.filter(item => item.code !== code);
+    closeAddRouteModal();
+    loadRoutesData();
+    initRoutesMap();
+    showToast('success', 'Đã xóa tuyến', `Tuyến ${code} đã được xóa khỏi hệ thống`);
+  } catch (error) {
+    showToast('error', 'Không thể xóa tuyến', error.message);
+  }
 }
 
 // Statistics & Analytics Functions
@@ -5667,16 +6267,6 @@ function showAddRouteModal() {
 
 function showAddDriverModal() {
   showToast('info', 'Thông báo', 'Chức năng thêm tài xế đang được phát triển');
-}
-
-function editRoute(code) {
-  showToast('info', 'Chỉnh sửa', `Đang chỉnh sửa tuyến ${code}...`);
-}
-
-function deleteRoute(code) {
-  if (confirm(`Bạn có chắc muốn xóa tuyến ${code}?`)) {
-    showToast('success', 'Xóa thành công', `Tuyến ${code} đã được xóa`);
-  }
 }
 
 function editDriver(name) {

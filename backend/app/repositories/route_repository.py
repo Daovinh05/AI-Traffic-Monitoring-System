@@ -11,7 +11,8 @@ def list_routes():
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, ten_tuyen, mo_ta, start_lat, start_lng, end_lat, end_lng,
+                SELECT id, ten_tuyen, mo_ta, start_address, end_address,
+                       start_lat, start_lng, end_lat, end_lng,
                        distance, duration, vehicles, route_color, toa_do_lat,
                        toa_do_lng, trang_thai
                 FROM tuyen_duong
@@ -29,7 +30,8 @@ def get_route(route_id):
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, ten_tuyen, mo_ta, start_lat, start_lng, end_lat, end_lng,
+                SELECT id, ten_tuyen, mo_ta, start_address, end_address,
+                       start_lat, start_lng, end_lat, end_lng,
                        toa_do_lat, toa_do_lng, trang_thai
                 FROM tuyen_duong
                 WHERE id = %s
@@ -63,7 +65,19 @@ def route_exists(route_id) -> bool:
     return get_route(route_id) is not None
 
 
-def create_route(route_id, name, description, distance, duration, vehicles, color, status, path):
+def create_route(
+    route_id,
+    name,
+    description,
+    start_address,
+    end_address,
+    distance,
+    duration,
+    vehicles,
+    color,
+    status,
+    path,
+):
     conn = get_db_connection()
     try:
         start_lat, start_lng = path[0]
@@ -72,14 +86,17 @@ def create_route(route_id, name, description, distance, duration, vehicles, colo
             cur.execute(
                 """
                 INSERT INTO tuyen_duong
-                (id, ten_tuyen, mo_ta, start_lat, start_lng, end_lat, end_lng,
-                 distance, duration, vehicles, route_color, trang_thai)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (id, ten_tuyen, mo_ta, start_address, end_address,
+                 start_lat, start_lng, end_lat, end_lng, distance,
+                 duration, vehicles, route_color, trang_thai)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     route_id,
                     name,
                     description,
+                    start_address,
+                    end_address,
                     start_lat,
                     start_lng,
                     end_lat,
@@ -97,7 +114,19 @@ def create_route(route_id, name, description, distance, duration, vehicles, colo
         conn.close()
 
 
-def update_route(route_id, name, description, distance, duration, vehicles, color, status, path):
+def update_route(
+    route_id,
+    name,
+    description,
+    start_address,
+    end_address,
+    distance,
+    duration,
+    vehicles,
+    color,
+    status,
+    path,
+):
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
@@ -107,14 +136,18 @@ def update_route(route_id, name, description, distance, duration, vehicles, colo
                 cur.execute(
                     """
                     UPDATE tuyen_duong
-                    SET ten_tuyen = %s, mo_ta = %s, start_lat = %s, start_lng = %s,
-                        end_lat = %s, end_lng = %s, distance = %s, duration = %s,
-                        vehicles = %s, route_color = %s, trang_thai = %s
+                    SET ten_tuyen = %s, mo_ta = %s, start_address = %s,
+                        end_address = %s, start_lat = %s, start_lng = %s,
+                        end_lat = %s, end_lng = %s, distance = %s,
+                        duration = %s, vehicles = %s, route_color = %s,
+                        trang_thai = %s
                     WHERE id = %s
                     """,
                     (
                         name,
                         description,
+                        start_address,
+                        end_address,
                         start_lat,
                         start_lng,
                         end_lat,
@@ -133,11 +166,23 @@ def update_route(route_id, name, description, distance, duration, vehicles, colo
                 cur.execute(
                     """
                     UPDATE tuyen_duong
-                    SET ten_tuyen = %s, mo_ta = %s, distance = %s, duration = %s,
+                    SET ten_tuyen = %s, mo_ta = %s, start_address = %s,
+                        end_address = %s, distance = %s, duration = %s,
                         vehicles = %s, route_color = %s, trang_thai = %s
                     WHERE id = %s
                     """,
-                    (name, description, distance, duration, vehicles, color, status, route_id),
+                    (
+                        name,
+                        description,
+                        start_address,
+                        end_address,
+                        distance,
+                        duration,
+                        vehicles,
+                        color,
+                        status,
+                        route_id,
+                    ),
                 )
         conn.commit()
     finally:

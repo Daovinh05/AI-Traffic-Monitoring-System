@@ -41,6 +41,26 @@ def get_route_detail(route_id):
 
 
 @login_required
+def plan_route():
+    if session.get("role") != "admin":
+        return jsonify(success=False, message="Không có quyền truy cập"), 403
+    try:
+        data = request.get_json(silent=True) or {}
+        plan = route_service.plan_route(
+            data.get("start_address"),
+            data.get("end_address"),
+        )
+        return jsonify(success=True, plan=plan)
+    except ValueError as exc:
+        return jsonify(success=False, message=str(exc)), 400
+    except Exception as exc:
+        return jsonify(
+            success=False,
+            message=f"Không thể kết nối dịch vụ bản đồ: {exc}",
+        ), 502
+
+
+@login_required
 def create_route():
     try:
         result = route_service.create_route(request.get_json(silent=True) or {})
@@ -81,6 +101,13 @@ def delete_route(route_id):
 
 ROUTES = (
     AppRoute("/api/routes", "get_routes", "get_routes", handler=get_routes),
+    AppRoute(
+        "/api/routes/plan",
+        "plan_route",
+        "plan_route",
+        ("POST",),
+        handler=plan_route,
+    ),
     AppRoute(
         "/api/routes/<route_id>",
         "get_route_detail",

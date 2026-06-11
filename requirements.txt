@@ -18,3 +18,4 @@ bcrypt==4.2.1
 
 # MQTT (ESP32 Alert)
 paho-mqtt==1.6.1
+certifi

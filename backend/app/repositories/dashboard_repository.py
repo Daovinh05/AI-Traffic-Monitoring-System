@@ -197,15 +197,20 @@ def list_routes():
             cur.execute(
                 """
                 SELECT id AS code, ten_tuyen AS name, mo_ta AS description,
+                       start_address, end_address,
                        COALESCE(start_lat, toa_do_lat) AS start_lat,
                        COALESCE(start_lng, toa_do_lng) AS start_lng,
                        COALESCE(end_lat, toa_do_lat) AS end_lat,
                        COALESCE(end_lng, toa_do_lng) AS end_lng,
                        distance, duration, vehicles, route_color AS color,
-                       'Khu vực trung tâm' AS start, 'Tuyến cố định' AS end,
+                       COALESCE(start_address, 'Chưa cập nhật địa chỉ') AS start,
+                       COALESCE(end_address, 'Chưa cập nhật địa chỉ') AS end,
                        0 AS distance_old, 0 AS duration_old,
-                       IF(trang_thai = 'active',
-                          'Hoạt động', 'Ngừng hoạt động') AS status
+                       CASE trang_thai
+                           WHEN 'active' THEN 'Hoạt động'
+                           WHEN 'waiting' THEN 'Chờ triển khai'
+                           ELSE 'Ngừng hoạt động'
+                       END AS status
                 FROM tuyen_duong
                 """
             )

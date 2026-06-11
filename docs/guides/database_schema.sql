@@ -294,6 +294,8 @@ CREATE TABLE `tuyen_duong` (
   `id` varchar(50) NOT NULL,
   `ten_tuyen` varchar(100) NOT NULL,
   `mo_ta` text DEFAULT NULL,
+  `start_address` varchar(255) DEFAULT NULL,
+  `end_address` varchar(255) DEFAULT NULL,
   `start_lat` decimal(10,8) DEFAULT NULL,
   `start_lng` decimal(11,8) DEFAULT NULL,
   `end_lat` decimal(10,8) DEFAULT NULL,
