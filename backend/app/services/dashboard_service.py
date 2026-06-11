@@ -12,6 +12,7 @@ LEGACY_VEHICLE_STATUSES = {
     "Đang dừng": "Bảo trì",
     "Mất tín hiệu": "Ngừng hoạt động",
 }
+ALLOWED_DRIVER_STATUSES = {"Đang làm việc", "Đang nghỉ"}
 
 
 def _normalize_vehicle_status(status):
@@ -168,3 +169,105 @@ def delete_vehicle(vehicle_id: int):
         return None
     dashboard_repository.delete_vehicle(vehicle_id)
     return _format_vehicle(vehicle)
+
+
+def _format_driver(driver):
+    return {
+        "id": driver["id"],
+        "code": driver["code"],
+        "name": driver["name"],
+        "phone": driver["phone"] or "",
+        "license_type": driver["license_type"] or "",
+        "experience": int(driver["experience"] or 0),
+        "rating": int(driver["rating"] or 0),
+        "avatar": driver["avatar"],
+        "status": driver["status"],
+        "violations": int(driver["violations"] or 0),
+        "monthly_violations": int(driver["monthly_violations"] or 0),
+        "total_trips": int(driver["total_trips"] or 0),
+    }
+
+
+def _validate_driver_data(data):
+    code = (data.get("code") or "").strip().upper()
+    name = (data.get("name") or "").strip()
+    phone = (data.get("phone") or "").strip()
+    license_number = (data.get("license_type") or "").strip().upper()
+    status = (data.get("status") or "Đang làm việc").strip()
+
+    if not code or not name or not phone or not license_number:
+        raise ValueError("Vui lòng nhập đầy đủ mã, họ tên, SĐT và số GPLX")
+    if len(code) > 20 or len(phone) > 20 or len(license_number) > 50:
+        raise ValueError("Thông tin tài xế vượt quá độ dài cho phép")
+    if status not in ALLOWED_DRIVER_STATUSES:
+        raise ValueError("Trạng thái tài xế không hợp lệ")
+    try:
+        rating = int(data.get("rating") or 100)
+        experience = int(data.get("experience") or 0)
+        total_trips = int(data.get("total_trips") or 0)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Điểm, kinh nghiệm hoặc số chuyến không hợp lệ") from exc
+    if not 0 <= rating <= 100:
+        raise ValueError("Điểm đánh giá phải từ 0 đến 100")
+    if experience < 0 or total_trips < 0:
+        raise ValueError("Kinh nghiệm và số chuyến không được là số âm")
+
+    return {
+        "code": code,
+        "name": name,
+        "phone": phone,
+        "license_number": license_number,
+        "rating": rating,
+        "experience": experience,
+        "total_trips": total_trips,
+        "active": 1 if status == "Đang làm việc" else 0,
+    }
+
+
+def get_driver(driver_id: int):
+    driver = dashboard_repository.get_driver(driver_id)
+    return _format_driver(driver) if driver else None
+
+
+def create_driver(data, avatar_filename=None):
+    values = _validate_driver_data(data)
+    driver_id = dashboard_repository.create_driver(
+        values["code"],
+        values["name"],
+        values["phone"],
+        values["license_number"],
+        values["experience"],
+        values["total_trips"],
+        avatar_filename,
+        values["rating"],
+        values["active"],
+    )
+    return get_driver(driver_id)
+
+
+def update_driver(driver_id: int, data, avatar_filename=None):
+    current = dashboard_repository.get_driver(driver_id)
+    if not current:
+        return None
+    values = _validate_driver_data(data)
+    dashboard_repository.update_driver(
+        driver_id,
+        values["code"],
+        values["name"],
+        values["phone"],
+        values["license_number"],
+        values["experience"],
+        values["total_trips"],
+        avatar_filename if avatar_filename is not None else current["avatar"],
+        values["rating"],
+        values["active"],
+    )
+    return get_driver(driver_id)
+
+
+def delete_driver(driver_id: int):
+    driver = dashboard_repository.get_driver(driver_id)
+    if not driver:
+        return None
+    dashboard_repository.delete_driver(driver_id)
+    return _format_driver(driver)

@@ -237,6 +237,8 @@ CREATE TABLE `tai_xe` (
   `so_dien_thoai` varchar(20) DEFAULT NULL,
   `so_giay_phep_lai_xe` varchar(50) DEFAULT NULL,
   `anh_dai_dien` varchar(255) DEFAULT NULL,
+  `so_nam_kinh_nghiem` int(11) NOT NULL DEFAULT 0,
+  `tong_so_chuyen` int(11) NOT NULL DEFAULT 0,
   `diem_danh_gia` int(11) DEFAULT 100,
   `id_nguoi_dung` int(11) DEFAULT NULL,
   `trang_thai_hoat_dong` tinyint(1) DEFAULT 1,

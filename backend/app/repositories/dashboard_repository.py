@@ -175,17 +175,151 @@ def list_drivers():
                 SELECT t.id, t.ma_tai_xe AS code, t.ho_ten AS name,
                        t.so_dien_thoai AS phone,
                        t.so_giay_phep_lai_xe AS license_type,
-                       5 AS experience, t.diem_danh_gia AS rating,
+                       t.so_nam_kinh_nghiem AS experience,
+                       t.tong_so_chuyen AS total_trips,
+                       t.diem_danh_gia AS rating,
                        t.anh_dai_dien AS avatar,
                        IF(t.trang_thai_hoat_dong = 1,
                           'Đang làm việc', 'Đang nghỉ') AS status,
                        (SELECT COUNT(*) FROM canh_bao_vi_pham
                         WHERE id_tai_xe = t.id) AS violations,
-                       156 AS total_trips
+                       (SELECT COUNT(*) FROM canh_bao_vi_pham
+                        WHERE id_tai_xe = t.id
+                          AND YEAR(thoi_gian_vi_pham) = YEAR(CURRENT_DATE)
+                          AND MONTH(thoi_gian_vi_pham) = MONTH(CURRENT_DATE)
+                       ) AS monthly_violations
                 FROM tai_xe t
                 """
             )
             return cur.fetchall()
+    finally:
+        conn.close()
+
+
+def get_driver(driver_id: int):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT t.id, t.ma_tai_xe AS code, t.ho_ten AS name,
+                       t.so_dien_thoai AS phone,
+                       t.so_giay_phep_lai_xe AS license_type,
+                       t.so_nam_kinh_nghiem AS experience,
+                       t.tong_so_chuyen AS total_trips,
+                       t.diem_danh_gia AS rating,
+                       t.anh_dai_dien AS avatar,
+                       IF(t.trang_thai_hoat_dong = 1,
+                          'Đang làm việc', 'Đang nghỉ') AS status,
+                       (SELECT COUNT(*) FROM canh_bao_vi_pham
+                        WHERE id_tai_xe = t.id) AS violations,
+                       (SELECT COUNT(*) FROM canh_bao_vi_pham
+                        WHERE id_tai_xe = t.id
+                          AND YEAR(thoi_gian_vi_pham) = YEAR(CURRENT_DATE)
+                          AND MONTH(thoi_gian_vi_pham) = MONTH(CURRENT_DATE)
+                       ) AS monthly_violations
+                FROM tai_xe t
+                WHERE t.id = %s
+                """,
+                (driver_id,),
+            )
+            return cur.fetchone()
+    finally:
+        conn.close()
+
+
+def create_driver(
+    code,
+    name,
+    phone,
+    license_number,
+    experience,
+    total_trips,
+    avatar,
+    rating,
+    active,
+):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO tai_xe
+                    (ma_tai_xe, ho_ten, so_dien_thoai,
+                     so_giay_phep_lai_xe, anh_dai_dien,
+                     so_nam_kinh_nghiem, tong_so_chuyen,
+                     diem_danh_gia, trang_thai_hoat_dong)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    code,
+                    name,
+                    phone,
+                    license_number,
+                    avatar,
+                    experience,
+                    total_trips,
+                    rating,
+                    active,
+                ),
+            )
+            driver_id = cur.lastrowid
+        conn.commit()
+        return driver_id
+    finally:
+        conn.close()
+
+
+def update_driver(
+    driver_id,
+    code,
+    name,
+    phone,
+    license_number,
+    experience,
+    total_trips,
+    avatar,
+    rating,
+    active,
+):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE tai_xe
+                SET ma_tai_xe = %s, ho_ten = %s, so_dien_thoai = %s,
+                    so_giay_phep_lai_xe = %s, anh_dai_dien = %s,
+                    so_nam_kinh_nghiem = %s, tong_so_chuyen = %s,
+                    diem_danh_gia = %s, trang_thai_hoat_dong = %s
+                WHERE id = %s
+                """,
+                (
+                    code,
+                    name,
+                    phone,
+                    license_number,
+                    avatar,
+                    experience,
+                    total_trips,
+                    rating,
+                    active,
+                    driver_id,
+                ),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def delete_driver(driver_id: int):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM tai_xe WHERE id = %s", (driver_id,))
+            deleted = cur.rowcount > 0
+        conn.commit()
+        return deleted
     finally:
         conn.close()
 

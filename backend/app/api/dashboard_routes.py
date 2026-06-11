@@ -24,29 +24,42 @@ ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 MAX_VEHICLE_IMAGE_SIZE = 5 * 1024 * 1024
 
 
-def _save_vehicle_image(image):
+def _save_image(image, prefix, label):
     if not image or not image.filename:
         return None, None
 
     extension = Path(secure_filename(image.filename)).suffix.lower()
     if extension not in ALLOWED_IMAGE_EXTENSIONS:
-        raise ValueError("Ảnh xe chỉ hỗ trợ JPG, PNG hoặc WebP")
+        raise ValueError(f"{label} chỉ hỗ trợ JPG, PNG hoặc WebP")
 
     image.stream.seek(0, 2)
     image_size = image.stream.tell()
     image.stream.seek(0)
     if image_size > MAX_VEHICLE_IMAGE_SIZE:
-        raise ValueError("Ảnh xe không được vượt quá 5 MB")
+        raise ValueError(f"{label} không được vượt quá 5 MB")
 
     VEHICLE_IMAGE_DIR.mkdir(parents=True, exist_ok=True)
-    image_filename = f"vehicle-{uuid4().hex}{extension}"
+    image_filename = f"{prefix}-{uuid4().hex}{extension}"
     saved_image = VEHICLE_IMAGE_DIR / image_filename
     image.save(saved_image)
     return image_filename, saved_image
 
 
+def _save_vehicle_image(image):
+    return _save_image(image, "vehicle", "Ảnh xe")
+
+
+def _save_driver_avatar(image):
+    return _save_image(image, "driver", "Ảnh đại diện")
+
+
 def _delete_uploaded_vehicle_image(filename):
     if filename and Path(filename).name.startswith("vehicle-"):
+        (VEHICLE_IMAGE_DIR / Path(filename).name).unlink(missing_ok=True)
+
+
+def _delete_uploaded_driver_avatar(filename):
+    if filename and Path(filename).name.startswith("driver-"):
         (VEHICLE_IMAGE_DIR / Path(filename).name).unlink(missing_ok=True)
 
 
@@ -204,6 +217,94 @@ def delete_vehicle(vehicle_id):
 
 
 @login_required
+def create_driver():
+    if session.get("role") != "admin":
+        return jsonify(success=False, message="Không có quyền truy cập"), 403
+    saved_avatar = None
+    try:
+        avatar_filename, saved_avatar = _save_driver_avatar(
+            request.files.get("avatar")
+        )
+        driver = dashboard_service.create_driver(request.form, avatar_filename)
+        return jsonify(
+            success=True,
+            message="Đã thêm tài xế mới",
+            driver=driver,
+        ), 201
+    except ValueError as exc:
+        if saved_avatar:
+            saved_avatar.unlink(missing_ok=True)
+        return jsonify(success=False, message=str(exc)), 400
+    except IntegrityError:
+        if saved_avatar:
+            saved_avatar.unlink(missing_ok=True)
+        return jsonify(success=False, message="Mã tài xế đã tồn tại"), 409
+    except Exception as exc:
+        if saved_avatar:
+            saved_avatar.unlink(missing_ok=True)
+        return jsonify(success=False, message=f"Không thể thêm tài xế: {exc}"), 500
+
+
+@login_required
+def get_driver(driver_id):
+    if session.get("role") != "admin":
+        return jsonify(success=False, message="Không có quyền truy cập"), 403
+    try:
+        driver = dashboard_service.get_driver(driver_id)
+        if not driver:
+            return jsonify(success=False, message="Tài xế không tồn tại"), 404
+        return jsonify(success=True, driver=driver)
+    except Exception as exc:
+        return jsonify(success=False, message=f"Không thể tải tài xế: {exc}"), 500
+
+
+@login_required
+def update_driver(driver_id):
+    if session.get("role") != "admin":
+        return jsonify(success=False, message="Không có quyền truy cập"), 403
+    current = dashboard_service.get_driver(driver_id)
+    if not current:
+        return jsonify(success=False, message="Tài xế không tồn tại"), 404
+    saved_avatar = None
+    try:
+        avatar_filename, saved_avatar = _save_driver_avatar(
+            request.files.get("avatar")
+        )
+        driver = dashboard_service.update_driver(
+            driver_id, request.form, avatar_filename
+        )
+        if avatar_filename:
+            _delete_uploaded_driver_avatar(current["avatar"])
+        return jsonify(success=True, message="Đã cập nhật tài xế", driver=driver)
+    except ValueError as exc:
+        if saved_avatar:
+            saved_avatar.unlink(missing_ok=True)
+        return jsonify(success=False, message=str(exc)), 400
+    except IntegrityError:
+        if saved_avatar:
+            saved_avatar.unlink(missing_ok=True)
+        return jsonify(success=False, message="Mã tài xế đã tồn tại"), 409
+    except Exception as exc:
+        if saved_avatar:
+            saved_avatar.unlink(missing_ok=True)
+        return jsonify(success=False, message=f"Không thể cập nhật tài xế: {exc}"), 500
+
+
+@login_required
+def delete_driver(driver_id):
+    if session.get("role") != "admin":
+        return jsonify(success=False, message="Không có quyền truy cập"), 403
+    try:
+        driver = dashboard_service.delete_driver(driver_id)
+        if not driver:
+            return jsonify(success=False, message="Tài xế không tồn tại"), 404
+        _delete_uploaded_driver_avatar(driver["avatar"])
+        return jsonify(success=True, message="Đã xóa tài xế")
+    except Exception as exc:
+        return jsonify(success=False, message=f"Không thể xóa tài xế: {exc}"), 500
+
+
+@login_required
 def legacy_admin_dashboard():
     return dashboard()
 
@@ -277,6 +378,33 @@ ROUTES = (
         "delete_vehicle",
         ("DELETE",),
         handler=delete_vehicle,
+    ),
+    AppRoute(
+        "/api/drivers",
+        "create_driver",
+        "create_driver",
+        ("POST",),
+        handler=create_driver,
+    ),
+    AppRoute(
+        "/api/drivers/<int:driver_id>",
+        "get_driver",
+        "get_driver",
+        handler=get_driver,
+    ),
+    AppRoute(
+        "/api/drivers/<int:driver_id>",
+        "update_driver",
+        "update_driver",
+        ("PUT",),
+        handler=update_driver,
+    ),
+    AppRoute(
+        "/api/drivers/<int:driver_id>",
+        "delete_driver",
+        "delete_driver",
+        ("DELETE",),
+        handler=delete_driver,
     ),
     AppRoute(
         "/legacy/admin-dashboard",

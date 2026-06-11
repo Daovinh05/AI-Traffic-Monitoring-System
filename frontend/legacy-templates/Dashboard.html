@@ -3864,9 +3864,9 @@ tr:hover {
     </select>
     <select class="filter-select" id="ratingFilter" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-input); color: var(--text-primary); cursor: pointer;">
       <option value="all">Tất cả đánh giá</option>
-      <option value="5">⭐ 5 sao</option>
-      <option value="4">⭐ 4+ sao</option>
-      <option value="3">⭐ 3+ sao</option>
+      <option value="90">Xuất sắc (90+)</option>
+      <option value="80">Tốt (80+)</option>
+      <option value="70">Khá (70+)</option>
     </select>
     <select class="filter-select" id="companyFilter" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-input); color: var(--text-primary); cursor: pointer;">
       <option value="all">Tất cả công ty</option>
@@ -4818,7 +4818,7 @@ async function editVehicle(vehicleId) {
                 <label for="editVehiclePlate">Biển số xe <span>*</span></label>
                 <input id="editVehiclePlate" name="plate" type="text" maxlength="20"
                        value="${escapeVehicleFormText(vehicle.plate)}"
-                       placeholder="Ví dụ: 29A-123.45" autocomplete="off" required>
+                       placeholder="Nhập biển số xe, ví dụ: 29A-123.45" autocomplete="off" required>
               </div>
               <div class="vehicle-form-field">
                 <label for="editVehicleType">Loại xe <span>*</span></label>
@@ -4845,7 +4845,7 @@ async function editVehicle(vehicleId) {
                 <label for="editVehicleLocation">Vị trí hiện tại <span>*</span></label>
                 <input id="editVehicleLocation" name="location" type="text" maxlength="50"
                        value="${escapeVehicleFormText(vehicle.location)}"
-                       placeholder="Ví dụ: Thanh Xuân, Hà Nội" required>
+                       placeholder="Nhập vị trí hiện tại, ví dụ: Thanh Xuân, Hà Nội" required>
               </div>
               <div class="vehicle-form-field">
                 <label for="editVehicleStatus">Trạng thái hoạt động <span>*</span></label>
@@ -4857,11 +4857,13 @@ async function editVehicle(vehicleId) {
               </div>
               <div class="vehicle-form-field">
                 <label for="editVehicleLat">Vĩ độ</label>
-                <input id="editVehicleLat" name="lat" type="number" step="any" value="${vehicle.lat ?? 21.0285}">
+                <input id="editVehicleLat" name="lat" type="number" step="any"
+                       value="${vehicle.lat ?? 21.0285}" placeholder="Nhập vĩ độ, ví dụ: 21.0285">
               </div>
               <div class="vehicle-form-field">
                 <label for="editVehicleLng">Kinh độ</label>
-                <input id="editVehicleLng" name="lng" type="number" step="any" value="${vehicle.lng ?? 105.8542}">
+                <input id="editVehicleLng" name="lng" type="number" step="any"
+                       value="${vehicle.lng ?? 105.8542}" placeholder="Nhập kinh độ, ví dụ: 105.8542">
               </div>
               <div class="vehicle-form-field full-width">
                 <label for="editVehicleImage">Ảnh xe</label>
@@ -5028,11 +5030,12 @@ function openAddVehicleModal() {
             <div class="vehicle-form-field">
               <label for="newVehiclePlate">Biển số xe <span>*</span></label>
               <input id="newVehiclePlate" name="plate" type="text" maxlength="20"
-                     placeholder="Ví dụ: 29A-123.45" autocomplete="off" required>
+                     placeholder="Nhập biển số xe, ví dụ: 29A-123.45" autocomplete="off" required>
             </div>
             <div class="vehicle-form-field">
               <label for="newVehicleType">Loại xe <span>*</span></label>
               <select id="newVehicleType" name="type" required>
+                <option value="" selected disabled>Chọn loại xe</option>
                 <option value="car">Ô tô</option>
                 <option value="taxi">Taxi</option>
                 <option value="bus">Xe khách</option>
@@ -5042,25 +5045,26 @@ function openAddVehicleModal() {
             <div class="vehicle-form-field">
               <label for="newVehicleDriver">Tài xế phụ trách</label>
               <select id="newVehicleDriver" name="driver_id">
-                <option value="">Chưa phân công</option>
+                <option value="" selected>Chọn tài xế hoặc để chưa phân công</option>
                 ${driverOptions}
               </select>
             </div>
             <div class="vehicle-form-field">
               <label for="newVehicleRoute">Tuyến đường</label>
               <select id="newVehicleRoute" name="route_id">
-                <option value="">Chưa phân tuyến</option>
+                <option value="" selected>Chọn tuyến đường hoặc để chưa phân tuyến</option>
                 ${routeOptions}
               </select>
             </div>
             <div class="vehicle-form-field">
               <label for="newVehicleLocation">Vị trí hiện tại <span>*</span></label>
               <input id="newVehicleLocation" name="location" type="text"
-                     maxlength="50" placeholder="Ví dụ: Thanh Xuân, Hà Nội" required>
+                     maxlength="50" placeholder="Nhập vị trí hiện tại, ví dụ: Thanh Xuân, Hà Nội" required>
             </div>
             <div class="vehicle-form-field">
               <label for="newVehicleStatus">Trạng thái hoạt động <span>*</span></label>
               <select id="newVehicleStatus" name="status" required>
+                <option value="" selected disabled>Chọn trạng thái hoạt động</option>
                 <option value="Đang hoạt động">Đang hoạt động</option>
                 <option value="Bảo trì">Bảo trì</option>
                 <option value="Ngừng hoạt động">Ngừng hoạt động</option>
@@ -5068,11 +5072,13 @@ function openAddVehicleModal() {
             </div>
             <div class="vehicle-form-field">
               <label for="newVehicleLat">Vĩ độ</label>
-              <input id="newVehicleLat" name="lat" type="number" step="any" value="21.0285">
+              <input id="newVehicleLat" name="lat" type="number" step="any"
+                     placeholder="Nhập vĩ độ, ví dụ: 21.0285">
             </div>
             <div class="vehicle-form-field">
               <label for="newVehicleLng">Kinh độ</label>
-              <input id="newVehicleLng" name="lng" type="number" step="any" value="105.8542">
+              <input id="newVehicleLng" name="lng" type="number" step="any"
+                     placeholder="Nhập kinh độ, ví dụ: 105.8542">
             </div>
             <div class="vehicle-form-field full-width">
               <label for="newVehicleImage">Ảnh xe</label>
@@ -5085,8 +5091,8 @@ function openAddVehicleModal() {
                          accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                          onchange="previewNewVehicleImage(event)">
                   <div class="vehicle-upload-help">
-                    Hỗ trợ JPG, PNG, WebP. Dung lượng tối đa 5 MB.<br>
-                    Nên dùng ảnh ngang, rõ biển số và toàn bộ thân xe.
+                    Chọn ảnh phương tiện, nên dùng ảnh ngang rõ biển số và toàn bộ thân xe.<br>
+                    Hỗ trợ JPG, PNG, WebP, tối đa 5 MB.
                   </div>
                 </div>
               </div>
@@ -5535,18 +5541,18 @@ function openAddModal(route = null) {
               <label for="newRouteCode">Mã tuyến <span>*</span></label>
               <input id="newRouteCode" name="id" type="text" maxlength="50"
                      value="${escapeVehicleFormText(route?.code || '')}"
-                     placeholder="Ví dụ: T006" autocomplete="off" ${isEditing ? 'readonly' : ''} required>
+                     placeholder="Nhập mã tuyến, ví dụ: T006" autocomplete="off" ${isEditing ? 'readonly' : ''} required>
             </div>
             <div class="vehicle-form-field">
               <label for="newRouteName">Tên tuyến <span>*</span></label>
               <input id="newRouteName" name="name" type="text" maxlength="100"
                      value="${escapeVehicleFormText(route?.name || '')}"
-                     placeholder="Ví dụ: Hà Nội - Bắc Ninh" required>
+                     placeholder="Nhập tên tuyến, ví dụ: Hà Nội - Bắc Ninh" required>
             </div>
             <div class="vehicle-form-field full-width">
               <label for="newRouteDescription">Mô tả</label>
               <textarea id="newRouteDescription" name="description"
-                        placeholder="Mô tả lộ trình, khu vực hoặc mục đích khai thác">${escapeVehicleFormText(route?.description || '')}</textarea>
+                        placeholder="Nhập mô tả lộ trình, khu vực hoặc mục đích khai thác">${escapeVehicleFormText(route?.description || '')}</textarea>
             </div>
             <div class="vehicle-form-field full-width">
               <label>Điểm đi <span>*</span></label>
@@ -5565,12 +5571,12 @@ function openAddModal(route = null) {
               <div id="routeStartAddressPanel" class="route-start-panel">
                 <input id="newRouteStartAddress" name="start_address" type="text"
                        value="${escapeVehicleFormText(route?.start || '')}"
-                       placeholder="Ví dụ: 207 Phố Triều Khúc, Thanh Xuân, Hà Nội">
+                       placeholder="Nhập địa chỉ điểm đi, ví dụ: 207 Phố Triều Khúc, Hà Nội">
               </div>
               <div id="routeStartGpsPanel" class="route-start-panel" hidden>
                 <div class="route-address-control">
                   <input id="newRouteStartGps" class="route-gps-value" type="text"
-                         placeholder="Chưa lấy vị trí GPS" readonly>
+                         placeholder="Bấm nút định vị để lấy vị trí GPS" readonly>
                   <button class="route-gps-button" type="button" onclick="useCurrentLocationForRoute()"
                           title="Lấy vị trí hiện tại" aria-label="Lấy vị trí hiện tại">
                     <i class="fa-solid fa-location-crosshairs"></i>
@@ -5582,7 +5588,7 @@ function openAddModal(route = null) {
               <label for="newRouteEndAddress">Điểm đến <span>*</span></label>
               <input id="newRouteEndAddress" name="end_address" type="text"
                      value="${escapeVehicleFormText(route?.end || '')}"
-                     placeholder="Ví dụ: Bến xe Mỹ Đình, Nam Từ Liêm, Hà Nội" required>
+                     placeholder="Nhập địa chỉ điểm đến, ví dụ: Bến xe Mỹ Đình, Hà Nội" required>
             </div>
             <div class="vehicle-form-field full-width">
               <button class="btn btn-primary" id="planRouteButton" type="button"
@@ -5593,23 +5599,26 @@ function openAddModal(route = null) {
             <div class="vehicle-form-field">
               <label for="newRouteDistance">Khoảng cách (km)</label>
               <input id="newRouteDistance" name="distance" type="number" min="0" step="0.1"
-                     value="${Number(route?.distance || 0)}">
+                     value="${isEditing ? Number(route?.distance || 0) : ''}"
+                     placeholder="Khoảng cách tự động, ví dụ: 25.3">
             </div>
             <div class="vehicle-form-field">
               <label for="newRouteDuration">Thời gian dự kiến (phút)</label>
               <input id="newRouteDuration" name="duration" type="number" min="0" step="1"
-                     value="${Number(route?.duration || 0)}">
+                     value="${isEditing ? Number(route?.duration || 0) : ''}"
+                     placeholder="Thời gian tự động, ví dụ: 35">
             </div>
             <div class="vehicle-form-field">
               <label for="newRouteVehicles">Tần suất/Số xe</label>
               <input id="newRouteVehicles" name="vehicles" type="text" maxlength="50"
                      value="${escapeVehicleFormText(route?.vehicles || '')}"
-                     placeholder="Ví dụ: 12 xe/ngày">
+                     placeholder="Nhập tần suất hoặc số xe, ví dụ: 12 xe/ngày">
             </div>
             <div class="vehicle-form-field">
               <label for="newRouteStatus">Trạng thái <span>*</span></label>
               <select id="newRouteStatus" name="status" required>
-                <option value="active" ${routeStatusValue(route?.status) === 'active' ? 'selected' : ''}>Hoạt động</option>
+                ${isEditing ? '' : '<option value="" selected disabled>Chọn trạng thái tuyến</option>'}
+                <option value="active" ${isEditing && routeStatusValue(route?.status) === 'active' ? 'selected' : ''}>Hoạt động</option>
                 <option value="waiting" ${routeStatusValue(route?.status) === 'waiting' ? 'selected' : ''}>Chờ triển khai</option>
                 <option value="offline" ${routeStatusValue(route?.status) === 'offline' ? 'selected' : ''}>Ngừng hoạt động</option>
               </select>
@@ -6212,65 +6221,255 @@ function applyFilter() {
 }
 
 // Drivers Management
+var driversData = {{ drivers|default([], true)|tojson|safe }};
+
+function driverAvatarUrl(driver) {
+  return driver.avatar
+    ? `/static/images/${encodeURIComponent(driver.avatar)}`
+    : 'https://randomuser.me/api/portraits/men/32.jpg';
+}
+
 function loadDriversData() {
   const grid = document.getElementById('driverGrid');
-  
-  grid.innerHTML = `
-    {% if drivers|length > 0 %}
-      {% for d in drivers %}
-        <div class="driver-card" data-status="{{ 'online' if d.status == 'Đang làm việc' else 'offline' if d.status == 'Đang nghỉ' else 'warning' }}" data-company="abc" style="background: var(--bg-card); border-radius: 8px; padding: 15px; border: 1px solid var(--border-color); transition: var(--transition); position: relative;">
-          <span class="driver-status status-{{ 'online' if d.status == 'Đang làm việc' else 'offline' if d.status == 'Đang nghỉ' else 'warning' }}" style="position: absolute; top: 10px; left: 10px; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; text-transform: uppercase; z-index: 10; {% if d.status == 'Đang làm việc' %}background: rgba(0, 200, 83, 0.25); color: var(--success);{% elif d.status == 'Đang nghỉ' %}background: rgba(255, 193, 7, 0.25); color: var(--warning);{% else %}background: rgba(255, 82, 82, 0.25); color: var(--danger);{% endif %}">{{ "Đang làm việc" if d.status == "Đang làm việc" else "Nghỉ" if d.status == "Đang nghỉ" else "Cảnh báo" }}</span>
-          <div class="driver-header" style="display: flex; justify-content: center; align-items: center; margin-bottom: 12px; margin-top: 10px;">
-            <div class="driver-avatar">
-              <img src="{{ url_for('static', filename='images/' + d.avatar) if d.avatar else 'https://randomuser.me/api/portraits/men/32.jpg' }}" 
-                   alt="{{ d.name }}" 
-                   onerror="this.src='https://randomuser.me/api/portraits/men/32.jpg'"
-                   style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--border-color);">
-            </div>
-          </div>
-          <div class="driver-info" style="text-align: center; margin-bottom: 12px;">
-            <div class="driver-name" style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">{{ d.name }}</div>
-            <div class="driver-code" style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">{{ d.code }}</div>
-            <div class="driver-stats" style="display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
-              <div class="driver-stat"><div class="driver-stat-value" style="font-size: 16px; font-weight: bold; color: var(--text-primary);">{{ d.total_trips }}</div><div class="driver-stat-label" style="font-size: 10px; color: var(--text-muted);">Chuyến</div></div>
-              <div class="driver-stat"><div class="driver-stat-value" style="font-size: 16px; font-weight: bold; color: var(--accent);">{{ d.rating }}⭐</div><div class="driver-stat-label" style="font-size: 10px; color: var(--text-muted);">Đánh giá</div></div>
-              <div class="driver-stat"><div class="driver-stat-value" style="font-size: 16px; font-weight: bold; color: var(--danger);">{{ d.violations }}</div><div class="driver-stat-label" style="font-size: 10px; color: var(--text-muted);">Vi phạm</div></div>
-            </div>
-          </div>
-          <div class="driver-details" style="font-size: 12px; margin-bottom: 12px;">
-            <div class="detail-row" style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed var(--border-color);"><span class="detail-label" style="color: var(--text-muted);">SĐT</span><span class="detail-value" style="color: var(--text-primary);">{{ d.phone }}</span></div>
-            <div class="detail-row" style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed var(--border-color);"><span class="detail-label" style="color: var(--text-muted);">Hạng GPLX</span><span class="detail-value" style="color: var(--text-primary);">{{ d.license_type }}</span></div>
-            <div class="detail-row" style="display: flex; justify-content: space-between; padding: 4px 0;"><span class="detail-label" style="color: var(--text-muted);">Kinh nghiệm</span><span class="detail-value" style="color: var(--text-primary);">{{ d.experience }} năm</span></div>
-          </div>
-          <div class="driver-actions" style="display: flex; gap: 5px;">
-            <button class="btn btn-success" onclick="callDriver('{{ d.phone }}')" style="flex: 1; padding: 6px; background: rgba(0, 200, 83, 0.15); color: var(--success); border: 1px solid rgba(0, 200, 83, 0.3); border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: 600;"><i class="fa-solid fa-phone"></i> Gọi</button>
-            <button class="btn btn-outline" onclick="editDriver('{{ d.name }}')" style="flex: 1; padding: 6px; background: var(--bg-input); color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: 600;"><i class="fa-solid fa-pen"></i> Sửa</button>
-            <button class="btn btn-danger" onclick="deleteDriver('{{ d.name }}')" style="flex: 1; padding: 6px; background: rgba(255, 82, 82, 0.15); color: var(--danger); border: 1px solid rgba(255, 82, 82, 0.3); border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: 600;"><i class="fa-solid fa-trash"></i> Xóa</button>
+  if (!driversData.length) {
+    grid.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">Không có dữ liệu tài xế</div>';
+    return;
+  }
+
+  grid.innerHTML = driversData.map(driver => {
+    const working = driver.status === 'Đang làm việc';
+    return `
+      <div class="driver-card" data-status="${working ? 'online' : 'offline'}"
+           data-rating="${Number(driver.rating || 0)}" data-company="abc"
+           style="background:var(--bg-card);border-radius:8px;padding:15px;border:1px solid var(--border-color);transition:var(--transition);position:relative;">
+        <span class="driver-status" style="position:absolute;top:10px;left:10px;padding:4px 8px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase;z-index:10;background:${working ? 'rgba(0,200,83,.25)' : 'rgba(255,193,7,.25)'};color:${working ? 'var(--success)' : 'var(--warning)'};">
+          ${working ? 'Đang làm việc' : 'Nghỉ'}
+        </span>
+        <div class="driver-header" style="display:flex;justify-content:center;align-items:center;margin:10px 0 12px;">
+          <div class="driver-avatar">
+            <img src="${driverAvatarUrl(driver)}" alt="${escapeVehicleFormText(driver.name)}"
+                 onerror="this.src='https://randomuser.me/api/portraits/men/32.jpg'"
+                 style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--border-color);">
           </div>
         </div>
-      {% endfor %}
-    {% else %}
-      <div style="padding: 20px; text-align: center; color: var(--text-muted);">Không có dữ liệu tài xế</div>
-    {% endif %}
-  `;
+        <div class="driver-info" style="text-align:center;margin-bottom:12px;">
+          <div class="driver-name" style="font-weight:600;color:var(--text-primary);margin-bottom:4px;">${escapeVehicleFormText(driver.name)}</div>
+          <div class="driver-code" style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">${escapeVehicleFormText(driver.code)}</div>
+          <div class="driver-stats" style="display:flex;justify-content:space-around;padding:8px 0;border-top:1px solid var(--border-color);border-bottom:1px solid var(--border-color);">
+            <div class="driver-stat"><div class="driver-stat-value" style="font-size:16px;font-weight:bold;color:var(--text-primary);">${driver.total_trips || 0}</div><div class="driver-stat-label" style="font-size:10px;color:var(--text-muted);">Chuyến</div></div>
+            <div class="driver-stat"><div class="driver-stat-value" style="font-size:16px;font-weight:bold;color:var(--accent);">${driver.rating || 0}</div><div class="driver-stat-label" style="font-size:10px;color:var(--text-muted);">Điểm</div></div>
+            <div class="driver-stat"><div class="driver-stat-value" style="font-size:16px;font-weight:bold;color:var(--danger);">${driver.violations || 0}</div><div class="driver-stat-label" style="font-size:10px;color:var(--text-muted);">Vi phạm</div></div>
+          </div>
+        </div>
+        <div class="driver-details" style="font-size:12px;margin-bottom:12px;">
+          <div class="detail-row" style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--border-color);"><span class="detail-label" style="color:var(--text-muted);">SĐT</span><span class="detail-value" style="color:var(--text-primary);">${escapeVehicleFormText(driver.phone)}</span></div>
+          <div class="detail-row" style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--border-color);"><span class="detail-label" style="color:var(--text-muted);">Số GPLX</span><span class="detail-value" style="color:var(--text-primary);">${escapeVehicleFormText(driver.license_type)}</span></div>
+          <div class="detail-row" style="display:flex;justify-content:space-between;padding:4px 0;"><span class="detail-label" style="color:var(--text-muted);">Kinh nghiệm</span><span class="detail-value" style="color:var(--text-primary);">${driver.experience || 0} năm</span></div>
+        </div>
+        <div class="driver-actions" style="display:flex;gap:5px;">
+          <button class="btn btn-success" onclick="callDriver('${escapeVehicleFormText(driver.phone)}')" style="flex:1;padding:6px;background:rgba(0,200,83,.15);color:var(--success);border:1px solid rgba(0,200,83,.3);border-radius:5px;cursor:pointer;font-size:11px;font-weight:600;"><i class="fa-solid fa-phone"></i> Gọi</button>
+          <button class="btn btn-outline" onclick="editDriver(${driver.id})" style="flex:1;padding:6px;background:rgba(255,193,7,.14);color:#ffd45c;border:1px solid rgba(255,193,7,.55);border-radius:5px;cursor:pointer;font-size:11px;font-weight:700;"><i class="fa-solid fa-pen"></i> Sửa</button>
+        </div>
+      </div>
+    `;
+  }).join('');
   
   // Animate stats
-  animateValue('activeDrivers', 0, 38, 1000);
-  setTimeout(() => animateValue('totalDrivers', 0, 52, 1000), 200);
-  setTimeout(() => animateValue('violations', 0, 12, 1000), 400);
-  setTimeout(() => animateValue('topDrivers', 0, 8, 1000), 600);
+  animateValue('activeDrivers', 0, driversData.filter(driver => driver.status === 'Đang làm việc').length, 1000);
+  setTimeout(() => animateValue('totalDrivers', 0, driversData.length, 1000), 200);
+  setTimeout(() => animateValue('violations', 0, driversData.reduce((sum, driver) => sum + Number(driver.monthly_violations || 0), 0), 400), 400);
+  setTimeout(() => animateValue('topDrivers', 0, driversData.filter(driver => Number(driver.rating) >= 90).length, 600), 600);
 }
 
 function showAddRouteModal() {
   showToast('info', 'Thông báo', 'Chức năng thêm tuyến đang được phát triển');
 }
 
-function showAddDriverModal() {
-  showToast('info', 'Thông báo', 'Chức năng thêm tài xế đang được phát triển');
+function showAddDriverModal(driver = null) {
+  document.getElementById('driverFormModal')?.remove();
+  const isEditing = Boolean(driver);
+  const modal = document.createElement('div');
+  modal.id = 'driverFormModal';
+  modal.className = 'modal-overlay';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.innerHTML = `
+    <div class="modal-content vehicle-form-modal">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-id-card"></i> ${isEditing ? 'Sửa thông tin tài xế' : 'Thêm tài xế mới'}</h3>
+        <button class="modal-close" type="button" onclick="closeDriverModal()" aria-label="Đóng">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form onsubmit="submitDriverForm(event)">
+        <div class="modal-body">
+          <div class="vehicle-form-intro">
+            <i class="fa-solid fa-circle-info"></i>
+            <div>
+              <strong>Hồ sơ tài xế</strong>
+              <span>${isEditing ? 'Dữ liệu hiện tại đã được điền sẵn. Chỉnh sửa rồi nhấn Lưu.' : 'Nhập thông tin để tạo hồ sơ tài xế mới.'}</span>
+            </div>
+          </div>
+          <div class="vehicle-form-grid">
+            <div class="vehicle-form-field">
+              <label for="driverCode">Mã tài xế <span>*</span></label>
+              <input id="driverCode" name="code" maxlength="20" value="${escapeVehicleFormText(driver?.code || '')}" placeholder="Nhập mã tài xế, ví dụ: TX08" required>
+            </div>
+            <div class="vehicle-form-field">
+              <label for="driverName">Họ và tên <span>*</span></label>
+              <input id="driverName" name="name" maxlength="100" value="${escapeVehicleFormText(driver?.name || '')}" placeholder="Nhập họ và tên, ví dụ: Nguyễn Văn An" required>
+            </div>
+            <div class="vehicle-form-field">
+              <label for="driverPhone">Số điện thoại <span>*</span></label>
+              <input id="driverPhone" name="phone" type="tel" maxlength="20" value="${escapeVehicleFormText(driver?.phone || '')}" placeholder="Nhập số điện thoại, ví dụ: 0912345678" required>
+            </div>
+            <div class="vehicle-form-field">
+              <label for="driverLicense">Số giấy phép lái xe <span>*</span></label>
+              <input id="driverLicense" name="license_type" maxlength="50" value="${escapeVehicleFormText(driver?.license_type || '')}" placeholder="Nhập số GPLX, ví dụ: GPLX-008" required>
+            </div>
+            <div class="vehicle-form-field">
+              <label for="driverRating">Điểm đánh giá (0-100)</label>
+              <input id="driverRating" name="rating" type="number" min="0" max="100"
+                     value="${isEditing ? Number(driver.rating ?? 100) : ''}"
+                     placeholder="Nhập điểm đánh giá, ví dụ: 95">
+            </div>
+            <div class="vehicle-form-field">
+              <label for="driverExperience">Kinh nghiệm (năm)</label>
+              <input id="driverExperience" name="experience" type="number" min="0"
+                     value="${isEditing ? Number(driver.experience || 0) : ''}"
+                     placeholder="Nhập số năm kinh nghiệm, ví dụ: 5">
+            </div>
+            <div class="vehicle-form-field">
+              <label for="driverTrips">Tổng số chuyến</label>
+              <input id="driverTrips" name="total_trips" type="number" min="0"
+                     value="${isEditing ? Number(driver.total_trips || 0) : ''}"
+                     placeholder="Nhập tổng số chuyến, ví dụ: 156">
+            </div>
+            <div class="vehicle-form-field">
+              <label for="driverViolations">Tổng vi phạm</label>
+              <input id="driverViolations" type="number"
+                     value="${isEditing ? Number(driver.violations || 0) : 0}"
+                     title="Tự động thống kê từ cảnh báo vi phạm" readonly>
+            </div>
+            <div class="vehicle-form-field">
+              <label for="driverStatus">Trạng thái <span>*</span></label>
+              <select id="driverStatus" name="status" required>
+                ${isEditing ? '' : '<option value="" selected disabled>Chọn trạng thái tài xế</option>'}
+                <option value="Đang làm việc" ${isEditing && driver?.status !== 'Đang nghỉ' ? 'selected' : ''}>Đang làm việc</option>
+                <option value="Đang nghỉ" ${driver?.status === 'Đang nghỉ' ? 'selected' : ''}>Đang nghỉ</option>
+              </select>
+            </div>
+            <div class="vehicle-form-field full-width">
+              <label for="driverAvatar">Ảnh đại diện</label>
+              <div class="vehicle-image-upload">
+                <img id="driverAvatarPreview" class="vehicle-image-preview"
+                     src="${driver ? driverAvatarUrl(driver) : 'https://randomuser.me/api/portraits/men/32.jpg'}"
+                     alt="Ảnh đại diện tài xế" style="border-radius:50%;">
+                <div>
+                  <input id="driverAvatar" name="avatar" type="file"
+                         accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                         onchange="previewDriverAvatar(event)">
+                  <div class="vehicle-upload-help">${isEditing ? 'Chọn ảnh mới hoặc để trống nếu muốn giữ ảnh hiện tại.' : 'Chọn ảnh đại diện cho tài xế.'}<br>Hỗ trợ JPG, PNG, WebP, tối đa 5 MB.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="driverFormError" class="vehicle-form-error" role="alert"></div>
+        </div>
+        <div class="modal-footer" style="${isEditing ? 'justify-content:space-between;' : ''}">
+          ${isEditing ? `
+            <button class="btn btn-danger" type="button" onclick="deleteDriver(${driver.id})"
+                    style="background:rgba(255,82,82,.12);color:var(--danger);border:1px solid rgba(255,82,82,.35);">
+              <i class="fa-solid fa-trash"></i> Xóa tài xế
+            </button>` : ''}
+          <div style="display:flex;gap:10px;${isEditing ? '' : 'margin-left:auto;'}">
+            <button class="btn btn-secondary" type="button" onclick="closeDriverModal()"><i class="fa-solid fa-xmark"></i> Hủy</button>
+            <button class="btn btn-primary" id="saveDriverButton" type="submit" data-driver-id="${driver?.id || ''}">
+              <i class="fa-solid fa-floppy-disk"></i> ${isEditing ? 'Lưu thay đổi' : 'Thêm tài xế'}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  `;
+  modal.addEventListener('click', event => {
+    if (event.target === modal) closeDriverModal();
+  });
+  document.body.appendChild(modal);
+  document.getElementById(isEditing ? 'driverName' : 'driverCode').focus();
 }
 
-function editDriver(name) {
-  showToast('info', 'Chỉnh sửa', `Đang chỉnh sửa tài xế ${name}...`);
+function closeDriverModal() {
+  const preview = document.getElementById('driverAvatarPreview');
+  if (preview?.dataset.objectUrl) URL.revokeObjectURL(preview.dataset.objectUrl);
+  document.getElementById('driverFormModal')?.remove();
+}
+
+function previewDriverAvatar(event) {
+  const file = event.target.files[0];
+  const error = document.getElementById('driverFormError');
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    event.target.value = '';
+    error.textContent = 'Ảnh đại diện không được vượt quá 5 MB.';
+    error.style.display = 'block';
+    return;
+  }
+  const preview = document.getElementById('driverAvatarPreview');
+  if (preview.dataset.objectUrl) URL.revokeObjectURL(preview.dataset.objectUrl);
+  preview.dataset.objectUrl = URL.createObjectURL(file);
+  preview.src = preview.dataset.objectUrl;
+  error.style.display = 'none';
+}
+
+function editDriver(driverId) {
+  const driver = driversData.find(item => Number(item.id) === Number(driverId));
+  if (!driver) {
+    showToast('error', 'Không thể sửa', 'Không tìm thấy tài xế.');
+    return;
+  }
+  showAddDriverModal(driver);
+}
+
+async function submitDriverForm(event) {
+  event.preventDefault();
+  const button = document.getElementById('saveDriverButton');
+  const error = document.getElementById('driverFormError');
+  const driverId = button.dataset.driverId;
+  const isEditing = Boolean(driverId);
+  button.disabled = true;
+  button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+  error.style.display = 'none';
+
+  try {
+    const response = await fetch(isEditing ? `/api/drivers/${driverId}` : '/api/drivers', {
+      method: isEditing ? 'PUT' : 'POST',
+      body: new FormData(event.currentTarget)
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.message || 'Không thể lưu tài xế');
+
+    if (isEditing) {
+      const index = driversData.findIndex(item => Number(item.id) === Number(driverId));
+      if (index !== -1) driversData[index] = data.driver;
+      const optionIndex = vehicleDriversData.findIndex(item => Number(item.id) === Number(driverId));
+      if (optionIndex !== -1) vehicleDriversData[optionIndex] = data.driver;
+    } else {
+      driversData.push(data.driver);
+      vehicleDriversData.push(data.driver);
+    }
+    closeDriverModal();
+    loadDriversData();
+    showToast('success', isEditing ? 'Cập nhật thành công' : 'Thêm thành công', `Đã lưu tài xế ${data.driver.name}`);
+  } catch (requestError) {
+    error.textContent = requestError.message;
+    error.style.display = 'block';
+  } finally {
+    if (document.body.contains(button)) {
+      button.disabled = false;
+      button.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> ${isEditing ? 'Lưu thay đổi' : 'Thêm tài xế'}`;
+    }
+  }
 }
 
 function viewDriver(name) {
@@ -6281,10 +6480,20 @@ function callDriver(phone) {
   showToast('success', 'Đang gọi', `Số: ${phone}`);
 }
 
-function deleteDriver(name) {
-  if (confirm(`Bạn có chắc muốn xóa tài xế ${name}?`)) {
-    showToast('success', 'Xóa thành công', `Đã xóa tài xế ${name}`);
+async function deleteDriver(driverId) {
+  const driver = driversData.find(item => Number(item.id) === Number(driverId));
+  if (!driver || !confirm(`Bạn có chắc muốn xóa tài xế ${driver.name}? Dữ liệu này không thể khôi phục.`)) return;
+  try {
+    const response = await fetch(`/api/drivers/${driverId}`, { method: 'DELETE' });
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.message || 'Không thể xóa tài xế');
+    driversData = driversData.filter(item => Number(item.id) !== Number(driverId));
+    vehicleDriversData = vehicleDriversData.filter(item => Number(item.id) !== Number(driverId));
+    closeDriverModal();
     loadDriversData();
+    showToast('success', 'Đã xóa tài xế', `${driver.name} đã được xóa khỏi hệ thống`);
+  } catch (error) {
+    showToast('error', 'Không thể xóa tài xế', error.message);
   }
 }
 
@@ -6484,57 +6693,6 @@ function createModal(id, title, content, actions) {
   modal.appendChild(modalContent);
   document.body.appendChild(modal);
   modal.style.display = 'flex';
-}
-
-function showAddDriverModal() {
-  const content = `
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-      <div>
-        <label style="color: var(--text-secondary); font-size: 13px; margin-bottom: 5px; display: block;">Họ tên</label>
-        <input type="text" id="newDriverName" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-input); color: var(--text-primary);">
-      </div>
-      <div>
-        <label style="color: var(--text-secondary); font-size: 13px; margin-bottom: 5px; display: block;">SĐT</label>
-        <input type="text" id="newDriverPhone" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-input); color: var(--text-primary);">
-      </div>
-      <div>
-        <label style="color: var(--text-secondary); font-size: 13px; margin-bottom: 5px; display: block;">Bằng lái</label>
-        <select id="newDriverLicense" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-input); color: var(--text-primary);">
-          <option value="B1">B1</option>
-          <option value="B2">B2</option>
-          <option value="C">C</option>
-          <option value="D">D</option>
-          <option value="E">E</option>
-        </select>
-      </div>
-      <div>
-        <label style="color: var(--text-secondary); font-size: 13px; margin-bottom: 5px; display: block;">Kinh nghiệm</label>
-        <input type="text" id="newDriverExperience" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-input); color: var(--text-primary);">
-      </div>
-    </div>
-  `;
-  
-  const actions = `
-    <button onclick="this.closest('.modal').remove()" style="padding: 10px 20px; background: var(--bg-input); color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 5px; cursor: pointer;">Hủy</button>
-    <button onclick="saveNewDriver()" style="padding: 10px 20px; background: var(--accent); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">Thêm tài xế</button>
-  `;
-  
-  createModal('addDriverModal', '👥 Thêm tài xế mới', content, actions);
-}
-
-function saveNewDriver() {
-  const name = document.getElementById('newDriverName').value;
-  const phone = document.getElementById('newDriverPhone').value;
-  const license = document.getElementById('newDriverLicense').value;
-  
-  if (!name || !phone) {
-    showToast('warning', 'Thiếu thông tin', 'Vui lòng điền đầy đủ thông tin');
-    return;
-  }
-  
-  showToast('success', 'Thành công', `Đã thêm tài xế ${name}`);
-  document.getElementById('addDriverModal').remove();
-  loadDriversData();
 }
 
 /* ===== SEARCH VEHICLE ===== */
