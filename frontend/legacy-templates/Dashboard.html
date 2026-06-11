@@ -4047,9 +4047,7 @@ tr:hover {
 <!-- ===== VOICE SUGGESTIONS ===== -->
 <div id="voiceSuggestions">
   <div class="suggestion-title">🎤 Lệnh gợi ý (click để nói):</div>
-  <div class="suggestion-item" onclick="voiceCommand('hiển thị xe 29B-222.22')">
-    <i class="fa-solid fa-bus"></i> Hiển thị xe 29B-222.22
-  </div>
+  
   <div class="suggestion-item" onclick="voiceCommand('mở camera')">
     <i class="fa-solid fa-video"></i> Mở camera
   </div>
@@ -7321,6 +7319,53 @@ var map = null;
 var markers = {};
 var trafficLayer = null;
 var vehicleRouteLayers = {};
+var vehicleRouteIndex = {};
+var vehicleAnimInterval = null;
+
+function getRoutePath(vehicle) {
+  var route = routesData.find(function(r) { return String(r.code) === String(vehicle.routeId); });
+  return route && Array.isArray(route.path) && route.path.length >= 2 ? route.path : null;
+}
+
+function findNearestRoutePoint(lat, lng, routePath) {
+  var minDist = Infinity, bestIdx = 0;
+  for (var i = 0; i < routePath.length; i++) {
+    var dlat = lat - routePath[i][0], dlng = lng - routePath[i][1];
+    var dist = dlat * dlat + dlng * dlng;
+    if (dist < minDist) { minDist = dist; bestIdx = i; }
+  }
+  return bestIdx;
+}
+
+function initVehiclePositions() {
+  vehicles.forEach(function(v) {
+    var path = getRoutePath(v);
+    if (path) {
+      var idx = findNearestRoutePoint(v.lat, v.lng, path);
+      vehicleRouteIndex[v.id] = idx;
+      v.lat = path[idx][0];
+      v.lng = path[idx][1];
+    }
+  });
+}
+
+function animateRunningVehicles() {
+  vehicles.forEach(function(v) {
+    if (v.status !== 1) return;
+    var path = getRoutePath(v);
+    if (!path) return;
+    if (vehicleRouteIndex[v.id] === undefined) return;
+    var nextIdx = vehicleRouteIndex[v.id] + 1;
+    if (nextIdx >= path.length) nextIdx = 0;
+    vehicleRouteIndex[v.id] = nextIdx;
+    v.lat = path[nextIdx][0];
+    v.lng = path[nextIdx][1];
+    var marker = markers[v.id];
+    if (marker) {
+      marker.setLatLng([v.lat, v.lng]);
+    }
+  });
+}
 
 // Car & Bus icons
 var carIconUrl = "https://cdn-icons-png.flaticon.com/512/1048/1048315.png";
@@ -7358,6 +7403,7 @@ const vehicles = {{ all_vehicles|default([], true)|tojson|safe }}.map(v => ({
 }));
 
 function initMap() {
+  initVehiclePositions();
   map = L.map('map').setView([21.0285, 105.8542], 12);
   
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -7368,39 +7414,28 @@ function initMap() {
   vehicles.forEach(vehicle => {
     if (!Number.isFinite(vehicle.lat) || !Number.isFinite(vehicle.lng)) return;
 
-    const assignedRoute = routesData.find(route => String(route.code) === String(vehicle.routeId));
-    if (assignedRoute && Array.isArray(assignedRoute.path) && assignedRoute.path.length >= 2) {
-      const routeLine = L.polyline(assignedRoute.path, {
-        color: assignedRoute.color || '#4a9eff',
-        weight: 5,
-        opacity: 0.65
-      }).addTo(map).bindPopup(`
-        <b>${escapeVehicleFormText(assignedRoute.name)}</b><br>
-        <b>Điểm đi:</b> ${escapeVehicleFormText(assignedRoute.start)}<br>
-        <b>Điểm đến:</b> ${escapeVehicleFormText(assignedRoute.end)}
-      `);
-      vehicleRouteLayers[vehicle.id] = routeLine;
-      assignedRoute.path.forEach(point => mapBounds.push(point));
-    }
-
     let iconObj = (vehicle.type === 'car') ? CarIcon : (vehicle.type === 'truck') ? TruckIcon : BusIcon;
 
     const marker = L.marker([vehicle.lat, vehicle.lng], {icon: iconObj}).addTo(map);
+    marker.on('click', function() {
+      showVehicleRoute(vehicle.id);
+    });
     mapBounds.push([vehicle.lat, vehicle.lng]);
 
     let statusHtml = (vehicle.status === 1)
       ? '<div style="background:#e2e6ea; padding:8px; border-radius:5px; margin:10px 0; border-left:4px solid #28a745;"><span style="background:#28a745; color:white; padding:2px 8px; border-radius:4px; font-size:12px; font-weight:bold;">ĐANG CHẠY</span> - ' + vehicle.speed + ' km/h<br><span style="font-size:12px;">📍 Vị trí lấy từ GPS của xe</span></div>'
       : '<div style="background:#e2e6ea; padding:8px; border-radius:5px; margin:10px 0; border-left:4px solid #dc3545;"><span style="background:#dc3545; color:white; padding:2px 8px; border-radius:4px; font-size:12px; font-weight:bold;">ĐANG DỪNG</span><br><span style="font-size:12px; color:#666;">Phương tiện đang tắt máy hoặc dừng đỗ.</span></div>';
 
+    var vRoute = routesData.find(function(r) { return String(r.code) === String(vehicle.routeId); });
     const popupContent = `
       <div style="font-size:16px; font-weight:bold; margin-bottom:5px; color:#1a237e; text-align:center;">${vehicle.plate}</div>
       ${statusHtml}
       <div style="margin-bottom:5px;"><strong>Vị trí GPS:</strong> <span style="color:#d63031; font-weight:bold;">${escapeVehicleFormText(vehicle.currentAddress)}</span></div>
       <div style="margin-bottom:5px;"><strong>Tài xế:</strong> ${vehicle.driver}</div>
-      <div style="margin-bottom:5px;"><strong>Tuyến:</strong> ${escapeVehicleFormText(assignedRoute?.name || vehicle.route)}</div>
-      ${assignedRoute ? `
-        <div style="margin-bottom:5px;"><strong>Điểm đi:</strong> ${escapeVehicleFormText(assignedRoute.start)}</div>
-        <div style="margin-bottom:5px;"><strong>Điểm đến:</strong> ${escapeVehicleFormText(assignedRoute.end)}</div>
+      <div style="margin-bottom:5px;"><strong>Tuyến:</strong> ${escapeVehicleFormText(vRoute?.name || vehicle.route)}</div>
+      ${vRoute ? `
+        <div style="margin-bottom:5px;"><strong>Điểm đi:</strong> ${escapeVehicleFormText(vRoute.start)}</div>
+        <div style="margin-bottom:5px;"><strong>Điểm đến:</strong> ${escapeVehicleFormText(vRoute.end)}</div>
       ` : ''}
       <div style="margin-bottom:5px;"><strong>SĐT:</strong> ${vehicle.phone}</div>
       <div style="text-align:center; margin:10px 0;">
@@ -7416,7 +7451,43 @@ function initMap() {
   if (mapBounds.length) {
     map.fitBounds(mapBounds, { padding: [35, 35], maxZoom: 13 });
   }
+
+  map.on('click', function() {
+    clearAllRouteLayers();
+  });
+
+  if (vehicleAnimInterval) clearInterval(vehicleAnimInterval);
+  vehicleAnimInterval = setInterval(animateRunningVehicles, 2000);
+
   updateMapStats();
+}
+
+function clearAllRouteLayers() {
+  Object.keys(vehicleRouteLayers).forEach(function(key) {
+    if (vehicleRouteLayers[key]) {
+      map.removeLayer(vehicleRouteLayers[key]);
+    }
+  });
+  vehicleRouteLayers = {};
+}
+
+function showVehicleRoute(vehicleId) {
+  clearAllRouteLayers();
+  const vehicle = vehicles.find(v => v.id === vehicleId);
+  if (!vehicle) return;
+  const assignedRoute = routesData.find(route => String(route.code) === String(vehicle.routeId));
+  if (assignedRoute && Array.isArray(assignedRoute.path) && assignedRoute.path.length >= 2) {
+    const routeLine = L.polyline(assignedRoute.path, {
+      color: assignedRoute.color || '#4a9eff',
+      weight: 5,
+      opacity: 0.8
+    }).addTo(map).bindPopup(`
+      <b>${escapeVehicleFormText(assignedRoute.name)}</b><br>
+      <b>Điểm đi:</b> ${escapeVehicleFormText(assignedRoute.start)}<br>
+      <b>Điểm đến:</b> ${escapeVehicleFormText(assignedRoute.end)}
+    `);
+    vehicleRouteLayers[vehicleId] = routeLine;
+  }
 }
 
 function updateMapStats() {
@@ -7684,6 +7755,7 @@ function focusVehicle(id) {
       map.flyTo([vehicle.lat, vehicle.lng], 16);
       if (markers && markers[id]) markers[id].openPopup();
     }
+    showVehicleRoute(id);
     showToast('success', 'Đã chọn xe', `Xe: ${vehicle.plate} - Tài xế: ${vehicle.driver}`);
     
     // Cập nhật camera grid

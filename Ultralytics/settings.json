@@ -1,0 +1,21 @@
+{
+  "settings_version": "0.0.6",
+  "datasets_dir": "D:\\AI\\datasets",
+  "weights_dir": "D:\\AI\\AI-Traffic-Monitoring-System\\weights",
+  "runs_dir": "D:\\AI\\AI-Traffic-Monitoring-System\\runs",
+  "uuid": "18d7d76b30855b301093e2a13ec6b2ec4ba299f49b7a39854135e988668b95d2",
+  "sync": true,
+  "api_key": "",
+  "openai_api_key": "",
+  "clearml": true,
+  "comet": true,
+  "dvc": true,
+  "hub": true,
+  "mlflow": true,
+  "neptune": true,
+  "raytune": true,
+  "tensorboard": false,
+  "wandb": false,
+  "vscode_msg": true,
+  "openvino_msg": true
+}
