@@ -34,10 +34,12 @@ def get_driver_alert_page(driver_id: int, page: int, per_page: int = 10):
     }
 
 
-def get_all_alert_page(page: int, per_page: int = 15):
-    total = alert_repository.count_all_alerts()
+def get_all_alert_page(page: int, per_page: int = 15, plate: str = ""):
+    page = max(page, 1)
+    plate = (plate or "").strip()
+    total = alert_repository.count_all_alerts(plate)
     offset = (page - 1) * per_page
-    alerts = alert_repository.list_all_alerts(per_page, offset)
+    alerts = alert_repository.list_all_alerts(per_page, offset, plate)
     return {
         "alerts": [_format_alert(alert) for alert in alerts],
         "page": page,
@@ -64,13 +66,16 @@ def send_admin_warning(admin_id, alert_id, plate: str, content: str, priority: s
     }
 
 
-def get_admin_warning_page(page: int, driver_id=None, per_page=None):
+def get_admin_warning_page(page: int, driver_id=None, per_page=None, plate: str = ""):
+    page = max(page, 1)
+    plate = (plate or "").strip()
     per_page = per_page or (15 if driver_id is None else 10)
-    total = alert_repository.count_admin_warnings(driver_id)
+    total = alert_repository.count_admin_warnings(driver_id, plate)
     warnings = alert_repository.list_admin_warnings(
         per_page,
         (page - 1) * per_page,
         driver_id,
+        plate,
     )
     return {
         "warnings": [

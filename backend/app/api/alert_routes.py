@@ -42,7 +42,11 @@ def get_all_alerts():
         return jsonify(success=False, message="Không có quyền truy cập"), 403
     try:
         page = request.args.get("page", 1, type=int)
-        return jsonify(success=True, **alert_service.get_all_alert_page(page))
+        plate = request.args.get("plate", "")
+        return jsonify(
+            success=True,
+            **alert_service.get_all_alert_page(page, plate=plate),
+        )
     except Exception as exc:
         return jsonify(success=False, message=f"Lỗi: {exc}"), 500
 
@@ -59,9 +63,14 @@ def get_admin_warnings():
             ), 400
     try:
         page = request.args.get("page", 1, type=int)
+        plate = request.args.get("plate", "")
         return jsonify(
             success=True,
-            **alert_service.get_admin_warning_page(page, driver_id),
+            **alert_service.get_admin_warning_page(
+                page,
+                driver_id,
+                plate=plate,
+            ),
         )
     except Exception as exc:
         return jsonify(success=False, message=f"Lỗi: {exc}"), 500

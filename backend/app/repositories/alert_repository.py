@@ -88,22 +88,37 @@ def list_driver_alerts(driver_id: int, limit: int, offset: int):
         conn.close()
 
 
-def count_all_alerts() -> int:
+def count_all_alerts(plate: str = "") -> int:
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) as total FROM canh_bao_vi_pham")
+            if plate:
+                cur.execute(
+                    """
+                    SELECT COUNT(*) AS total
+                    FROM canh_bao_vi_pham a
+                    LEFT JOIN phuong_tien v ON a.id_phuong_tien = v.id
+                    WHERE UPPER(v.bien_so) LIKE UPPER(%s)
+                    """,
+                    (f"%{plate}%",),
+                )
+            else:
+                cur.execute("SELECT COUNT(*) as total FROM canh_bao_vi_pham")
             return cur.fetchone()["total"]
     finally:
         conn.close()
 
 
-def list_all_alerts(limit: int, offset: int):
+def list_all_alerts(limit: int, offset: int, plate: str = ""):
+    where = "WHERE UPPER(v.bien_so) LIKE UPPER(%s)" if plate else ""
+    params = [f"%{plate}%"] if plate else []
+    params.extend((limit, offset))
+
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
             cur.execute(
-                """
+                f"""
                 SELECT a.id, a.loai_vi_pham as type, a.noi_dung_vi_pham as message,
                        a.muc_do as level, a.thoi_gian_vi_pham as timestamp,
                        a.da_doc as is_read, v.bien_so as vehicle_plate,
@@ -112,10 +127,11 @@ def list_all_alerts(limit: int, offset: int):
                 LEFT JOIN phuong_tien v ON a.id_phuong_tien = v.id
                 LEFT JOIN tai_xe d ON a.id_tai_xe = d.id
                 LEFT JOIN video_ghi_hinh vid ON a.id_video_ghi_hinh = vid.id
+                {where}
                 ORDER BY a.thoi_gian_vi_pham DESC
                 LIMIT %s OFFSET %s
                 """,
-                (limit, offset),
+                tuple(params),
             )
             return cur.fetchall()
     finally:
@@ -165,33 +181,44 @@ def create_admin_warning(admin_id, alert_id, plate: str, content: str, priority:
         conn.close()
 
 
-def count_admin_warnings(driver_id=None):
+def count_admin_warnings(driver_id=None, plate: str = ""):
+    conditions = []
+    params = []
+    if driver_id is not None:
+        conditions.append("p.id_tai_xe = %s")
+        params.append(driver_id)
+    if plate:
+        conditions.append("UPPER(w.bien_so_xe) LIKE UPPER(%s)")
+        params.append(f"%{plate}%")
+    where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
-            if driver_id is None:
-                cur.execute("SELECT COUNT(*) AS total FROM thong_bao_admin")
-            else:
-                cur.execute(
-                    """
-                    SELECT COUNT(*) AS total
-                    FROM thong_bao_admin w
-                    LEFT JOIN phuong_tien p ON w.bien_so_xe = p.bien_so
-                    WHERE p.id_tai_xe = %s
-                    """,
-                    (driver_id,),
-                )
+            cur.execute(
+                f"""
+                SELECT COUNT(*) AS total
+                FROM thong_bao_admin w
+                LEFT JOIN phuong_tien p ON w.bien_so_xe = p.bien_so
+                {where}
+                """,
+                tuple(params),
+            )
             return cur.fetchone()["total"]
     finally:
         conn.close()
 
 
-def list_admin_warnings(limit: int, offset: int, driver_id=None):
-    where = ""
+def list_admin_warnings(limit: int, offset: int, driver_id=None, plate: str = ""):
+    conditions = []
     params = []
     if driver_id is not None:
-        where = "WHERE p.id_tai_xe = %s"
+        conditions.append("p.id_tai_xe = %s")
         params.append(driver_id)
+    if plate:
+        conditions.append("UPPER(w.bien_so_xe) LIKE UPPER(%s)")
+        params.append(f"%{plate}%")
+    where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
     params.extend((limit, offset))
 
     conn = get_db_connection()

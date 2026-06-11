@@ -2853,6 +2853,12 @@ tr:hover {
           <option value="processed">Đã xử lý</option>
         </select>
       </div>
+      <div class="table-search">
+        <input type="text" class="search-input" id="warningPlateSearch" placeholder="Nhập biển số xe...">
+        <button class="search-btn" type="button" onclick="searchWarningsByPlate()">
+          <i class="fa-solid fa-search"></i> Tìm
+        </button>
+      </div>
     </div>
     
     <div class="table-wrapper">
@@ -2900,6 +2906,12 @@ tr:hover {
           <option value="medium">Trung bình</option>
           <option value="high">Cao</option>
         </select>
+      </div>
+      <div class="table-search">
+        <input type="text" class="search-input" id="adminAlertPlateSearch" placeholder="Nhập biển số xe...">
+        <button class="search-btn" type="button" onclick="searchAdminAlertsByPlate()">
+          <i class="fa-solid fa-search"></i> Tìm
+        </button>
       </div>
     </div>
     
@@ -3852,19 +3864,26 @@ var warningsData = {{ warnings|default([])|tojson|safe }};
 var userRole = '{{ user_role|default("user") }}';
 var currentPage = 1;
 var totalPages = 1;
+var warningPlateQuery = '';
 
 function loadWarningsData(page = 1) {
   const tbody = document.getElementById('warningsTableBody');
   tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;">Đang tải...</td></tr>';
 
   // Admin xem tất cả vi phạm, user chỉ xem vi phạm của mình
-  const apiUrl = userRole === 'admin' ? `/api/all-alerts?page=${page}` : `/api/alerts?page=${page}`;
+  const baseUrl = userRole === 'admin' ? '/api/all-alerts' : '/api/alerts';
+  const params = new URLSearchParams({ page });
+  if (warningPlateQuery) params.set('plate', warningPlateQuery);
+  const apiUrl = `${baseUrl}?${params.toString()}`;
 
   fetch(apiUrl)
     .then(r => r.json())
     .then(data => {
       if (!data.success || !data.alerts || data.alerts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;">Không có cảnh báo nào</td></tr>';
+        const emptyMessage = warningPlateQuery
+          ? 'Không tìm thấy cảnh báo theo biển số đã nhập'
+          : 'Không có cảnh báo nào';
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;">${emptyMessage}</td></tr>`;
         document.getElementById('warningBadge').textContent = '0';
         updatePagination(0, 0, 0);
         return;
@@ -3942,6 +3961,11 @@ function loadWarningsData(page = 1) {
     });
 }
 
+function searchWarningsByPlate() {
+  warningPlateQuery = document.getElementById('warningPlateSearch').value.trim().toUpperCase();
+  loadWarningsData(1);
+}
+
 function updatePagination(page, totalPages, perPage) {
   // Xóa pagination cũ nếu có
   const oldPagination = document.querySelector('.warnings-pagination');
@@ -3982,16 +4006,23 @@ function updatePagination(page, totalPages, perPage) {
 var adminAlertsData = {{ admin_alerts|default([])|tojson|safe }};
 var adminAlertsCurrentPage = 1;
 var adminAlertsTotalPages = 1;
+var adminAlertPlateQuery = '';
 
 function loadAdminAlertsData(page = 1) {
   const tbody = document.getElementById('alertsTableBody');
   tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">Đang tải...</td></tr>';
 
-  fetch(`/api/admin-warnings?page=${page}`)
+  const params = new URLSearchParams({ page });
+  if (adminAlertPlateQuery) params.set('plate', adminAlertPlateQuery);
+
+  fetch(`/api/admin-warnings?${params.toString()}`)
     .then(r => r.json())
     .then(data => {
       if (!data.success || !data.warnings || data.warnings.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">Không có thông báo nào</td></tr>';
+        const emptyMessage = adminAlertPlateQuery
+          ? 'Không tìm thấy cảnh cáo theo biển số đã nhập'
+          : 'Không có thông báo nào';
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px;">${emptyMessage}</td></tr>`;
         window.adminAlerts = [];
         updateAdminAlertsPagination(0, 0, 0);
         return;
@@ -4055,6 +4086,11 @@ function loadAdminAlertsData(page = 1) {
       `).join('');
       updateAdminAlertsPagination(0, 0, 0);
     });
+}
+
+function searchAdminAlertsByPlate() {
+  adminAlertPlateQuery = document.getElementById('adminAlertPlateSearch').value.trim().toUpperCase();
+  loadAdminAlertsData(1);
 }
 
 function updateAdminAlertsPagination(page, totalPages, perPage) {
@@ -5814,6 +5850,12 @@ document.getElementById('searchPlate')?.addEventListener('keypress', (e) => {
 });
 document.getElementById('searchDriver')?.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') searchVehicle();
+});
+document.getElementById('warningPlateSearch')?.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') searchWarningsByPlate();
+});
+document.getElementById('adminAlertPlateSearch')?.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') searchAdminAlertsByPlate();
 });
 
 /* ===== FILTER ===== */
