@@ -83,6 +83,12 @@ def _user_context():
     }
 
 
+def _user_page_or_admin_dashboard(template_name):
+    if session.get("role") == "admin":
+        return redirect(f"{settings.frontend_url}/dashboard")
+    return render_template(template_name, **_user_context())
+
+
 @login_required
 def dashboard():
     if session.get("role") != "admin":
@@ -311,12 +317,12 @@ def legacy_admin_dashboard():
 
 @login_required
 def trang_chu_page():
-    return render_template("trang_chu.html", **_user_context())
+    return _user_page_or_admin_dashboard("trang_chu.html")
 
 
 @login_required
 def tu_van_page():
-    return render_template("tu_van.html", **_user_context())
+    return _user_page_or_admin_dashboard("tu_van.html")
 
 
 @login_required
@@ -326,7 +332,7 @@ def tu_van_html():
 
 @login_required
 def lai_xe_page():
-    return render_template("lai_xe.html", **_user_context())
+    return _user_page_or_admin_dashboard("lai_xe.html")
 
 
 @login_required
@@ -336,7 +342,7 @@ def lai_xe_v2_page():
 
 @login_required
 def lich_su_page():
-    return render_template("lich_su.html", **_user_context())
+    return _user_page_or_admin_dashboard("lich_su.html")
 
 
 @login_required

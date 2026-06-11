@@ -39,6 +39,7 @@ def api_login():
                 message=result["message"],
             ), result["status"]
 
+        session.clear()
         session.permanent = True
         session.update(result["session"])
         return jsonify(
