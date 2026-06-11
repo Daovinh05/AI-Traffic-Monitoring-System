@@ -210,6 +210,119 @@ body {
   gap: 15px;
 }
 
+.admin-profile {
+  position: relative;
+}
+
+.admin-profile-button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.admin-profile-button:hover {
+  border-color: rgba(74, 158, 255, 0.35);
+  background: rgba(74, 158, 255, 0.1);
+}
+
+.admin-profile-button img {
+  width: 35px;
+  height: 35px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.admin-profile-text {
+  text-align: left;
+}
+
+.admin-profile-text strong,
+.admin-profile-text small {
+  display: block;
+}
+
+.admin-profile-text small {
+  margin-top: 2px;
+  color: var(--text-muted);
+}
+
+.admin-profile-menu {
+  display: none;
+  position: absolute;
+  top: 52px;
+  right: 0;
+  z-index: 10010;
+  width: 210px;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+  background: var(--bg-card);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.4);
+}
+
+.admin-profile-menu.open {
+  display: block;
+}
+
+.admin-profile-menu button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+}
+
+.admin-profile-menu button:hover {
+  background: rgba(74, 158, 255, 0.12);
+}
+
+.admin-profile-menu .admin-logout-item {
+  color: var(--danger);
+}
+
+.admin-loading {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 11000;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 13px;
+  background: rgba(8, 15, 29, 0.72);
+  backdrop-filter: blur(3px);
+}
+
+.admin-loading.show {
+  display: flex;
+}
+
+.admin-loading-spinner {
+  width: 42px;
+  height: 42px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: adminSpin .75s linear infinite;
+}
+
+@keyframes adminSpin {
+  to { transform: rotate(360deg); }
+}
+
 .search-box {
   position: relative;
 }
@@ -1955,39 +2068,6 @@ tr:hover {
   border: 1px solid rgba(74,158,255,0.3);
 }
 
-/* Logout Button */
-.logout-btn {
-  width: 100%;
-  padding: 10px 15px;
-  background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(255, 82, 82, 0.3);
-}
-
-.logout-btn:hover {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 82, 82, 0.5);
-}
-
-.logout-btn:active {
-  transform: translateY(0);
-}
-
-.logout-btn i {
-  font-size: 16px;
-}
-
 /* ===== WARNING MODAL ===== */
 .modal-overlay {
   position: fixed;
@@ -2646,9 +2726,53 @@ tr:hover {
       <i class="fa-solid fa-bell"></i>
       <span class="notification-badge">5</span>
     </div>
-    <span>Admin</span>
+    <div class="admin-profile">
+      <button class="admin-profile-button" type="button" onclick="toggleAdminMenu()">
+        <img src="{{ url_for('static', filename='admin.jpg') }}" alt="{{ full_name }}">
+        <span class="admin-profile-text">
+          <strong>{{ full_name }}</strong>
+          <small>Quản trị viên</small>
+        </span>
+        <i class="fa-solid fa-chevron-down"></i>
+      </button>
+      <div class="admin-profile-menu" id="adminProfileMenu">
+        <button type="button" onclick="openAdminSettings()">
+          <i class="fa-solid fa-gear"></i> Cấu hình
+        </button>
+        <button class="admin-logout-item" type="button" onclick="logout()">
+          <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
-    <img src="{{ url_for('static', filename='admin.jpg') }}" alt="Admin" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; cursor: pointer; transition: var(--transition);" title="Admin">
+<div class="admin-loading" id="adminLoading">
+  <div class="admin-loading-spinner"></div>
+  <strong id="adminLoadingText">Đang xử lý...</strong>
+</div>
+
+<div class="modal-overlay" id="adminSettingsModal" style="display:none;" onclick="if(event.target===this) closeAdminSettings()">
+  <div class="modal-content" style="max-width:520px;">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-gear"></i> Cấu hình quản trị</h3>
+      <button class="modal-close" type="button" onclick="closeAdminSettings()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="warning-info-grid">
+        <div class="warning-info-item"><label>Tài khoản</label><span>{{ user }}</span></div>
+        <div class="warning-info-item"><label>Họ và tên</label><span>{{ full_name }}</span></div>
+        <div class="warning-info-item"><label>Vai trò</label><span>Quản trị viên</span></div>
+        <div class="warning-info-item"><label>Cảnh báo AI</label><span>Đang bật</span></div>
+        <div class="warning-info-item"><label>Giao diện</label><span>Chế độ tối</span></div>
+        <div class="warning-info-item"><label>Phiên đăng nhập</label><span>Đang hoạt động</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" type="button" onclick="closeAdminSettings()">Đóng</button>
+    </div>
   </div>
 </div>
 
@@ -2692,17 +2816,6 @@ tr:hover {
       <i class="fa-solid fa-chart-column"></i>
       <span>Thống kê và phân tích</span>
     </div>
-
-
-    <div class="menu-item" data-page="statistics">
- <button class="logout-btn" onclick="logout()">
-      <i class="fa-solid fa-right-from-bracket"></i>
-      <span>Đăng xuất</span>
-    </button>    </div>
-
-
-    
-    
 
   </div>
 <!--   
@@ -7207,6 +7320,7 @@ document.getElementById('statusFilter')?.addEventListener('change', function(e) 
 var map = null;
 var markers = {};
 var trafficLayer = null;
+var vehicleRouteLayers = {};
 
 // Car & Bus icons
 var carIconUrl = "https://cdn-icons-png.flaticon.com/512/1048/1048315.png";
@@ -7231,12 +7345,12 @@ const vehicles = {{ all_vehicles|default([], true)|tojson|safe }}.map(v => ({
   driver: v.driver_name,
   phone: v.phone,
   speed: v.speed || 0,
-  remainingKm: 10, // Simulated
-  currentAddress: v.location || "Đang cập nhật",
+  routeId: v.route_id || null,
+  currentAddress: v.vi_tri || "Đang cập nhật GPS",
   vi_tri: v.vi_tri || "Chưa cập nhật",
-  route: (v.location || "Chưa rõ") + " -> ...",
-  lat: v.lat || 21.0285,
-  lng: v.lng || 105.8542,
+  route: v.location || "Chưa phân tuyến",
+  lat: Number(v.lat),
+  lng: Number(v.lng),
   status: ['Đang chạy', 'Đang hoạt động'].includes(v.status) ? 1 : 0,
   imgVehicle: v.image ? '/static/images/' + v.image : 'https://via.placeholder.com/300x150?text=Vehicle',
   videoDashcam: '/recordings/car1.mp4',
@@ -7250,23 +7364,44 @@ function initMap() {
     attribution: '© OpenStreetMap'
   }).addTo(map);
 
+  const mapBounds = [];
   vehicles.forEach(vehicle => {
+    if (!Number.isFinite(vehicle.lat) || !Number.isFinite(vehicle.lng)) return;
+
+    const assignedRoute = routesData.find(route => String(route.code) === String(vehicle.routeId));
+    if (assignedRoute && Array.isArray(assignedRoute.path) && assignedRoute.path.length >= 2) {
+      const routeLine = L.polyline(assignedRoute.path, {
+        color: assignedRoute.color || '#4a9eff',
+        weight: 5,
+        opacity: 0.65
+      }).addTo(map).bindPopup(`
+        <b>${escapeVehicleFormText(assignedRoute.name)}</b><br>
+        <b>Điểm đi:</b> ${escapeVehicleFormText(assignedRoute.start)}<br>
+        <b>Điểm đến:</b> ${escapeVehicleFormText(assignedRoute.end)}
+      `);
+      vehicleRouteLayers[vehicle.id] = routeLine;
+      assignedRoute.path.forEach(point => mapBounds.push(point));
+    }
+
     let iconObj = (vehicle.type === 'car') ? CarIcon : (vehicle.type === 'truck') ? TruckIcon : BusIcon;
-    let statusText = vehicle.status === 1 ? "Đang chạy" : "Đang dừng";
-    let statusClass = vehicle.status === 1 ? "tag-run" : "tag-stop";
 
     const marker = L.marker([vehicle.lat, vehicle.lng], {icon: iconObj}).addTo(map);
+    mapBounds.push([vehicle.lat, vehicle.lng]);
 
     let statusHtml = (vehicle.status === 1)
-      ? '<div style="background:#e2e6ea; padding:8px; border-radius:5px; margin:10px 0; border-left:4px solid #28a745;"><span style="background:#28a745; color:white; padding:2px 8px; border-radius:4px; font-size:12px; font-weight:bold;">ĐANG CHẠY</span> - ' + vehicle.speed + ' km/h<br><span style="font-size:12px;">🏁 Cách đích: <b>' + vehicle.remainingKm + ' km</b></span><br><span style="font-size:12px;">⏱️ ETA: <b>' + calculateETA(vehicle.remainingKm, vehicle.speed) + '</b></span></div>'
+      ? '<div style="background:#e2e6ea; padding:8px; border-radius:5px; margin:10px 0; border-left:4px solid #28a745;"><span style="background:#28a745; color:white; padding:2px 8px; border-radius:4px; font-size:12px; font-weight:bold;">ĐANG CHẠY</span> - ' + vehicle.speed + ' km/h<br><span style="font-size:12px;">📍 Vị trí lấy từ GPS của xe</span></div>'
       : '<div style="background:#e2e6ea; padding:8px; border-radius:5px; margin:10px 0; border-left:4px solid #dc3545;"><span style="background:#dc3545; color:white; padding:2px 8px; border-radius:4px; font-size:12px; font-weight:bold;">ĐANG DỪNG</span><br><span style="font-size:12px; color:#666;">Phương tiện đang tắt máy hoặc dừng đỗ.</span></div>';
 
     const popupContent = `
       <div style="font-size:16px; font-weight:bold; margin-bottom:5px; color:#1a237e; text-align:center;">${vehicle.plate}</div>
       ${statusHtml}
-      <div style="margin-bottom:5px;"><strong>Vị trí:</strong> <span style="color:#d63031; font-weight:bold;">${vehicle.currentAddress}</span></div>
+      <div style="margin-bottom:5px;"><strong>Vị trí GPS:</strong> <span style="color:#d63031; font-weight:bold;">${escapeVehicleFormText(vehicle.currentAddress)}</span></div>
       <div style="margin-bottom:5px;"><strong>Tài xế:</strong> ${vehicle.driver}</div>
-      <div style="margin-bottom:5px;"><strong>Lộ trình:</strong> ${vehicle.route}</div>
+      <div style="margin-bottom:5px;"><strong>Tuyến:</strong> ${escapeVehicleFormText(assignedRoute?.name || vehicle.route)}</div>
+      ${assignedRoute ? `
+        <div style="margin-bottom:5px;"><strong>Điểm đi:</strong> ${escapeVehicleFormText(assignedRoute.start)}</div>
+        <div style="margin-bottom:5px;"><strong>Điểm đến:</strong> ${escapeVehicleFormText(assignedRoute.end)}</div>
+      ` : ''}
       <div style="margin-bottom:5px;"><strong>SĐT:</strong> ${vehicle.phone}</div>
       <div style="text-align:center; margin:10px 0;">
         <button onclick="callDriver('${vehicle.phone}')" style="background:#28a745; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; margin-right:5px;">📞 Gọi</button>
@@ -7278,7 +7413,9 @@ function initMap() {
     markers[vehicle.id] = marker;
   });
 
-  simulateMovement();
+  if (mapBounds.length) {
+    map.fitBounds(mapBounds, { padding: [35, 35], maxZoom: 13 });
+  }
   updateMapStats();
 }
 
@@ -7291,22 +7428,6 @@ function updateMapStats() {
   if (mapVehicles) mapVehicles.textContent = vehicles.length;
   if (mapRunning) mapRunning.textContent = running;
   if (mapStopped) mapStopped.textContent = stopped;
-}
-
-function simulateMovement() {
-  setInterval(() => {
-    vehicles.forEach(vehicle => {
-      if(vehicle.status === 1) {
-        vehicle.lat += (Math.random() - 0.5) * 0.0004;
-        vehicle.lng += (Math.random() - 0.5) * 0.0004;
-        if(vehicle.remainingKm > 0) vehicle.remainingKm -= 0.01;
-        if (markers[vehicle.id]) {
-          markers[vehicle.id].setLatLng([vehicle.lat, vehicle.lng]);
-        }
-      }
-    });
-    updateMapStats();
-  }, 2000);
 }
 
 function toggleTrafficLayer() {
@@ -7952,24 +8073,56 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==================== LOGOUT FUNCTION ====================
-function logout() {
-  fetch('/api/logout', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
+function toggleAdminMenu() {
+  document.getElementById('adminProfileMenu')?.classList.toggle('open');
+}
+
+function showAdminLoading(message) {
+  document.getElementById('adminLoadingText').textContent = message;
+  document.getElementById('adminLoading').classList.add('show');
+}
+
+function hideAdminLoading() {
+  document.getElementById('adminLoading').classList.remove('show');
+}
+
+function openAdminSettings() {
+  document.getElementById('adminProfileMenu')?.classList.remove('open');
+  showAdminLoading('Đang tải cấu hình...');
+  setTimeout(() => {
+    hideAdminLoading();
+    document.getElementById('adminSettingsModal').style.display = 'flex';
+  }, 300);
+}
+
+function closeAdminSettings() {
+  document.getElementById('adminSettingsModal').style.display = 'none';
+}
+
+document.addEventListener('click', event => {
+  const profile = document.querySelector('.admin-profile');
+  if (profile && !profile.contains(event.target)) {
+    document.getElementById('adminProfileMenu')?.classList.remove('open');
+  }
+});
+
+async function logout() {
+  document.getElementById('adminProfileMenu')?.classList.remove('open');
+  showAdminLoading('Đang đăng xuất...');
+  try {
+    const response = await fetch('/api/logout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Có lỗi xảy ra khi đăng xuất');
     }
-  })
-  .then(response => {
-    if (response.ok) {
-      window.location.href = '/login';
-    } else {
-      alert('Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại.');
-    }
-  })
-  .catch(error => {
-    console.error('Logout error:', error);
-    alert('Không thể kết nối máy chủ. Vui lòng thử lại sau.');
-  });
+    window.location.href = data.redirect || '/login';
+  } catch (error) {
+    hideAdminLoading();
+    alert(error.message || 'Không thể kết nối máy chủ. Vui lòng thử lại sau.');
+  }
 }
 
 // ==================== KEYBOARD SHORTCUTS ====================

@@ -28,6 +28,12 @@
             recognition.lang = 'vi-VN';
             recognition.continuous = false; // Tắt continuous để nhanh có kết quả cuối cùng
             recognition.interimResults = true; // Hiển thị lời nói liên tục
+            recognition.onstart = function () {
+                isListening = true;
+                startBtn.style.display = 'none';
+                stopBtn.style.display = 'inline-flex';
+                voiceOutput.textContent = 'Đang lắng nghe...';
+            };
 
             // Map các từ khóa với các ứng dụng
             const appCommands = {
@@ -148,7 +154,7 @@
                     }
                     isListening = false;
                     if (startBtn) {
-                        startBtn.style.display = 'inline-block';
+                        startBtn.style.display = 'inline-flex';
                         startBtn.disabled = false;
                     }
                     if (stopBtn) {
@@ -175,7 +181,7 @@
                         voiceOutput.textContent = "🔇 Đã dừng lắng nghe.";
                     }
                     if (startBtn) {
-                        startBtn.style.display = 'inline-block';
+                        startBtn.style.display = 'inline-flex';
                     }
                     if (stopBtn) {
                         stopBtn.style.display = 'none';
@@ -183,32 +189,12 @@
                 }
             };
 
-            // Khi trang web tải xong, chuẩn bị nút điều khiển
+            // Kết nối chức năng nhận diện với nút trên header.
             window.addEventListener('DOMContentLoaded', function () {
-                // Tạo nút điều khiển giọng nói
-                const buttonContainer = document.createElement('div');
-                buttonContainer.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; gap: 10px; align-items: center;';
-                
-                startBtn = document.createElement('button');
-                startBtn.id = 'start-voice';
-                startBtn.innerHTML = '<i class="fa-solid fa-microphone"></i> Bật giọng nói';
-                startBtn.style.cssText = 'padding: 10px 20px; font-size: 16px; background-color: #1e88e5; color: white; border: none; border-radius: 8px; cursor: pointer;';
-                
-                stopBtn = document.createElement('button');
-                stopBtn.id = 'stop-voice';
-                stopBtn.innerHTML = '🔇 Tắt giọng nói';
-                stopBtn.style.cssText = 'padding: 10px 20px; font-size: 16px; background-color: #e53935; color: white; border: none; border-radius: 8px; cursor: pointer; display: none;';
-                
-                voiceOutput = document.createElement('p');
-                voiceOutput.id = 'voice-output';
-                voiceOutput.style.cssText = 'margin: 0; color: white; font-size: 14px; text-shadow: 1px 1px 2px black;';
-                
-                buttonContainer.appendChild(startBtn);
-                buttonContainer.appendChild(stopBtn);
-                buttonContainer.appendChild(voiceOutput);
-                document.body.appendChild(buttonContainer);
+                startBtn = document.getElementById('start-voice');
+                stopBtn = document.getElementById('stop-voice');
+                voiceOutput = document.getElementById('voice-output');
 
-                // Thêm event listeners cho nút
                 startBtn.addEventListener('click', function () {
                     if (!isListening) {
                         try {
@@ -224,49 +210,154 @@
                     isListening = false;
                     recognition.stop();
                 });
-
-                // Tự động bật mic khi trang web tải xong
-                setTimeout(function () {
-                    if (!isListening) {
-                        try {
-                            recognition.start();
-                            console.log('Đã tự động bật microphone');
-                        } catch (error) {
-                            console.error('Không thể tự động bật microphone (cần tương tác người dùng):', error);
-                            voiceOutput.textContent = '🎤 Click "Bật giọng nói" để kích hoạt';
-                        }
-                    }
-                }, 500);
             });
         } else {
             console.error('Trình duyệt không hỗ trợ Web Speech API');
             window.addEventListener('DOMContentLoaded', function () {
-                const errorMsg = document.createElement('div');
-                errorMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 10px 20px; background-color: #e53935; color: white; border-radius: 8px;';
-                errorMsg.textContent = '❌ Trình duyệt không hỗ trợ nhận diện giọng nói';
-                document.body.appendChild(errorMsg);
+                document.getElementById('start-voice').disabled = true;
+                document.getElementById('voice-output').textContent = 'Không hỗ trợ giọng nói';
             });
         }
 
         // Hàm đăng xuất
-        function logout() {
-            fetch('/api/logout', {
-                method: 'POST',
-                credentials: 'same-origin'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.location.href = data.redirect || '/login';
-                } else {
-                    alert('Đăng xuất thất bại: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Lỗi đăng xuất:', error);
-                alert('Có lỗi xảy ra khi đăng xuất');
+        function toggleUserMenu() {
+            document.getElementById('user-menu').classList.toggle('open');
+        }
+
+        function showUserLoading(message) {
+            document.getElementById('user-loading-text').textContent = message;
+            document.getElementById('user-loading').classList.add('show');
+        }
+
+        function hideUserLoading() {
+            document.getElementById('user-loading').classList.remove('show');
+        }
+
+        function openUserPanel(type) {
+            showUserLoading(type === 'settings' ? 'Đang tải cấu hình...' : 'Đang tải tài khoản...');
+            document.getElementById('user-menu').classList.remove('open');
+            window.setTimeout(function () {
+                hideUserLoading();
+                document.getElementById(type === 'settings' ? 'settings-modal' : 'account-modal').classList.add('show');
+            }, 350);
+        }
+
+        function closeUserPanel(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        function switchAccountTab(tab) {
+            document.querySelectorAll('.account-tab-button').forEach(function (button) {
+                button.classList.toggle('active', button.dataset.tab === tab);
+            });
+            document.querySelectorAll('.account-tab-panel').forEach(function (panel) {
+                panel.classList.toggle('active', panel.id === 'account-' + tab);
             });
         }
+
+        function showAccountMessage(message, isError) {
+            const element = document.getElementById('account-message');
+            element.textContent = message;
+            element.className = 'account-message show ' + (isError ? 'error' : 'success');
+        }
+
+        function togglePasswordVisibility(inputId, button) {
+            const input = document.getElementById(inputId);
+            const showPassword = input.type === 'password';
+            input.type = showPassword ? 'text' : 'password';
+            button.innerHTML = showPassword
+                ? '<i class="fa-solid fa-eye-slash"></i>'
+                : '<i class="fa-solid fa-eye"></i>';
+            button.setAttribute(
+                'aria-label',
+                showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'
+            );
+        }
+
+        function previewAccountAvatar(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) {
+                event.target.value = '';
+                showAccountMessage('Ảnh đại diện không được vượt quá 5 MB.', true);
+                return;
+            }
+            document.getElementById('account-avatar-preview').src = URL.createObjectURL(file);
+        }
+
+        async function updateAccountProfile(event) {
+            event.preventDefault();
+            showUserLoading('Đang cập nhật thông tin...');
+            try {
+                const response = await fetch('/api/account/profile', {
+                    method: 'PUT',
+                    credentials: 'same-origin',
+                    body: new FormData(event.currentTarget)
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.message || 'Không thể cập nhật');
+
+                const avatarUrl = data.driver.avatar
+                    ? '/static/images/' + encodeURIComponent(data.driver.avatar)
+                    : '/static/admin.jpg';
+                document.querySelector('.user-profile-button img').src = avatarUrl;
+                document.getElementById('account-avatar-preview').src = avatarUrl;
+                document.querySelector('.user-profile-name strong').textContent = data.driver.name;
+                showAccountMessage(data.message, false);
+            } catch (error) {
+                showAccountMessage(error.message, true);
+            } finally {
+                hideUserLoading();
+            }
+        }
+
+        async function changeAccountPassword(event) {
+            event.preventDefault();
+            showUserLoading('Đang đổi mật khẩu...');
+            const form = event.currentTarget;
+            const payload = Object.fromEntries(new FormData(form).entries());
+            try {
+                const response = await fetch('/api/account/password', {
+                    method: 'PUT',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.message || 'Không thể đổi mật khẩu');
+                form.reset();
+                showAccountMessage(data.message, false);
+            } catch (error) {
+                showAccountMessage(error.message, true);
+            } finally {
+                hideUserLoading();
+            }
+        }
+
+        async function logout() {
+            showUserLoading('Đang đăng xuất...');
+            try {
+                const response = await fetch('/api/logout', {
+                    method: 'POST',
+                    credentials: 'same-origin'
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Đăng xuất thất bại');
+                }
+                window.top.location.href = data.redirect || '/login';
+            } catch (error) {
+                hideUserLoading();
+                alert(error.message || 'Có lỗi xảy ra khi đăng xuất');
+            }
+        }
+
+        document.addEventListener('click', function (event) {
+            const profile = document.querySelector('.user-profile');
+            if (profile && !profile.contains(event.target)) {
+                document.getElementById('user-menu')?.classList.remove('open');
+            }
+        });
     </script>
 
     <style>
@@ -277,26 +368,389 @@
             color: white;
         }
 
-        .logout-btn {
+        .user-header {
             position: fixed;
-            bottom: 20px;
-            left: 20px;
+            inset: 0 0 auto 0;
             z-index: 10000;
-            padding: 10px 20px;
-            background-color: #e53935;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
+            height: 62px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            background: #1b2942;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+        }
+
+        .user-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .user-brand i {
+            color: #2ecc71;
+        }
+
+        .user-profile {
+            position: relative;
+            margin-left: 12px;
+        }
+
+        .header-voice {
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: background-color 0.3s ease;
+            margin-left: auto;
         }
 
-        .logout-btn:hover {
-            background-color: #c62828;
+        .header-voice button {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 13px;
+            border: 1px solid rgba(74, 158, 255, 0.45);
+            border-radius: 8px;
+            background: rgba(74, 158, 255, 0.14);
+            color: #a9ccff;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .header-voice button:hover {
+            background: rgba(74, 158, 255, 0.25);
+            color: white;
+        }
+
+        .header-voice #stop-voice {
+            display: none;
+            border-color: rgba(255, 82, 82, 0.45);
+            background: rgba(255, 82, 82, 0.14);
+            color: #ff9b9b;
+        }
+
+        #voice-output {
+            max-width: 260px;
+            overflow: hidden;
+            color: #b8c6dc;
+            font-size: 12px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .user-profile-button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 10px;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+        }
+
+        .user-profile-button:hover {
+            border-color: rgba(74, 158, 255, 0.4);
+            background: rgba(74, 158, 255, 0.1);
+        }
+
+        .user-profile-button img {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #4a9eff;
+        }
+
+        .user-profile-name {
+            text-align: left;
+        }
+
+        .user-profile-name strong,
+        .user-profile-name small {
+            display: block;
+        }
+
+        .user-profile-name small {
+            margin-top: 2px;
+            color: #9aabc5;
+        }
+
+        .user-menu {
+            display: none;
+            position: absolute;
+            top: 52px;
+            right: 0;
+            width: 230px;
+            padding: 8px;
+            border: 1px solid #354867;
+            border-radius: 10px;
+            background: #202f49;
+            box-shadow: 0 14px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .user-menu.open {
+            display: block;
+        }
+
+        .user-menu button {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 12px;
+            border: 0;
+            border-radius: 7px;
+            background: transparent;
+            color: #e8eef8;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .user-menu button:hover {
+            background: rgba(74, 158, 255, 0.14);
+        }
+
+        .user-menu .logout-menu-item {
+            color: #ff7474;
+        }
+
+        .user-loading {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 11000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 14px;
+            background: rgba(8, 15, 29, 0.72);
+            backdrop-filter: blur(3px);
+        }
+
+        .user-loading.show {
+            display: flex;
+        }
+
+        .user-spinner {
+            width: 42px;
+            height: 42px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #4a9eff;
+            border-radius: 50%;
+            animation: userSpin 0.75s linear infinite;
+        }
+
+        @keyframes userSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        .user-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10500;
+            align-items: center;
+            justify-content: center;
+            background: rgba(8, 15, 29, 0.72);
+        }
+
+        .user-modal.show {
+            display: flex;
+        }
+
+        .user-modal-card {
+            width: min(680px, calc(100% - 32px));
+            max-height: calc(100vh - 60px);
+            overflow-y: auto;
+            padding: 22px;
+            border: 1px solid #354867;
+            border-radius: 14px;
+            background: #202f49;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+        }
+
+        .user-modal-card h3 {
+            margin: 0 0 18px;
+        }
+
+        .user-info-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .user-info-row span {
+            color: #9aabc5;
+        }
+
+        .user-modal-close {
+            width: 100%;
+            margin-top: 18px;
+            padding: 10px;
+            border: 0;
+            border-radius: 8px;
+            background: #4a9eff;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .account-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 18px;
+            padding: 5px;
+            border-radius: 9px;
+            background: #17243a;
+        }
+
+        .account-tab-button {
+            padding: 10px;
+            border: 0;
+            border-radius: 7px;
+            background: transparent;
+            color: #9aabc5;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .account-tab-button.active {
+            background: #4a9eff;
+            color: white;
+        }
+
+        .account-tab-panel {
+            display: none;
+        }
+
+        .account-tab-panel.active {
+            display: block;
+        }
+
+        .account-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .account-field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .account-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .account-field label {
+            color: #c8d3e3;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .account-field input {
+            min-height: 42px;
+            padding: 9px 11px;
+            border: 1px solid #405371;
+            border-radius: 8px;
+            background: #17243a;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        .account-field input:focus {
+            outline: none;
+            border-color: #4a9eff;
+            box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.12);
+        }
+
+        .account-field input[readonly] {
+            color: #8392a9;
+            cursor: not-allowed;
+        }
+
+        .password-input {
+            position: relative;
+        }
+
+        .password-input input {
+            width: 100%;
+            padding-right: 44px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 7px;
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            transform: translateY(-50%);
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: #9aabc5;
+            cursor: pointer;
+        }
+
+        .password-toggle:hover {
+            background: rgba(74, 158, 255, 0.14);
+            color: white;
+        }
+
+        .account-avatar-edit {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .account-avatar-edit img {
+            width: 82px;
+            height: 82px;
+            border: 2px solid #4a9eff;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .account-submit {
+            width: 100%;
+            margin-top: 18px;
+            padding: 11px;
+            border: 0;
+            border-radius: 8px;
+            background: #4a9eff;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .account-message {
+            display: none;
+            margin: 0 0 14px;
+            padding: 10px 12px;
+            border-radius: 7px;
+            font-size: 13px;
+        }
+
+        .account-message.show {
+            display: block;
+        }
+
+        .account-message.success {
+            color: #70e69c;
+            background: rgba(0, 200, 83, 0.12);
+        }
+
+        .account-message.error {
+            color: #ff8f8f;
+            background: rgba(255, 82, 82, 0.12);
         }
 
         .app {
@@ -324,7 +778,9 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
+            padding-top: 62px;
+            box-sizing: border-box;
             position: relative;
             z-index: 2;
         }
@@ -368,6 +824,7 @@
             background: rgba(255, 255, 255, 0.1);
             opacity: 0;
             transition: opacity 0.3s ease;
+            pointer-events: none;
         }
 
         .app-item:hover::after {
@@ -454,9 +911,157 @@
 </head>
 
 <body>
-    <button class="logout-btn" onclick="logout()">
-        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
-    </button>
+    <header class="user-header">
+        <div class="user-brand">
+            <span>🚦 AI Traffic Monitoring UTT</span>
+        </div>
+        <div class="header-voice">
+            <span id="voice-output">Giọng nói đang tắt</span>
+            <button id="start-voice" type="button">
+                <i class="fa-solid fa-microphone"></i> Bật giọng nói
+            </button>
+            <button id="stop-voice" type="button">
+                <i class="fa-solid fa-microphone-slash"></i> Tắt giọng nói
+            </button>
+        </div>
+        <div class="user-profile">
+            <button class="user-profile-button" type="button" onclick="toggleUserMenu()">
+                <img src="{{ '/static/images/' + driver.avatar if driver.avatar else '/static/admin.jpg' }}"
+                     alt="{{ full_name }}" onerror="this.src='/static/admin.jpg'">
+                <span class="user-profile-name">
+                    <strong>{{ full_name }}</strong>
+                    <small>{{ driver.code or user }}</small>
+                </span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="user-menu" id="user-menu">
+                <button type="button" onclick="openUserPanel('settings')">
+                    <i class="fa-solid fa-gear"></i> Cấu hình
+                </button>
+                <button type="button" onclick="openUserPanel('account')">
+                    <i class="fa-solid fa-user"></i> Tài khoản
+                </button>
+                <button class="logout-menu-item" type="button" onclick="logout()">
+                    <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="user-loading" id="user-loading">
+        <div class="user-spinner"></div>
+        <strong id="user-loading-text">Đang xử lý...</strong>
+    </div>
+
+    <div class="user-modal" id="account-modal" onclick="if(event.target===this) closeUserPanel('account-modal')">
+        <div class="user-modal-card">
+            <h3><i class="fa-solid fa-circle-user"></i> Quản lý tài khoản</h3>
+            <div class="account-tabs">
+                <button class="account-tab-button active" data-tab="profile" type="button" onclick="switchAccountTab('profile')">
+                    <i class="fa-solid fa-user-pen"></i> Cập nhật thông tin
+                </button>
+                <button class="account-tab-button" data-tab="password" type="button" onclick="switchAccountTab('password')">
+                    <i class="fa-solid fa-key"></i> Cập nhật mật khẩu
+                </button>
+            </div>
+            <div class="account-message" id="account-message"></div>
+
+            <div class="account-tab-panel active" id="account-profile">
+                <form onsubmit="updateAccountProfile(event)">
+                    <div class="account-form-grid">
+                        <div class="account-field">
+                            <label>Tên đăng nhập</label>
+                            <input value="{{ user }}" readonly>
+                        </div>
+                        <div class="account-field">
+                            <label>Mã tài xế</label>
+                            <input value="{{ driver.code or 'Chưa cập nhật' }}" readonly>
+                        </div>
+                        <div class="account-field full-width">
+                            <label for="account-full-name">Họ và tên</label>
+                            <input id="account-full-name" name="full_name" value="{{ full_name }}" placeholder="Nhập họ và tên" required>
+                        </div>
+                        <div class="account-field">
+                            <label for="account-phone">Số điện thoại</label>
+                            <input id="account-phone" name="phone" type="tel" maxlength="20"
+                                   value="{{ driver.phone or '' }}" placeholder="Nhập số điện thoại" required>
+                        </div>
+                        <div class="account-field">
+                            <label for="account-license">Số giấy phép lái xe</label>
+                            <input id="account-license" name="license_number" maxlength="50"
+                                   value="{{ driver.license_number or '' }}" placeholder="Nhập số GPLX" required>
+                        </div>
+                        <div class="account-field full-width">
+                            <label for="account-avatar">Ảnh đại diện</label>
+                            <div class="account-avatar-edit">
+                                <img id="account-avatar-preview"
+                                     src="{{ '/static/images/' + driver.avatar if driver.avatar else '/static/admin.jpg' }}"
+                                     alt="{{ full_name }}" onerror="this.src='/static/admin.jpg'">
+                                <input id="account-avatar" name="avatar" type="file"
+                                       accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                                       onchange="previewAccountAvatar(event)">
+                            </div>
+                        </div>
+                    </div>
+                    <button class="account-submit" type="submit">
+                        <i class="fa-solid fa-floppy-disk"></i> Lưu thông tin
+                    </button>
+                </form>
+            </div>
+
+            <div class="account-tab-panel" id="account-password">
+                <form onsubmit="changeAccountPassword(event)">
+                    <div class="account-form-grid">
+                        <div class="account-field full-width">
+                            <label for="current-password">Mật khẩu hiện tại</label>
+                            <div class="password-input">
+                                <input id="current-password" name="current_password" type="password"
+                                       placeholder="Nhập mật khẩu hiện tại" autocomplete="current-password" required>
+                                <button class="password-toggle" type="button"
+                                        onclick="togglePasswordVisibility('current-password', this)"
+                                        aria-label="Hiện mật khẩu"><i class="fa-solid fa-eye"></i></button>
+                            </div>
+                        </div>
+                        <div class="account-field">
+                            <label for="new-password">Mật khẩu mới</label>
+                            <div class="password-input">
+                                <input id="new-password" name="new_password" type="password" minlength="6"
+                                       placeholder="Nhập mật khẩu mới" autocomplete="new-password" required>
+                                <button class="password-toggle" type="button"
+                                        onclick="togglePasswordVisibility('new-password', this)"
+                                        aria-label="Hiện mật khẩu"><i class="fa-solid fa-eye"></i></button>
+                            </div>
+                        </div>
+                        <div class="account-field">
+                            <label for="confirm-password">Xác nhận mật khẩu mới</label>
+                            <div class="password-input">
+                                <input id="confirm-password" name="confirm_password" type="password" minlength="6"
+                                       placeholder="Nhập lại mật khẩu mới" autocomplete="new-password" required>
+                                <button class="password-toggle" type="button"
+                                        onclick="togglePasswordVisibility('confirm-password', this)"
+                                        aria-label="Hiện mật khẩu"><i class="fa-solid fa-eye"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="account-submit" type="submit">
+                        <i class="fa-solid fa-key"></i> Đổi mật khẩu
+                    </button>
+                </form>
+            </div>
+            <button class="user-modal-close" type="button" onclick="closeUserPanel('account-modal')">Đóng</button>
+        </div>
+    </div>
+
+    <div class="user-modal" id="settings-modal" onclick="if(event.target===this) closeUserPanel('settings-modal')">
+        <div class="user-modal-card">
+            <h3><i class="fa-solid fa-gear"></i> Cấu hình</h3>
+            <div class="user-info-row"><span>Trạng thái tài xế</span><strong>{{ driver.status or 'Chưa cập nhật' }}</strong></div>
+            <div class="user-info-row"><span>Nhận cảnh báo AI</span><strong>Đang bật</strong></div>
+            <div class="user-info-row"><span>Nhận diện giọng nói</span><strong>Có thể bật ở góc phải</strong></div>
+            <button class="user-modal-close" type="button" onclick="closeUserPanel('settings-modal')">Đóng</button>
+        </div>
+    </div>
+
     <div class="app">
         <!-- AI Alert Overlay -->
         <div id="ai-alert-overlay">
@@ -472,23 +1077,26 @@
         <div class="container">
             <div class="app-grid">
                 <div class="app-item dien-thoai">
-                    <a href="https://play.google.com/store/apps/details?id=co.kitetech.dialer&hl=vi">
+                    <a href="https://play.google.com/store/apps/details?id=co.kitetech.dialer&hl=vi"
+                       target="_blank" rel="noopener noreferrer">
                         <img src="/static/anh_phone.jpg" alt="Điện thoại">
                     </a>
                 </div>
                 <div class="app-item tin-nhan">
-                    <a href="https://www.facebook.com/messages/e2ee/t/9808668312549225">
+                    <a href="https://www.facebook.com/messages/e2ee/t/9808668312549225"
+                       target="_blank" rel="noopener noreferrer">
                         <img src="/static/anh_mesage.webp" alt="Tin nhắn">
                     </a>
                 </div>
                 <div class="app-item google-maps">
-                    <a href="https://www.google.com/maps/?hl=vi">
+                    <a href="https://www.google.com/maps/?hl=vi"
+                       target="_blank" rel="noopener noreferrer">
                         <img src="/static/anh_ggmap.jpg" alt="Google Maps">
                     </a>
                 </div>
 
                 <div class="app-item youtube">
-                    <a href="https://www.youtube.com/" target="_blank">
+                    <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">
                         <img src="/static/anh_youtbe.webp" alt="youtube">
                     </a>
                 </div>

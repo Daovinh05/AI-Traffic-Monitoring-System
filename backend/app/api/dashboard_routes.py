@@ -12,6 +12,7 @@ from pymysql.err import IntegrityError
 from werkzeug.utils import secure_filename
 
 from backend.app.core.config import settings
+from backend.app.repositories import user_repository
 from backend.app.services import dashboard_service
 
 from .route_registry import AppRoute
@@ -76,8 +77,17 @@ def login_required(view):
 
 
 def _user_context():
+    driver = user_repository.find_driver_profile_by_user_id(
+        session.get("user_id")
+    )
     return {
-        "user": session.get("user"),
+        "user": session.get("username"),
+        "full_name": (
+            driver.get("name")
+            if driver
+            else session.get("full_name") or session.get("username")
+        ),
+        "driver": driver or {},
         "tai_xe_id": session.get("tai_xe_id"),
         "vehicle_id": session.get("vehicle_id"),
     }
@@ -100,6 +110,7 @@ def dashboard():
             "Dashboard.html",
             **context,
             user=session.get("username"),
+            full_name=session.get("full_name") or session.get("username"),
             user_role=session.get("role"),
             now=datetime.now().strftime("%H:%M %d/%m/%Y"),
         )
