@@ -7153,6 +7153,17 @@ function getViolationTypeName(type) {
 }
 
 function viewViolationVideo(plate, violationType, videoUrl) {
+  if (!videoUrl) {
+    showToast(
+      'warning',
+      'Chưa có video',
+      'Cảnh báo này chưa được gắn với bản ghi video.'
+    );
+    return;
+  }
+
+  const cacheSeparator = videoUrl.includes('?') ? '&' : '?';
+  const playableVideoUrl = `${videoUrl}${cacheSeparator}v=${Date.now()}`;
   const vehicle = vehicles.find(v => v.plate === plate);
   const driverName = vehicle ? vehicle.driver : 'Không rõ';
   const phone = vehicle ? vehicle.phone : 'Không rõ';
@@ -7174,8 +7185,7 @@ function viewViolationVideo(plate, violationType, videoUrl) {
       </div>
       <div class="video-modal-body">
         <div class="video-player-container">
-          <video id="violationVideoPlayer" controls autoplay>
-            <source src="${videoUrl}" type="video/mp4">
+          <video id="violationVideoPlayer" controls autoplay preload="metadata" src="${playableVideoUrl}">
             Trình duyệt của bạn không hỗ trợ video.
           </video>
         </div>
@@ -7226,6 +7236,18 @@ function viewViolationVideo(plate, violationType, videoUrl) {
   `;
   
   document.body.appendChild(currentVideoModal);
+  const player = document.getElementById('violationVideoPlayer');
+  player.addEventListener('error', () => {
+    showToast(
+      'error',
+      'Không thể phát video',
+      'File video không tương thích hoặc không thể tải từ máy chủ.'
+    );
+  }, { once: true });
+  player.load();
+  player.play().catch(() => {
+    // Trình duyệt có thể chặn autoplay; người dùng vẫn có thể bấm nút phát.
+  });
 }
 
 function closeVideoModal() {

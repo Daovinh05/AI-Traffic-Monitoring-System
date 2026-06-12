@@ -5,6 +5,10 @@ from __future__ import annotations
 from functools import wraps
 from datetime import datetime
 from pathlib import Path
+import os
+import shutil
+import subprocess
+import threading
 import time
 
 import cv2
@@ -17,6 +21,7 @@ from .route_registry import AppRoute
 
 
 ROOT_DIR = Path(__file__).resolve().parents[3]
+MAX_RECORDING_SECONDS = 10
 
 
 def login_required(view):
@@ -121,7 +126,7 @@ def serve_video(filename):
     )
     for path in candidates:
         if path.is_file():
-            return send_file(path)
+            return send_file(path, mimetype="video/mp4", conditional=True)
     return "Video not found", 404
 
 
@@ -271,59 +276,163 @@ def set_mode():
 def start_recording():
     from backend.app.ai import runtime
 
-    if runtime.is_recording:
-        return "Already recording"
-
     section_id = request.args.get("section_id", "driver")
-    runtime.current_video_cam_id = {
-        "driver": 1,
-        "vacham": 2,
-        "traffic": 3,
-        "sign": 4,
-    }.get(section_id, 1)
-    runtime.current_video_filename = (
-        f"output_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
+    vehicle_id = session.get("vehicle_id") or runtime.current_monitoring_vehicle_id
+
+    with runtime.recording_lock:
+        if runtime.is_recording:
+            return jsonify(success=False, message="Hệ thống đang ghi hình"), 409
+
+        runtime.current_video_cam_id = {
+            "driver": 1,
+            "vacham": 2,
+            "traffic": 3,
+            "sign": 4,
+        }.get(section_id, 1)
+        runtime.current_video_filename = (
+            f"output_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
+        )
+        path = ROOT_DIR / "recordings" / runtime.current_video_filename
+        path.parent.mkdir(parents=True, exist_ok=True)
+        runtime.current_video_path = str(path)
+        runtime.video_writer = cv2.VideoWriter(
+            str(path),
+            runtime.video_codec,
+            runtime.fps,
+            (runtime.frame_width, runtime.frame_height),
+        )
+        if not runtime.video_writer.isOpened():
+            runtime.video_writer = None
+            runtime.current_video_path = None
+            runtime.current_video_filename = None
+            return jsonify(
+                success=False,
+                message="Không thể khởi tạo file ghi hình",
+            ), 500
+
+        runtime.is_recording = True
+        runtime.recording_start_time = datetime.now()
+        runtime.recording_frame_count = 0
+        runtime.recording_timer = threading.Timer(
+            MAX_RECORDING_SECONDS,
+            _auto_stop_recording,
+            args=(vehicle_id,),
+        )
+        runtime.recording_timer.daemon = True
+        runtime.recording_timer.start()
+
+    return jsonify(
+        success=True,
+        message=f"Đã bắt đầu ghi hình, tự động dừng sau {MAX_RECORDING_SECONDS} giây",
+        filename=runtime.current_video_filename,
     )
-    path = ROOT_DIR / "recordings" / runtime.current_video_filename
-    path.parent.mkdir(parents=True, exist_ok=True)
-    runtime.current_video_path = str(path)
-    runtime.video_writer = cv2.VideoWriter(
-        str(path),
-        runtime.video_codec,
-        runtime.fps,
-        (runtime.frame_width, runtime.frame_height),
+
+
+def _finish_recording(vehicle_id=None):
+    from backend.app.ai import runtime
+
+    with runtime.recording_lock:
+        if not runtime.is_recording or runtime.video_writer is None:
+            return None
+
+        timer = runtime.recording_timer
+        runtime.recording_timer = None
+        if timer is not None and timer is not threading.current_thread():
+            timer.cancel()
+
+        runtime.video_writer.release()
+        runtime.video_writer = None
+        runtime.is_recording = False
+        recording = {
+            "camera_id": runtime.current_video_cam_id,
+            "filename": runtime.current_video_filename,
+            "path": runtime.current_video_path,
+            "started_at": runtime.recording_start_time,
+            "frame_count": runtime.recording_frame_count,
+        }
+
+    ended_at = datetime.now()
+    path = Path(recording["path"])
+    if recording["frame_count"] <= 0:
+        if path.is_file():
+            path.unlink()
+        raise ValueError("Không nhận được khung hình nào từ camera")
+
+    _optimize_video_for_browser(path)
+    file_size = path.stat().st_size if path.is_file() else 0
+    video_id = recording_repository.save_recording(
+        recording["camera_id"],
+        recording["filename"],
+        f"/recordings/{recording['filename']}",
+        recording["started_at"],
+        ended_at,
+        file_size,
+        vehicle_id,
     )
-    runtime.is_recording = True
-    runtime.recording_start_time = datetime.now()
-    return f"Recording started for {section_id}"
+    return {
+        "video_id": video_id,
+        "video_path": f"/recordings/{recording['filename']}",
+    }
+
+
+def _optimize_video_for_browser(path: Path):
+    converter = shutil.which("avconvert")
+    if not converter:
+        return
+
+    converted_path = path.with_suffix(".web.m4v")
+    try:
+        subprocess.run(
+            [
+                converter,
+                "--source",
+                str(path),
+                "--preset",
+                "PresetAppleM4V720pHD",
+                "--output",
+                str(converted_path),
+                "--replace",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        if converted_path.is_file() and converted_path.stat().st_size > 0:
+            os.replace(converted_path, path)
+    except (OSError, subprocess.SubprocessError) as exc:
+        print(f"[VIDEO] Browser optimization skipped: {exc}")
+    finally:
+        if converted_path.is_file():
+            converted_path.unlink()
+
+
+def _auto_stop_recording(vehicle_id=None):
+    try:
+        _finish_recording(vehicle_id)
+    except Exception as exc:
+        print(f"[VIDEO] Automatic recording failed: {exc}")
 
 
 @login_required
 def stop_recording():
     from backend.app.ai import runtime
 
-    if not runtime.is_recording or runtime.video_writer is None:
-        return "Not recording"
-
-    runtime.video_writer.release()
-    runtime.video_writer = None
-    runtime.is_recording = False
-    ended_at = datetime.now()
-    path = Path(runtime.current_video_path)
-    file_size = path.stat().st_size if path.is_file() else 0
+    vehicle_id = session.get("vehicle_id") or runtime.current_monitoring_vehicle_id
     try:
-        video_id = recording_repository.save_recording(
-            runtime.current_video_cam_id,
-            runtime.current_video_filename,
-            f"/recordings/{runtime.current_video_filename}",
-            runtime.recording_start_time,
-            ended_at,
-            file_size,
-            session.get("vehicle_id") or runtime.current_monitoring_vehicle_id,
+        recording = _finish_recording(vehicle_id)
+        if recording is None:
+            return jsonify(success=False, message="Hệ thống chưa ghi hình"), 409
+        return jsonify(
+            success=True,
+            message="Đã dừng và lưu video",
+            **recording,
         )
-        return f"Recording stopped and saved (ID: {video_id})"
     except Exception as exc:
-        return f"Recording stopped but error saving to DB: {exc}"
+        return jsonify(
+            success=False,
+            message=f"Không thể lưu video: {exc}",
+        ), 500
 
 
 @login_required

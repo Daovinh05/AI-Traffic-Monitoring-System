@@ -127,6 +127,9 @@ recording_start_time = None
 current_video_filename = None
 current_video_path = None
 current_video_cam_id = None
+recording_timer = None
+recording_frame_count = 0
+recording_lock = threading.Lock()
 fps = 30.0
 frame_width = 1280
 frame_height = 720
@@ -134,6 +137,16 @@ video_codec = cv2.VideoWriter_fourcc(*'avc1')
 
 if not os.path.exists('recordings'):
     os.makedirs('recordings')
+
+
+def write_recording_frame(frame):
+    global recording_frame_count
+
+    with recording_lock:
+        if not is_recording or video_writer is None:
+            return
+        video_writer.write(frame)
+        recording_frame_count += 1
 
 # ========================================
 # AI MODELS
@@ -1013,8 +1026,7 @@ def driver_monitor(vehicle_id=None):
             frame = cv2.resize(frame, (frame_width, frame_height))
 
             # Record if enabled
-            if is_recording and video_writer is not None:
-                video_writer.write(frame)
+            write_recording_frame(frame)
 
             # Encode frame
             ret, buffer = cv2.imencode('.jpg', frame)
@@ -1094,8 +1106,7 @@ def traffic_sign_monitor(vehicle_id=None):
 
             annotated = cv2.resize(annotated, (frame_width, frame_height))
 
-            if is_recording and video_writer is not None:
-                video_writer.write(annotated)
+            write_recording_frame(annotated)
 
             ret, buffer = cv2.imencode('.jpg', annotated)
             frame = buffer.tobytes()
@@ -1270,8 +1281,7 @@ def collision_monitor(vehicle_id=None):
 
             frame = cv2.resize(frame, (frame_width, frame_height))
 
-            if is_recording and video_writer is not None:
-                video_writer.write(frame)
+            write_recording_frame(frame)
 
             ret, buffer = cv2.imencode('.jpg', frame)
             frame = buffer.tobytes()
@@ -1326,9 +1336,11 @@ def traffic_monitor():
                 try:
                     processed_frame = counter.process(frame)
 
-                    if is_recording and video_writer is not None:
-                        resized_frame = cv2.resize(processed_frame, (frame_width, frame_height))
-                        video_writer.write(resized_frame)
+                    resized_frame = cv2.resize(
+                        processed_frame,
+                        (frame_width, frame_height),
+                    )
+                    write_recording_frame(resized_frame)
 
                     ret, buffer = cv2.imencode('.jpg', processed_frame)
                     frame = buffer.tobytes()

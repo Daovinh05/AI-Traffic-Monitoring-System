@@ -460,7 +460,7 @@
     <div class="container">
         <div class="header">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <button class="btn btn-secondary" onclick="window.location.href='/trang_chu'" style="padding: 10px 20px;">
+                <button class="btn btn-secondary" onclick="window.top.location.href='/user/dashboard'" style="padding: 10px 20px;">
                     <i class="fa-solid fa-arrow-left"></i> Về trang chủ
                 </button>
             </div>
@@ -744,9 +744,14 @@
                     </div>
                 </div>
                 <div class="card-actions">
-                    <button class="btn btn-primary" onclick='playVideo("${alert.video_path || ''}", ${JSON.stringify(alert)})'>
-                        <i class="fa-solid fa-play"></i> Xem video
-                    </button>
+                    ${alert.video_path
+                        ? `<button class="btn btn-primary" onclick='playVideo("${alert.video_path}", ${JSON.stringify(alert)})'>
+                               <i class="fa-solid fa-play"></i> Xem video
+                           </button>`
+                        : `<button class="btn btn-secondary" type="button" disabled title="Cảnh báo này chưa được gắn với bản ghi video">
+                               <i class="fa-solid fa-video-slash"></i> Không có video
+                           </button>`
+                    }
                     ${!alert.is_read
                         ? `<button class="btn btn-success" onclick="markAsRead(${alert.id})"><i class="fa-solid fa-check"></i> Đánh dấu đã đọc</button>`
                         : ''
@@ -924,6 +929,10 @@
 
         // Video modal
         function playVideo(videoPath, alert) {
+            if (!videoPath) {
+                return;
+            }
+
             const modal = document.getElementById('video-modal');
             const video = document.getElementById('modal-video');
             const titleEl = document.getElementById('modal-title');

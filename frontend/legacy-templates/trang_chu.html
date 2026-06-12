@@ -100,7 +100,7 @@
                 // Kiểm tra lệnh về trang chủ
                 if (transcript.includes("trang chủ") || transcript.includes("về trang chủ")) {
                     speak("Đang chuyển về trang chủ");
-                    window.location.href = "/";
+                    window.top.location.href = "/user/dashboard";
                     return;
                 }
 
@@ -126,7 +126,7 @@
 
                             // Mở tab mới cho các app ngoài, trừ 'dùng tay' và 'lái xe'
                             if (command === 'dùng tay' || command === 'lái xe') {
-                                window.location.href = element.href;
+                                window.top.location.href = element.href;
                             } else {
                                 window.open(element.href, '_blank', 'noopener,noreferrer');
                             }
@@ -1063,7 +1063,7 @@
             <button class="admin-warning-ack" id="admin-warning-ack" type="button">
                 <i class="fa-solid fa-check"></i> Đã hiểu
             </button>
-            <a class="admin-warning-history-link" href="/lich_su?tab=warnings">
+            <a class="admin-warning-history-link" href="/user/history?tab=warnings" target="_top">
                 <i class="fa-solid fa-clock-rotate-left"></i> Lịch sử
             </a>
         </div>
@@ -1211,12 +1211,12 @@
                     </a>
                 </div>
                 <div class="app-item lai_xe">
-                    <a href="/lai_xe">
+                    <a href="/user/drive" target="_top">
                         <img src="/static/anh_lai_xe.jpg" alt="Lái xe an toàn">
                     </a>
                 </div>
                 <div class="app-item tu_van">
-                    <a href="/tu_van.html">
+                    <a href="/user/chatbot" target="_top">
                         <img src="/static/tu_van.png" alt="Tư vấn luật">
                     </a>
                 </div>
@@ -1226,7 +1226,7 @@
                     </a>
                 </div>
                 <div class="app-item lich_su">
-                    <a href="/lich_su">
+                    <a href="/user/history" target="_top">
                         <img src="/static/lich_su.png" alt="Lịch sử vi phạm">
                     </a>
                 </div>

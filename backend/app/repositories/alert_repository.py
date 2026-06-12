@@ -73,7 +73,25 @@ def list_driver_alerts(driver_id: int, limit: int, offset: int):
                        a.muc_do as level, a.thoi_gian_vi_pham as timestamp,
                        a.da_doc as is_read, v.bien_so as vehicle_plate,
                        v.loai_xe as vehicle_type,
-                       d.ho_ten as driver_name, vid.duong_dan_file as video_path
+                       d.ho_ten as driver_name,
+                       COALESCE(
+                           vid.duong_dan_file,
+                           (
+                               SELECT recorded.duong_dan_file
+                               FROM video_ghi_hinh recorded
+                               WHERE a.thoi_gian_vi_pham BETWEEN
+                                   DATE_SUB(recorded.thoi_gian_bat_dau, INTERVAL 10 SECOND)
+                                   AND COALESCE(recorded.thoi_gian_ket_thuc, NOW())
+                               ORDER BY ABS(
+                                   TIMESTAMPDIFF(
+                                       SECOND,
+                                       recorded.thoi_gian_bat_dau,
+                                       a.thoi_gian_vi_pham
+                                   )
+                               )
+                               LIMIT 1
+                           )
+                       ) as video_path
                 FROM canh_bao_vi_pham a
                 LEFT JOIN phuong_tien v ON a.id_phuong_tien = v.id
                 LEFT JOIN tai_xe d ON a.id_tai_xe = d.id
@@ -124,7 +142,25 @@ def list_all_alerts(limit: int, offset: int, plate: str = ""):
                        a.muc_do as level, a.thoi_gian_vi_pham as timestamp,
                        a.da_doc as is_read, v.bien_so as vehicle_plate,
                        v.loai_xe as vehicle_type,
-                       d.ho_ten as driver_name, vid.duong_dan_file as video_path
+                       d.ho_ten as driver_name,
+                       COALESCE(
+                           vid.duong_dan_file,
+                           (
+                               SELECT recorded.duong_dan_file
+                               FROM video_ghi_hinh recorded
+                               WHERE a.thoi_gian_vi_pham BETWEEN
+                                   DATE_SUB(recorded.thoi_gian_bat_dau, INTERVAL 10 SECOND)
+                                   AND COALESCE(recorded.thoi_gian_ket_thuc, NOW())
+                               ORDER BY ABS(
+                                   TIMESTAMPDIFF(
+                                       SECOND,
+                                       recorded.thoi_gian_bat_dau,
+                                       a.thoi_gian_vi_pham
+                                   )
+                               )
+                               LIMIT 1
+                           )
+                       ) as video_path
                 FROM canh_bao_vi_pham a
                 LEFT JOIN phuong_tien v ON a.id_phuong_tien = v.id
                 LEFT JOIN tai_xe d ON a.id_tai_xe = d.id

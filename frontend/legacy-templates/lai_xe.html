@@ -1002,7 +1002,7 @@
 
   <body>
     <header class="header">
-      <button class="trangchu" onclick="window.location.href='/'">
+      <button class="trangchu" onclick="window.top.location.href='/user/dashboard'">
         <i class="fas fa-home"></i>
         Trang chủ
       </button>
@@ -1863,23 +1863,54 @@
 
       function startRecording(sectionId) {
         fetch(`/start_recording?section_id=${sectionId}`)
-          .then((response) => response.text())
+          .then(async (response) => {
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+              throw new Error(data.message || "Không thể bắt đầu ghi hình");
+            }
+            return data;
+          })
           .then((data) => {
             console.log(data);
             document.getElementById(
               `recording-status-${sectionId}`
-            ).textContent = "Đang ghi hình";
+            ).textContent = "Đang ghi hình (tự dừng sau 10 giây)";
+            setTimeout(() => {
+              const status = document.getElementById(
+                `recording-status-${sectionId}`
+              );
+              if (status && status.textContent.includes("Đang ghi hình")) {
+                status.textContent = "Đã tự động lưu";
+              }
+            }, 10500);
+          })
+          .catch((error) => {
+            console.error(error);
+            alert(error.message);
           });
       }
 
       function stopRecording(sectionId) {
         fetch("/stop_recording")
-          .then((response) => response.text())
+          .then(async (response) => {
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+              throw new Error(data.message || "Không thể lưu video");
+            }
+            return data;
+          })
           .then((data) => {
             console.log(data);
             document.getElementById(
               `recording-status-${sectionId}`
             ).textContent = "Không ghi hình";
+          })
+          .catch((error) => {
+            console.error(error);
+            document.getElementById(
+              `recording-status-${sectionId}`
+            ).textContent = "Lỗi lưu video";
+            alert(error.message);
           });
       }
 
@@ -2153,7 +2184,7 @@
                   transcript.includes("về trang chủ")
                 ) {
                   speak("Đang chuyển về trang chủ");
-                  window.location.href = "/";
+                  window.top.location.href = "/user/dashboard";
                   return;
                 }
               }
