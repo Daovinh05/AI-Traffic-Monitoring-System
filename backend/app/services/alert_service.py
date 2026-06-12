@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 
 from backend.app.repositories import alert_repository
+from backend.app.realtime import admin_warning_stream
 
 
 def _format_alert(alert):
@@ -18,6 +19,24 @@ def _format_alert(alert):
         "driver_name": alert["driver_name"],
         "is_read": bool(alert["is_read"]),
         "video_path": alert["video_path"],
+    }
+
+
+def _format_admin_warning(warning):
+    return {
+        "id": warning["id"],
+        "vehicle_plate": warning["vehicle_plate"],
+        "message": warning["message"],
+        "priority": warning["priority"],
+        "is_read": bool(warning["is_read"]),
+        "created_at": (
+            warning["created_at"].isoformat()
+            if warning["created_at"]
+            else None
+        ),
+        "admin_name": warning["admin_name"],
+        "driver_name": warning["driver_name"],
+        "violationType": warning["violationType"] or "Không rõ",
     }
 
 
@@ -58,10 +77,14 @@ def send_admin_warning(admin_id, alert_id, plate: str, content: str, priority: s
     warning_id = alert_repository.create_admin_warning(
         admin_id, alert_id, plate, content, priority or "medium"
     )
+    warning = alert_repository.get_admin_warning(warning_id)
+    formatted_warning = _format_admin_warning(warning)
+    admin_warning_stream.publish(warning.get("driver_id"), formatted_warning)
     return {
         "success": True,
         "message": "Đã gửi cảnh báo thành công",
         "warning_id": warning_id,
+        "warning": formatted_warning,
         "status": 200,
     }
 
@@ -78,24 +101,7 @@ def get_admin_warning_page(page: int, driver_id=None, per_page=None, plate: str 
         plate,
     )
     return {
-        "warnings": [
-            {
-                "id": warning["id"],
-                "vehicle_plate": warning["vehicle_plate"],
-                "message": warning["message"],
-                "priority": warning["priority"],
-                "is_read": bool(warning["is_read"]),
-                "created_at": (
-                    warning["created_at"].isoformat()
-                    if warning["created_at"]
-                    else None
-                ),
-                "admin_name": warning["admin_name"],
-                "driver_name": warning["driver_name"],
-                "violationType": warning["violationType"] or "Không rõ",
-            }
-            for warning in warnings
-        ],
+        "warnings": [_format_admin_warning(warning) for warning in warnings],
         "page": page,
         "per_page": per_page,
         "total": total,

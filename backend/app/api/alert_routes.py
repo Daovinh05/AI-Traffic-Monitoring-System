@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 from functools import wraps
+import json
+from queue import Empty
 import re
 
-from flask import jsonify, request, session
+from flask import Response, jsonify, request, session, stream_with_context
 
 from backend.app.chatbot import chatbot_service, groq_client
 from backend.app.repositories import alert_repository
+from backend.app.realtime import admin_warning_stream
 from backend.app.services import alert_service, video_service
 
 from .route_registry import AppRoute
@@ -77,6 +80,70 @@ def get_admin_warnings():
 
 
 @login_required
+def stream_admin_warnings():
+    if session.get("role") == "admin":
+        return jsonify(success=False, message="Luồng này chỉ dành cho tài xế"), 403
+
+    driver_id = session.get("tai_xe_id")
+    if not driver_id:
+        return jsonify(success=False, message="Không tìm thấy thông tin tài xế"), 400
+
+    @stream_with_context
+    def generate():
+        events = admin_warning_stream.subscribe(driver_id)
+        try:
+            yield "retry: 2000\n\n"
+            while True:
+                try:
+                    warning = events.get(timeout=20)
+                    payload = json.dumps(warning, ensure_ascii=False)
+                    yield f"event: admin-warning\ndata: {payload}\n\n"
+                except Empty:
+                    yield ": keep-alive\n\n"
+        finally:
+            admin_warning_stream.unsubscribe(driver_id, events)
+
+    return Response(
+        generate(),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@login_required
+def stream_admin_warning_acknowledgements():
+    if session.get("role") != "admin":
+        return jsonify(success=False, message="Không có quyền truy cập"), 403
+
+    @stream_with_context
+    def generate():
+        events = admin_warning_stream.subscribe_admin()
+        try:
+            yield "retry: 2000\n\n"
+            while True:
+                try:
+                    acknowledgement = events.get(timeout=20)
+                    payload = json.dumps(acknowledgement, ensure_ascii=False)
+                    yield f"event: warning-acknowledged\ndata: {payload}\n\n"
+                except Empty:
+                    yield ": keep-alive\n\n"
+        finally:
+            admin_warning_stream.unsubscribe_admin(events)
+
+    return Response(
+        generate(),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@login_required
 def mark_alert_as_read(alert_id):
     try:
         alert_repository.mark_alert_read(alert_id)
@@ -88,7 +155,30 @@ def mark_alert_as_read(alert_id):
 @login_required
 def mark_warning_as_read(warning_id):
     try:
-        alert_repository.mark_admin_warning_read(warning_id)
+        if session.get("role") == "admin":
+            alert_repository.mark_admin_warning_read(warning_id)
+        else:
+            driver_id = session.get("tai_xe_id")
+            if not driver_id:
+                return jsonify(
+                    success=False,
+                    message="Không tìm thấy thông tin tài xế",
+                ), 400
+            acknowledgement = alert_repository.acknowledge_driver_admin_warning(
+                warning_id,
+                driver_id,
+            )
+            if not acknowledgement:
+                return jsonify(
+                    success=False,
+                    message="Không tìm thấy cảnh báo của tài xế",
+                ), 404
+            admin_warning_stream.publish_acknowledgement(acknowledgement)
+            return jsonify(
+                success=True,
+                message="Đã xác nhận cảnh báo",
+                alert_id=acknowledgement["alert_id"],
+            )
         return jsonify(success=True, message="Đã đánh dấu đã đọc")
     except Exception as exc:
         return jsonify(success=False, message=f"Lỗi: {exc}"), 500
@@ -125,21 +215,6 @@ def send_warning_to_vehicle():
         )
         payload = {key: value for key, value in result.items() if key != "status"}
         return jsonify(payload), result["status"]
-    except Exception as exc:
-        return jsonify(success=False, message=f"Lỗi: {exc}"), 500
-
-
-@login_required
-def mark_alert_as_processed():
-    if session.get("role") != "admin":
-        return jsonify(success=False, message="Không có quyền truy cập"), 403
-    data = request.get_json(silent=True) or {}
-    alert_id = data.get("alert_id")
-    if not alert_id:
-        return jsonify(success=False, message="Thiếu alert_id"), 400
-    try:
-        alert_repository.mark_alert_read(alert_id)
-        return jsonify(success=True, message="Đã đánh dấu đã xử lý")
     except Exception as exc:
         return jsonify(success=False, message=f"Lỗi: {exc}"), 500
 
@@ -239,6 +314,18 @@ ROUTES = (
         handler=get_admin_warnings,
     ),
     AppRoute(
+        "/api/admin-warnings/stream",
+        "stream_admin_warnings",
+        "stream_admin_warnings",
+        handler=stream_admin_warnings,
+    ),
+    AppRoute(
+        "/api/admin-warnings/admin-stream",
+        "stream_admin_warning_acknowledgements",
+        "stream_admin_warning_acknowledgements",
+        handler=stream_admin_warning_acknowledgements,
+    ),
+    AppRoute(
         "/api/all-alerts",
         "get_all_alerts",
         "get_all_alerts",
@@ -263,13 +350,6 @@ ROUTES = (
         "send_warning_to_vehicle",
         ("POST",),
         handler=send_warning_to_vehicle,
-    ),
-    AppRoute(
-        "/api/mark-alert-processed",
-        "mark_alert_as_processed",
-        "mark_alert_as_processed",
-        ("POST",),
-        handler=mark_alert_as_processed,
     ),
     AppRoute(
         "/api/get_ai_warnings",

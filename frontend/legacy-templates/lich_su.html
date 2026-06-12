@@ -470,11 +470,11 @@
 
         <!-- Tabs -->
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('violations')">
+            <button class="tab-btn active" onclick="switchTab('violations', this)">
                 <i class="fa-solid fa-triangle-exclamation"></i> Lịch sử vi phạm
             </button>
             
-            <button class="tab-btn" onclick="switchTab('warnings')">
+            <button class="tab-btn" onclick="switchTab('warnings', this)">
                 <i class="fa-solid fa-bell"></i> Cảnh báo Admin
             </button>
         </div>
@@ -538,12 +538,14 @@
         let warningsPerPage = 10; // Mặc định, sẽ cập nhật từ API
 
         // Switch tab
-        function switchTab(tabName) {
+        function switchTab(tabName, sourceButton) {
             // Update active tab button
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            event.target.closest('.tab-btn').classList.add('active');
+            if (sourceButton) {
+                sourceButton.classList.add('active');
+            }
 
             // Update active tab content
             document.querySelectorAll('.tab-content').forEach(content => {
@@ -1081,7 +1083,12 @@
 
         // Load violations on page load
         document.addEventListener('DOMContentLoaded', function() {
-            loadViolations();
+            const requestedTab = new URLSearchParams(window.location.search).get('tab');
+            if (requestedTab === 'warnings') {
+                switchTab('warnings', document.querySelector('[onclick*="warnings"]'));
+            } else {
+                loadViolations();
+            }
         });
 
         // Close modal when clicking outside

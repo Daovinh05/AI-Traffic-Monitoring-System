@@ -377,7 +377,7 @@ def list_recent_warnings(limit: int = 50):
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT p.bien_so AS plate, t.ho_ten AS driver,
+                SELECT c.id, p.bien_so AS plate, t.ho_ten AS driver,
                        td.ten_tuyen AS location, c.loai_vi_pham AS type,
                        c.noi_dung_vi_pham AS typeLabel,
                        DATE_FORMAT(c.thoi_gian_vi_pham,

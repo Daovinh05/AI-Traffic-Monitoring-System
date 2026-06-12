@@ -161,6 +161,53 @@ def mark_admin_warning_read(warning_id: int):
         conn.close()
 
 
+def acknowledge_driver_admin_warning(warning_id: int, driver_id: int):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT w.id_vi_pham AS alert_id
+                FROM thong_bao_admin w
+                INNER JOIN phuong_tien p ON w.bien_so_xe = p.bien_so
+                WHERE w.id = %s AND p.id_tai_xe = %s
+                FOR UPDATE
+                """,
+                (warning_id, driver_id),
+            )
+            warning = cur.fetchone()
+            if not warning:
+                conn.rollback()
+                return None
+
+            cur.execute(
+                """
+                UPDATE thong_bao_admin
+                SET da_doc = 1, ngay_doc = COALESCE(ngay_doc, NOW())
+                WHERE id = %s
+                """,
+                (warning_id,),
+            )
+
+            alert_id = warning["alert_id"]
+            if alert_id:
+                cur.execute(
+                    """
+                    UPDATE canh_bao_vi_pham
+                    SET da_doc = 1
+                    WHERE id = %s AND id_tai_xe = %s
+                    """,
+                    (alert_id, driver_id),
+                )
+        conn.commit()
+        return {"warning_id": warning_id, "alert_id": alert_id}
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
 def create_admin_warning(admin_id, alert_id, plate: str, content: str, priority: str):
     conn = get_db_connection()
     try:
@@ -177,6 +224,32 @@ def create_admin_warning(admin_id, alert_id, plate: str, content: str, priority:
             warning_id = cur.lastrowid
         conn.commit()
         return warning_id
+    finally:
+        conn.close()
+
+
+def get_admin_warning(warning_id: int):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT w.id, w.bien_so_xe AS vehicle_plate,
+                       w.noi_dung_thong_bao AS message,
+                       w.muc_do_uu_tien AS priority, w.da_doc AS is_read,
+                       w.ngay_tao AS created_at, u.ho_ten AS admin_name,
+                       t.id AS driver_id, t.ho_ten AS driver_name,
+                       c.noi_dung_vi_pham AS violationType
+                FROM thong_bao_admin w
+                LEFT JOIN phuong_tien p ON w.bien_so_xe = p.bien_so
+                LEFT JOIN tai_xe t ON p.id_tai_xe = t.id
+                LEFT JOIN nguoi_dung u ON w.id_admin = u.id
+                LEFT JOIN canh_bao_vi_pham c ON w.id_vi_pham = c.id
+                WHERE w.id = %s
+                """,
+                (warning_id,),
+            )
+            return cur.fetchone()
     finally:
         conn.close()
 

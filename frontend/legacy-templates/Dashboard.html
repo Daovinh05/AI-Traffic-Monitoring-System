@@ -3180,8 +3180,8 @@ tr:hover {
         </select>
         <select class="filter-select" id="warningStatusFilter">
           <option value="all">Tất cả trạng thái</option>
-          <option value="pending">Chưa xử lý</option>
-          <option value="processed">Đã xử lý</option>
+          <option value="pending">Chưa nhắc nhở</option>
+          <option value="processed">Đã nhắc nhở</option>
         </select>
       </div>
       <div class="table-search">
@@ -4098,27 +4098,44 @@ function toggleSidebar() {
 }
 
 /* ===== NAVIGATION ===== */
-document.querySelectorAll('.menu-item').forEach(item => {
+const dashboardPageIds = new Set(
+  Array.from(document.querySelectorAll('.menu-item[data-page]'))
+    .map(item => item.getAttribute('data-page'))
+);
+
+function activateDashboardPage(pageId, updateUrl = false) {
+  const validPageId = dashboardPageIds.has(pageId) ? pageId : 'dashboard';
+  const targetItem = document.querySelector(
+    `.menu-item[data-page="${validPageId}"]`
+  );
+
+  document.querySelectorAll('.menu-item[data-page]').forEach(item => {
+    item.classList.toggle('active', item === targetItem);
+  });
+
+  loadPageData(validPageId);
+
+  if (updateUrl) {
+    const url = new URL(window.location.href);
+    url.hash = validPageId === 'dashboard' ? '' : validPageId;
+    window.history.pushState({ pageId: validPageId }, '', url);
+  }
+}
+
+document.querySelectorAll('.menu-item[data-page]').forEach(item => {
   item.addEventListener('click', function() {
-    // Remove active class from all items
-    document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-    // Add active class to clicked item
-    this.classList.add('active');
-    
-    // Get page ID
     const pageId = this.getAttribute('data-page');
-    
-    // Load page-specific data
-    loadPageData(pageId);
+    activateDashboardPage(pageId, true);
   });
 });
 
-// Hide all page sections on initial load (will show when menu clicked)
 document.addEventListener('DOMContentLoaded', () => {
-  // Hide all page sections initially
-  document.querySelectorAll('.page-section').forEach(section => {
-    section.style.display = 'none';
-  });
+  const requestedPage = window.location.hash.slice(1);
+  activateDashboardPage(requestedPage || 'dashboard');
+});
+
+window.addEventListener('popstate', () => {
+  activateDashboardPage(window.location.hash.slice(1) || 'dashboard');
 });
 
 // Function to load page-specific data
@@ -4194,6 +4211,72 @@ var userRole = '{{ user_role|default("user") }}';
 var currentPage = 1;
 var totalPages = 1;
 var warningPlateQuery = '';
+var adminWarningAcknowledgementEvents = null;
+var warningStatusPolling = null;
+
+function updateWarningRowStatus(alertId, isProcessed) {
+  if (!alertId) return;
+  const row = document.querySelector(
+    `#warningsTableBody tr[data-alert-id="${alertId}"]`
+  );
+  if (!row) return;
+
+  const statusCell = row.querySelector('.warning-status-cell');
+  const badge = statusCell?.querySelector('.status-badge');
+  if (!badge) return;
+
+  const wasProcessed = badge.textContent.trim() === 'Đã nhắc nhở';
+  badge.className = `status-badge ${isProcessed ? 'status-running' : 'status-stopped'}`;
+  badge.textContent = isProcessed ? 'Đã nhắc nhở' : 'Chưa nhắc nhở';
+
+  if (isProcessed && !wasProcessed) {
+    const warningBadge = document.getElementById('warningBadge');
+    const currentCount = Number.parseInt(warningBadge?.textContent || '0', 10);
+    if (warningBadge && Number.isFinite(currentCount)) {
+      warningBadge.textContent = String(Math.max(0, currentCount - 1));
+    }
+  }
+}
+
+function syncVisibleWarningStatuses() {
+  if (userRole !== 'admin') return;
+  const params = new URLSearchParams({ page: currentPage });
+  if (warningPlateQuery) params.set('plate', warningPlateQuery);
+
+  fetch(`/api/all-alerts?${params.toString()}`, { cache: 'no-store' })
+    .then(response => response.json())
+    .then(data => {
+      if (!data.success) return;
+      (data.alerts || []).forEach(alert => {
+        updateWarningRowStatus(alert.id, Boolean(alert.is_read));
+      });
+    })
+    .catch(error => console.error('Lỗi đồng bộ trạng thái cảnh báo:', error));
+}
+
+function connectAdminWarningAcknowledgements() {
+  if (userRole !== 'admin') return;
+
+  if (window.EventSource) {
+    adminWarningAcknowledgementEvents =
+      new EventSource('/api/admin-warnings/admin-stream');
+    adminWarningAcknowledgementEvents.addEventListener(
+      'warning-acknowledged',
+      event => {
+        try {
+          const acknowledgement = JSON.parse(event.data);
+          updateWarningRowStatus(acknowledgement.alert_id, true);
+        } catch (error) {
+          console.error('Dữ liệu xác nhận cảnh báo không hợp lệ:', error);
+        }
+      }
+    );
+  }
+
+  if (!warningStatusPolling) {
+    warningStatusPolling = setInterval(syncVisibleWarningStatuses, 3000);
+  }
+}
 
 function loadWarningsData(page = 1) {
   const tbody = document.getElementById('warningsTableBody');
@@ -4225,22 +4308,16 @@ function loadWarningsData(page = 1) {
       tbody.innerHTML = alerts.map((w, i) => {
         // STT giảm dần: item đầu tiên (mới nhất) có STT lớn nhất
         const stt = totalItems - (startIdx - 1) - i;
-        const alertBtn = w.is_read
-          ? '<span style="color:#28a745;font-size:11px;font-weight:bold;"><i class="fa-solid fa-check-circle"></i> Đã gửi</span>'
-          : `<button class="btn btn-action btn-alert" onclick="autoSendWarning('${w.vehicle_plate}', ${w.id}, '${w.type}', this)" style="padding:4px 8px;font-size:10px;">
-                <i class="fa-solid fa-triangle-exclamation"></i> Cảnh cáo
-             </button>`;
         return `
-        <tr>
+        <tr data-alert-id="${w.id}">
           <td>${stt}</td>
           <td><strong>${w.vehicle_plate || 'Không rõ'}</strong></td>
           <td>${w.driver_name || 'Không rõ'}</td>
           <td>${w.message || w.type || 'Không rõ'}</td>
           <td>${w.timestamp ? new Date(w.timestamp).toLocaleString('vi-VN') : ''}</td>
-          <td><span class="status-badge ${w.is_read ? 'status-running' : 'status-stopped'}">${w.is_read ? 'Đã xử lý' : 'Chưa xử lý'}</span></td>
+          <td class="warning-status-cell"><span class="status-badge ${w.is_read ? 'status-running' : 'status-stopped'}">${w.is_read ? 'Đã nhắc nhở' : 'Chưa nhắc nhở'}</span></td>
           <td>
             <div style="display:flex;gap:5px;">
-              ${alertBtn}
               <button class="btn btn-action btn-video" onclick="viewViolationVideo('${w.vehicle_plate}','${w.type}','${w.video_path||''}')" style="padding:4px 8px;font-size:10px;">
                 <i class="fa-solid fa-circle-play"></i> Video
               </button>
@@ -4269,22 +4346,16 @@ function loadWarningsData(page = 1) {
       tbody.innerHTML = warningsData.map((w, i) => {
         const violationName = getViolationTypeName(w.type) || w.typeLabel || 'Không rõ';
         const isProcessed = w.status !== 'pending';
-        const alertBtn = isProcessed
-          ? '<span style="color:#28a745;font-size:11px;font-weight:bold;"><i class="fa-solid fa-check-circle"></i> Đã gửi</span>'
-          : `<button class="btn btn-action btn-alert" onclick="autoSendWarning('${w.plate}', ${w.id || null}, '${w.type || ''}', this)" style="padding:4px 8px;font-size:10px;">
-                <i class="fa-solid fa-triangle-exclamation"></i> Cảnh cáo
-             </button>`;
         return `
-        <tr>
+        <tr data-alert-id="${w.id || ''}">
           <td>${i + 1}</td>
           <td><strong>${w.plate || 'Không rõ'}</strong></td>
           <td>${w.driver || 'Không rõ'}</td>
           <td>${violationName}</td>
           <td>${w.time || ''}</td>
-          <td><span class="status-badge ${isProcessed ? 'status-running' : 'status-stopped'}">${isProcessed ? 'Đã xử lý' : 'Chưa xử lý'}</span></td>
+          <td class="warning-status-cell"><span class="status-badge ${isProcessed ? 'status-running' : 'status-stopped'}">${isProcessed ? 'Đã nhắc nhở' : 'Chưa nhắc nhở'}</span></td>
           <td>
             <div style="display:flex;gap:5px;">
-              ${alertBtn}
               <button class="btn btn-action btn-video" onclick="viewViolationVideo('${w.plate}','${w.type}','${w.video}')" style="padding:4px 8px;font-size:10px;">
                 <i class="fa-solid fa-circle-play"></i> Video
               </button>
@@ -6929,71 +7000,6 @@ function callDriver(phone) {
 let currentWarningPlate = '';
 let currentAlertId = null;
 
-function getWarningContentByType(type) {
-  var messages = {
-    'eye': 'Tài xế có dấu hiệu nhắm mắt quá lâu, nguy cơ buồn ngủ khi lái xe. Yêu cầu dừng xe nghỉ ngơi ngay lập tức để đảm bảo an toàn.',
-    'yawn': 'Tài xế ngáp ngủ, mất tỉnh táo khi lái xe. Yêu cầu dừng xe nghỉ ngơi hoặc chuyển ca lái.',
-    'head': 'Tài xế mất tập trung khi lái xe (quay đầu, cúi xuống). Yêu cầu tập trung quan sát phía trước.',
-    'phone': 'Tài xế đang sử dụng điện thoại khi lái xe, vi phạm luật giao thông. Yêu cầu dừng ngay hành vi này.',
-    'seatbelt': 'Tài xế không thắt dây an toàn. Yêu cầu thắt dây an toàn ngay lập tức.',
-    'hand': 'Tài xế không giữ vô lăng bằng hai tay. Yêu cầu giữ vô lăng đúng cách khi lái xe.',
-    'lane': 'Phương tiện bị lệch làn đường, nguy cơ mất an toàn. Yêu cầu giữ đúng làn đường quy định.',
-    'collision': 'Cảnh báo nguy cơ va chạm phía trước. Yêu cầu giảm tốc độ và giữ khoảng cách an toàn.',
-    'obstacle': 'Phát hiện vật cản phía trước. Yêu cầu giảm tốc độ và quan sát kỹ.',
-    'sign': 'Phát hiện biển báo giao thông quan trọng. Yêu cầu tuân thủ biển báo.',
-    'speed': 'Phương tiện đang chạy quá tốc độ quy định. Yêu cầu giảm tốc độ ngay lập tức.',
-    'traffic': 'Phát hiện tình trạng giao thông bất thường. Yêu cầu lái xe cẩn thận.',
-    'congestion': 'Phía trước đang ùn tắc giao thông. Yêu cầu giảm tốc độ và di chuyển theo hướng dẫn.'
-  };
-  return messages[type] || 'Phát hiện vi phạm giao thông. Yêu cầu chấp hành luật giao thông.';
-}
-
-function autoSendWarning(plate, alertId, alertType, buttonEl) {
-  if (!plate) return;
-  var content = getWarningContentByType(alertType);
-
-  buttonEl.disabled = true;
-  buttonEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
-
-  fetch('/api/send-warning', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      plate: plate,
-      content: content,
-      priority: 'high',
-      alert_id: alertId
-    })
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(data) {
-    if (data.success && alertId) {
-      return fetch('/api/mark-alert-processed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ alert_id: alertId })
-      }).then(function(r) { return r.json(); });
-    }
-    return data;
-  })
-  .then(function(data) {
-    if (data.success) {
-      showToast('success', 'Tự động gửi', 'Đã gửi cảnh báo đến xe ' + plate);
-      buttonEl.outerHTML = '<span style="color:#28a745;font-size:11px;font-weight:bold;"><i class="fa-solid fa-check"></i> Đã gửi</span>';
-    } else {
-      showToast('error', 'Lỗi', data.message || 'Không thể gửi cảnh báo');
-      buttonEl.disabled = false;
-      buttonEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Cảnh cáo';
-    }
-  })
-  .catch(function(err) {
-    console.error('Auto send warning error:', err);
-    showToast('error', 'Lỗi', 'Không thể gửi cảnh báo');
-    buttonEl.disabled = false;
-    buttonEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Cảnh cáo';
-  });
-}
-
 function sendWarning(plate, alertId = null) {
   currentWarningPlate = plate;
   currentAlertId = alertId;
@@ -7111,20 +7117,6 @@ function submitWarning() {
     })
   })
   .then(r => r.json())
-  .then(data => {
-    if (data.success) {
-      // Nếu có alert_id, đánh dấu đã xử lý
-      if (currentAlertId) {
-        return fetch('/api/mark-alert-processed', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ alert_id: currentAlertId })
-        }).then(r => r.json());
-      }
-      return data;
-    }
-    return data;
-  })
   .then(data => {
     if (data.success) {
       showToast('success', 'Thành công', `Đã gửi cảnh báo đến xe ${currentWarningPlate}`);
@@ -8198,6 +8190,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadRoutesData();
   loadDriversData();
   loadWarningsData();
+  connectAdminWarningAcknowledgements();
   loadAdminAlertsData();
   loadNotificationsData();
   loadNotificationHistoryData();
@@ -8438,9 +8431,9 @@ document.getElementById('warningStatusFilter')?.addEventListener('change', funct
     const text = row.textContent.toLowerCase();
     if (status === 'all') {
       row.style.display = '';
-    } else if (status === 'pending' && text.includes('chưa xử lý')) {
+    } else if (status === 'pending' && text.includes('chưa nhắc nhở')) {
       row.style.display = '';
-    } else if (status === 'processed' && text.includes('đã xử lý')) {
+    } else if (status === 'processed' && text.includes('đã nhắc nhở')) {
       row.style.display = '';
     } else {
       row.style.display = 'none';

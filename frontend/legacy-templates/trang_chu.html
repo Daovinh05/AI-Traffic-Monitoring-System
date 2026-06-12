@@ -381,6 +381,127 @@
             box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
         }
 
+        .admin-warning-ticker {
+            display: none;
+            position: fixed;
+            top: 78px;
+            left: 50%;
+            z-index: 9999;
+            width: min(760px, calc(100% - 32px));
+            align-items: center;
+            gap: 16px;
+            padding: 16px 18px;
+            box-sizing: border-box;
+            transform: translateX(-50%);
+            border: 1px solid rgba(255, 214, 102, 0.75);
+            border-left: 6px solid #ffd166;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #8a2c16, #a63d1d);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.42);
+            color: white;
+        }
+
+        .admin-warning-ticker.show {
+            display: flex;
+            animation: adminWarningAppear 0.3s ease-out;
+        }
+
+        .admin-warning-label {
+            display: flex;
+            flex: 0 0 auto;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.14);
+            color: #ffe29a;
+            font-size: 24px;
+        }
+
+        .admin-warning-content {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .admin-warning-heading {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .admin-warning-heading strong {
+            font-size: 16px;
+        }
+
+        .warning-priority {
+            padding: 3px 8px;
+            border: 1px solid rgba(255, 255, 255, 0.48);
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.14);
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .admin-warning-message {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.45;
+        }
+
+        .admin-warning-meta {
+            display: block;
+            margin-top: 6px;
+            color: #ffdcb5;
+            font-size: 12px;
+        }
+
+        .admin-warning-actions {
+            display: flex;
+            flex: 0 0 auto;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .admin-warning-actions button,
+        .admin-warning-actions a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            min-width: 112px;
+            padding: 8px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.36);
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .admin-warning-ack {
+            background: #fff;
+            color: #7b2415;
+        }
+
+        .admin-warning-ack:disabled {
+            opacity: 0.65;
+            cursor: wait;
+        }
+
+        .admin-warning-history-link {
+            background: rgba(0, 0, 0, 0.14);
+            color: white;
+        }
+
+        @keyframes adminWarningAppear {
+            from { transform: translate(-50%, -16px); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+
         .user-brand {
             display: flex;
             align-items: center;
@@ -856,56 +977,34 @@
             filter: brightness(1.1);
         }
 
-        /* AI Alert Overlay */
-        #ai-alert-overlay {
-            position: fixed;
-            top: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10001;
-            width: 80%;
-            max-width: 600px;
-            display: none;
-            animation: slideDown 0.5s ease;
-        }
+        @media (max-width: 720px) {
+            .admin-warning-ticker {
+                top: 70px;
+                align-items: flex-start;
+                gap: 10px;
+                padding: 13px;
+            }
 
-        .ai-alert-card {
-            background: rgba(255, 0, 0, 0.9);
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            border: 2px solid white;
-        }
+            .admin-warning-label {
+                width: 38px;
+                height: 38px;
+                font-size: 19px;
+            }
 
-        .ai-alert-icon {
-            font-size: 40px;
-            animation: pulse 1s infinite;
-        }
+            .admin-warning-actions {
+                align-self: stretch;
+            }
 
-        .ai-alert-content h2 {
-            margin: 0 0 5px 0;
-            font-size: 24px;
-        }
+            .admin-warning-actions button,
+            .admin-warning-actions a {
+                min-width: auto;
+                padding: 7px 9px;
+                font-size: 0;
+            }
 
-        .ai-alert-content p {
-            margin: 0;
-            font-size: 18px;
-            opacity: 0.9;
-        }
-
-        @keyframes slideDown {
-            from { transform: translate(-50%, -100px); opacity: 0; }
-            to { transform: translate(-50%, 0); opacity: 1; }
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
+            .admin-warning-actions i {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -947,6 +1046,28 @@
             </div>
         </div>
     </header>
+
+    <aside class="admin-warning-ticker" id="admin-warning-ticker" aria-live="polite">
+        <div class="admin-warning-label">
+            <i class="fa-solid fa-bell"></i>
+        </div>
+        <div class="admin-warning-content">
+            <div class="admin-warning-heading">
+                <strong>Cảnh báo từ Admin</strong>
+                <span class="warning-priority" id="admin-warning-priority"></span>
+            </div>
+            <p class="admin-warning-message" id="admin-warning-message"></p>
+            <small class="admin-warning-meta" id="admin-warning-meta"></small>
+        </div>
+        <div class="admin-warning-actions">
+            <button class="admin-warning-ack" id="admin-warning-ack" type="button">
+                <i class="fa-solid fa-check"></i> Đã hiểu
+            </button>
+            <a class="admin-warning-history-link" href="/lich_su?tab=warnings">
+                <i class="fa-solid fa-clock-rotate-left"></i> Lịch sử
+            </a>
+        </div>
+    </aside>
 
     <div class="user-loading" id="user-loading">
         <div class="user-spinner"></div>
@@ -1063,17 +1184,6 @@
     </div>
 
     <div class="app">
-        <!-- AI Alert Overlay -->
-        <div id="ai-alert-overlay">
-            <div class="ai-alert-card">
-                <div class="ai-alert-icon">🚨</div>
-                <div class="ai-alert-content">
-                    <h2 id="ai-alert-title">CẢNH BÁO NGUY HIỂM</h2>
-                    <p id="ai-alert-msg">Phát hiện vi phạm!</p>
-                </div>
-            </div>
-        </div>
-        
         <div class="container">
             <div class="app-grid">
                 <div class="app-item dien-thoai">
@@ -1125,56 +1235,111 @@
     </div>
 
     <script>
-        // AI Alert Logic for Driver
-        const myVehicleId = {{ vehicle_id|default(0, true)|tojson }};
-        let lastAlertId = 0;
-        let alertTimeout = null;
+        let currentAdminWarning = null;
+        let adminWarningEvents = null;
+        let adminWarningRevision = 0;
+        let adminWarningPolling = null;
 
-        function checkMyAlerts() {
-            fetch('/api/get_ai_alerts_history')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success' && data.alerts && data.alerts.length > 0) {
-                        const latestAlert = data.alerts[data.alerts.length - 1];
-                        
-                        // Nếu là cảnh báo cho xe này và là ID mới
-                        if (latestAlert.vehicle_id == myVehicleId && latestAlert.id > lastAlertId) {
-                            showAIWarning(latestAlert);
-                            lastAlertId = latestAlert.id;
-                        }
-                    }
-                })
-                .catch(err => console.error('Lỗi lấy cảnh báo:', err));
+        const adminWarningPriorityLabels = {
+            high: 'Khẩn cấp',
+            medium: 'Quan trọng',
+            low: 'Nhắc nhở'
+        };
+
+        function showAdminWarning(warning) {
+            const ticker = document.getElementById('admin-warning-ticker');
+            const createdAt = warning.created_at
+                ? new Date(warning.created_at).toLocaleString('vi-VN')
+                : '';
+            document.getElementById('admin-warning-priority').textContent =
+                adminWarningPriorityLabels[warning.priority] || 'Cảnh báo';
+            document.getElementById('admin-warning-message').textContent = warning.message;
+            document.getElementById('admin-warning-meta').textContent =
+                `${warning.vehicle_plate || 'Không rõ biển số'}${createdAt ? ' • ' + createdAt : ''}`;
+            currentAdminWarning = warning;
+            adminWarningRevision += 1;
+            ticker.classList.add('show');
         }
 
-        function showAIWarning(alert) {
-            const overlay = document.getElementById('ai-alert-overlay');
-            const msgEl = document.getElementById('ai-alert-msg');
-            const titleEl = document.getElementById('ai-alert-title');
-            
-            titleEl.textContent = alert.level === 'critical' ? '🚨 CẢNH BÁO NGUY HIỂM' : '⚠️ NHẮC NHỞ';
-            msgEl.textContent = alert.message;
-            
-            overlay.style.display = 'block';
-            
-            // Tự động tắt sau 5 giây
-            if (alertTimeout) clearTimeout(alertTimeout);
-            alertTimeout = setTimeout(() => {
-                overlay.style.display = 'none';
-            }, 5000);
-            
-            // Phát âm thanh cảnh báo nếu có (tùy chọn)
+        function hideAdminWarning() {
+            currentAdminWarning = null;
+            adminWarningRevision += 1;
+            document.getElementById('admin-warning-ticker').classList.remove('show');
+        }
+
+        async function loadLatestUnreadAdminWarning() {
+            const revisionAtRequestStart = adminWarningRevision;
             try {
-                const audio = new Audio('/static/sounds/warning.mp3');
-                audio.play();
-            } catch(e) {}
+                const response = await fetch('/api/admin-warnings?page=1', {
+                    credentials: 'same-origin',
+                    cache: 'no-store'
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) return;
+                if (revisionAtRequestStart !== adminWarningRevision) return;
+                const latestUnread = (data.warnings || []).find(warning => !warning.is_read);
+                if (latestUnread) {
+                    showAdminWarning(latestUnread);
+                } else {
+                    hideAdminWarning();
+                }
+            } catch (error) {
+                console.error('Lỗi lấy cảnh báo từ admin:', error);
+            }
         }
 
-        // Poll mỗi 2 giây
-        if (myVehicleId) {
-            setInterval(checkMyAlerts, 2000);
-            console.log('Driver monitoring started for vehicle ID:', myVehicleId);
+        async function acknowledgeAdminWarning() {
+            if (!currentAdminWarning) return;
+            const warningId = currentAdminWarning.id;
+            const button = document.getElementById('admin-warning-ack');
+            button.disabled = true;
+            try {
+                const response = await fetch(
+                    `/api/admin-warnings/${warningId}/read`,
+                    { method: 'POST', credentials: 'same-origin' }
+                );
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Không thể xác nhận cảnh báo');
+                }
+                if (currentAdminWarning && currentAdminWarning.id === warningId) {
+                    hideAdminWarning();
+                }
+                await loadLatestUnreadAdminWarning();
+            } catch (error) {
+                alert(error.message || 'Không thể xác nhận cảnh báo');
+            } finally {
+                button.disabled = false;
+            }
         }
+
+        function connectAdminWarningStream() {
+            startAdminWarningPolling();
+            if (!window.EventSource) {
+                return;
+            }
+            adminWarningEvents = new EventSource('/api/admin-warnings/stream');
+            adminWarningEvents.addEventListener('admin-warning', event => {
+                try {
+                    showAdminWarning(JSON.parse(event.data));
+                } catch (error) {
+                    console.error('Dữ liệu cảnh báo realtime không hợp lệ:', error);
+                }
+            });
+            adminWarningEvents.onerror = () => {
+                console.warn('Mất kết nối cảnh báo realtime, đang dùng đồng bộ dự phòng.');
+            };
+        }
+
+        function startAdminWarningPolling() {
+            if (adminWarningPolling) return;
+            adminWarningPolling = setInterval(loadLatestUnreadAdminWarning, 2000);
+        }
+
+        document.getElementById('admin-warning-ack')
+            .addEventListener('click', acknowledgeAdminWarning);
+        loadLatestUnreadAdminWarning();
+        connectAdminWarningStream();
     </script>
 </body>
 
