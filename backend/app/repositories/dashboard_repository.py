@@ -377,7 +377,8 @@ def list_recent_warnings(limit: int = 50):
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT c.id, p.bien_so AS plate, t.ho_ten AS driver,
+                SELECT c.id, p.bien_so AS plate, p.loai_xe AS vehicle_type,
+                       t.ho_ten AS driver,
                        td.ten_tuyen AS location, c.loai_vi_pham AS type,
                        c.noi_dung_vi_pham AS typeLabel,
                        DATE_FORMAT(c.thoi_gian_vi_pham,
@@ -405,7 +406,8 @@ def list_recent_admin_alerts(limit: int = 50):
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT tb.bien_so_xe AS plate, t.ho_ten AS driver,
+                SELECT tb.bien_so_xe AS plate, p.loai_xe AS vehicle_type,
+                       t.ho_ten AS driver,
                        t.so_dien_thoai AS phone,
                        tb.noi_dung_thong_bao AS content,
                        tb.muc_do_uu_tien AS priority,

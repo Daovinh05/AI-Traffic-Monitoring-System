@@ -1698,67 +1698,98 @@ tr:hover {
 /* ===== AI ALERTS PANEL ===== */
 #aiAlertsPanel {
   position: fixed;
-  top: 70px;
-  right: 20px;
+  top: 66px;
+  right: 10px;
   width: 320px;
-  max-height: 400px;
-  background: var(--bg-card);
+  max-height: calc(100vh - 80px);
+  background: #10243d;
   border-radius: 10px;
-  box-shadow: 0 5px 25px rgba(0,0,0,0.2);
-  z-index: 997;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+  z-index: 10020;
   display: none;
-  border: 1px solid var(--border-color);
+  overflow: hidden;
+  border: 1px solid #1ea8d5;
+  animation: realtimeAlertsAppear 0.25s ease-out;
 }
 
 .alerts-header {
-  background: linear-gradient(135deg, #dc3545, #c82333);
+  background: #d9253a;
   color: white;
-  padding: 12px 15px;
+  min-height: 46px;
+  padding: 0 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-radius: 10px 10px 0 0;
 }
 
 .alerts-title { font-weight: bold; font-size: 14px; }
-.alerts-close { cursor: pointer; font-size: 18px; }
+.alerts-close {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: white;
+  cursor: pointer;
+  font-size: 19px;
+  font-weight: bold;
+}
+
+.alerts-close:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
 
 .alerts-body {
   padding: 10px;
-  max-height: 320px;
+  max-height: min(620px, calc(100vh - 146px));
   overflow-y: auto;
+  scrollbar-color: #314967 transparent;
+  scrollbar-width: thin;
 }
 
 .alert-item {
-  background: rgba(255, 193, 7, 0.15);
+  background: #493249;
   border-left: 4px solid #ffc107;
-  padding: 10px;
+  padding: 11px 10px;
   margin-bottom: 8px;
   border-radius: 5px;
   font-size: 13px;
   animation: slideIn 0.3s ease-out;
-  color: var(--text-primary);
+  color: #f4f6fb;
+  line-height: 1.4;
 }
 
 .alert-item.critical {
-  background: rgba(220, 53, 69, 0.15);
-  border-left-color: #dc3545;
+  background: #493049;
+  border-left-color: #ff334f;
 }
 
 .alert-item.warning {
-  background: rgba(255, 193, 7, 0.15);
+  background: #4b463b;
   border-left-color: #ffc107;
 }
 
 .alert-item.info {
-  background: rgba(23, 162, 184, 0.15);
-  border-left-color: #17a2b8;
+  background: #17455b;
+  border-left-color: #16badb;
 }
 
 .alert-time {
   font-size: 11px;
-  color: var(--text-muted);
+  color: #8590a1;
   margin-top: 5px;
+}
+
+.alerts-empty {
+  padding: 22px 10px;
+  color: #91a2b8;
+  font-size: 13px;
+  text-align: center;
+}
+
+@keyframes realtimeAlertsAppear {
+  from { transform: translateX(18px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
 /* ===== VOICE SUGGESTIONS ===== */
@@ -2712,9 +2743,6 @@ tr:hover {
   </div>
   <div class="header-spacer"></div>
   <div class="header-right">
-    <button class="action-btn" onclick="toggleAlertsPanel(true)">
-      <i class="fa-solid fa-bell"></i> Cảnh Báo AI
-    </button>
     <button class="action-btn" onclick="location.reload()">
       <i class="fa-solid fa-refresh"></i> Làm Mới
     </button>
@@ -2722,9 +2750,11 @@ tr:hover {
       <i class="fa-solid fa-search"></i>
       <input type="text" placeholder="Tìm biển số, tài xế...">
     </div>
-    <div class="notification" onclick="showNotifications()">
+    <div class="notification" onclick="toggleAlertsPanel()"
+         title="Cảnh báo AI realtime" role="button" tabindex="0"
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleAlertsPanel();}">
       <i class="fa-solid fa-bell"></i>
-      <span class="notification-badge">5</span>
+      <span class="notification-badge" id="realtimeAlertBadge" style="display:none;">0</span>
     </div>
     <div class="admin-profile">
       <button class="admin-profile-button" type="button" onclick="toggleAdminMenu()">
@@ -2803,7 +2833,6 @@ tr:hover {
     <div class="menu-item" data-page="ai-warnings">
       <i class="fa-solid fa-triangle-exclamation"></i>
       <span>Cảnh báo AI</span>
-      <span class="badge" id="warningBadge">0</span>
     </div>
     <div class="menu-item" data-page="admin-alerts">
       <i class="fa-solid fa-bullhorn"></i>
@@ -3198,6 +3227,7 @@ tr:hover {
           <tr>
             <th>STT</th>
             <th>Biển số</th>
+            <th>Loại xe</th>
             <th>Tài xế</th>
             <th>Loại cảnh báo</th>
             <th>Thời gian</th>
@@ -3252,6 +3282,7 @@ tr:hover {
           <tr>
             <th>STT</th>
             <th>Biển số</th>
+            <th>Loại xe</th>
             <th>Tài xế</th>
             <th>Nội dung</th>
             <th>Mức độ</th>
@@ -4014,29 +4045,10 @@ tr:hover {
 <div id="aiAlertsPanel">
   <div class="alerts-header">
     <span class="alerts-title">🔔 Cảnh Báo AI Thời Gian Thực</span>
-    <span class="alerts-close" onclick="toggleAlertsPanel(false)">&times;</span>
+    <button class="alerts-close" type="button" onclick="toggleAlertsPanel(false)" aria-label="Đóng">&times;</button>
   </div>
   <div class="alerts-body" id="alertsBody">
-    <div class="alert-item critical">
-      <div>🚨 Tài xế đang NHẮM MẮT QUÁ LÂU!</div>
-      <div class="alert-time"><i class="fa-regular fa-clock"></i> 10:45:32</div>
-    </div>
-    <div class="alert-item warning">
-      <div>😴 Tài xế đang NGÁP NGỦ!</div>
-      <div class="alert-time"><i class="fa-regular fa-clock"></i> 10:43:15</div>
-    </div>
-    <div class="alert-item critical">
-      <div>📱 Tài xế đang DÙNG ĐIỆN THOẠI!</div>
-      <div class="alert-time"><i class="fa-regular fa-clock"></i> 10:40:08</div>
-    </div>
-    <div class="alert-item warning">
-      <div>⚠️ Tài xế KHÔNG THẮT DÂY AN TOÀN!</div>
-      <div class="alert-time"><i class="fa-regular fa-clock"></i> 10:35:22</div>
-    </div>
-    <div class="alert-item info">
-      <div>✋ Tài xế KHÔNG ĐỂ TAY LÊN VÔ LĂNG!</div>
-      <div class="alert-time"><i class="fa-regular fa-clock"></i> 10:30:45</div>
-    </div>
+    <div class="alerts-empty">Chưa có cảnh báo realtime</div>
   </div>
 </div>
 
@@ -4225,17 +4237,8 @@ function updateWarningRowStatus(alertId, isProcessed) {
   const badge = statusCell?.querySelector('.status-badge');
   if (!badge) return;
 
-  const wasProcessed = badge.textContent.trim() === 'Đã nhắc nhở';
   badge.className = `status-badge ${isProcessed ? 'status-running' : 'status-stopped'}`;
   badge.textContent = isProcessed ? 'Đã nhắc nhở' : 'Chưa nhắc nhở';
-
-  if (isProcessed && !wasProcessed) {
-    const warningBadge = document.getElementById('warningBadge');
-    const currentCount = Number.parseInt(warningBadge?.textContent || '0', 10);
-    if (warningBadge && Number.isFinite(currentCount)) {
-      warningBadge.textContent = String(Math.max(0, currentCount - 1));
-    }
-  }
 }
 
 function syncVisibleWarningStatuses() {
@@ -4280,7 +4283,7 @@ function connectAdminWarningAcknowledgements() {
 
 function loadWarningsData(page = 1) {
   const tbody = document.getElementById('warningsTableBody');
-  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;">Đang tải...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;">Đang tải...</td></tr>';
 
   // Admin xem tất cả vi phạm, user chỉ xem vi phạm của mình
   const baseUrl = userRole === 'admin' ? '/api/all-alerts' : '/api/alerts';
@@ -4295,8 +4298,7 @@ function loadWarningsData(page = 1) {
         const emptyMessage = warningPlateQuery
           ? 'Không tìm thấy cảnh báo theo biển số đã nhập'
           : 'Không có cảnh báo nào';
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;">${emptyMessage}</td></tr>`;
-        document.getElementById('warningBadge').textContent = '0';
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;">${emptyMessage}</td></tr>`;
         updatePagination(0, 0, 0);
         return;
       }
@@ -4312,6 +4314,7 @@ function loadWarningsData(page = 1) {
         <tr data-alert-id="${w.id}">
           <td>${stt}</td>
           <td><strong>${w.vehicle_plate || 'Không rõ'}</strong></td>
+          <td>${getVehicleTypeLabel(w.vehicle_type)}</td>
           <td>${w.driver_name || 'Không rõ'}</td>
           <td>${w.message || w.type || 'Không rõ'}</td>
           <td>${w.timestamp ? new Date(w.timestamp).toLocaleString('vi-VN') : ''}</td>
@@ -4326,9 +4329,6 @@ function loadWarningsData(page = 1) {
         </tr>
       `}).join('');
 
-      const pendingCount = alerts.filter(w => !w.is_read).length;
-      document.getElementById('warningBadge').textContent = pendingCount;
-      
       // Cập nhật phân trang
       currentPage = data.page;
       totalPages = data.total_pages;
@@ -4338,8 +4338,7 @@ function loadWarningsData(page = 1) {
       console.error('Error loading warnings:', err);
       // Fallback to static data
       if (!warningsData || warningsData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;">Không có cảnh báo nào</td></tr>';
-        document.getElementById('warningBadge').textContent = '0';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;">Không có cảnh báo nào</td></tr>';
         updatePagination(0, 0, 0);
         return;
       }
@@ -4350,6 +4349,7 @@ function loadWarningsData(page = 1) {
         <tr data-alert-id="${w.id || ''}">
           <td>${i + 1}</td>
           <td><strong>${w.plate || 'Không rõ'}</strong></td>
+          <td>${getVehicleTypeLabel(w.vehicle_type || w.type_vehicle)}</td>
           <td>${w.driver || 'Không rõ'}</td>
           <td>${violationName}</td>
           <td>${w.time || ''}</td>
@@ -4363,8 +4363,6 @@ function loadWarningsData(page = 1) {
           </td>
         </tr>
       `}).join('');
-      const pendingCount = warningsData.filter(w => w.status === 'pending').length;
-      document.getElementById('warningBadge').textContent = pendingCount;
     });
 }
 
@@ -4417,7 +4415,7 @@ var adminAlertPlateQuery = '';
 
 function loadAdminAlertsData(page = 1) {
   const tbody = document.getElementById('alertsTableBody');
-  tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">Đang tải...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">Đang tải...</td></tr>';
 
   const params = new URLSearchParams({ page });
   if (adminAlertPlateQuery) params.set('plate', adminAlertPlateQuery);
@@ -4429,7 +4427,7 @@ function loadAdminAlertsData(page = 1) {
         const emptyMessage = adminAlertPlateQuery
           ? 'Không tìm thấy cảnh cáo theo biển số đã nhập'
           : 'Không có thông báo nào';
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px;">${emptyMessage}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 20px;">${emptyMessage}</td></tr>`;
         window.adminAlerts = [];
         updateAdminAlertsPagination(0, 0, 0);
         return;
@@ -4448,6 +4446,7 @@ function loadAdminAlertsData(page = 1) {
         <tr>
           <td>${stt}</td>
           <td><strong>${a.vehicle_plate || 'Không rõ'}</strong></td>
+          <td>${getVehicleTypeLabel(a.vehicle_type)}</td>
           <td>${a.driver_name || 'Không rõ'}</td>
           <td>${a.message || ''}</td>
           <td><span class="status-badge ${a.priority === 'high' ? 'status-stopped' : 'status-running'}">${a.priority === 'high' ? 'Cao' : a.priority === 'medium' ? 'Trung bình' : 'Thấp'}</span></td>
@@ -4469,7 +4468,7 @@ function loadAdminAlertsData(page = 1) {
       console.error('Error loading admin alerts:', err);
       // Fallback to static data
       if (!adminAlertsData || adminAlertsData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">Không có thông báo nào</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">Không có thông báo nào</td></tr>';
         window.adminAlerts = [];
         updateAdminAlertsPagination(0, 0, 0);
         return;
@@ -4480,6 +4479,7 @@ function loadAdminAlertsData(page = 1) {
         <tr>
           <td>${i + 1}</td>
           <td><strong>${a.plate || 'Không rõ'}</strong></td>
+          <td>${getVehicleTypeLabel(a.vehicle_type || a.type_vehicle)}</td>
           <td>${a.driver || 'Không rõ'}</td>
           <td>${a.content || ''}</td>
           <td><span class="status-badge ${a.priority === 'high' ? 'status-stopped' : 'status-running'}">${a.priorityLabel || 'Bình thường'}</span></td>
@@ -4787,8 +4787,10 @@ var vehiclesData = rawVehiclesData.map(v => ({
 }));
 
 function getVehicleTypeLabel(type) {
-  return type === 'bus' ? 'Xe khách'
+  return !type ? 'Không rõ'
+    : type === 'bus' ? 'Xe khách'
     : type === 'truck' ? 'Xe tải'
+    : type === 'motorcycle' ? 'Xe máy'
     : type === 'taxi' ? 'Taxi' : 'Ô tô';
 }
 
@@ -6735,36 +6737,6 @@ document.getElementById('driverSearch')?.addEventListener('input', function(e) {
   });
 });
 
-// ==================== REAL-TIME DATA SIMULATION ====================
-// Simulate real-time warnings arriving
-setInterval(() => {
-  const randomWarnings = [
-    { plate: '29B-222.22', type: 'phone', message: 'Dùng điện thoại' },
-    { plate: '30G-666.66', type: 'seatbelt', message: 'Không thắt dây' },
-    { plate: '29A-111.11', type: 'drowsy', message: 'Buồn ngủ' },
-  ];
-  
-  const random = randomWarnings[Math.floor(Math.random() * randomWarnings.length)];
-  
-  // Add notification
-  const notification = {
-    type: 'warning',
-    icon: 'fa-triangle-exclamation',
-    title: 'Cảnh báo mới',
-    message: `Xe ${random.plate}: ${random.message}`,
-    time: 'Vừa xong',
-    unread: true
-  };
-  
-  // Update badge
-  const currentBadge = parseInt(document.getElementById('notificationBadge').textContent) || 0;
-  document.getElementById('notificationBadge').textContent = currentBadge + 1;
-  
-  // Show toast
-  showToast('warning', 'Cảnh báo AI', notification.message);
-  
-}, 60000); // Every 60 seconds
-
 // ==================== EXPORT FUNCTIONS ====================
 function exportTableToExcel(tableId, filename) {
   const table = document.getElementById(tableId);
@@ -7319,10 +7291,6 @@ function exportTable() {
   showToast('success', 'Xuất file', 'Đang xuất dữ liệu Excel...');
 }
 
-function showNotifications() {
-  showToast('info', 'Thông báo', 'Bạn có 5 cảnh báo chưa xem');
-}
-
 /* ===== COUNT UP ANIMATION ===== */
 function animateValue(element, start, end, duration) {
   const obj = document.getElementById(element);
@@ -7780,7 +7748,6 @@ function processVoiceCommand(cmd) {
   }
   else if (cmd.includes('cảnh báo') || cmd.includes('xem tất cả')) {
     toggleAlertsPanel(true);
-    fetchAICurrentWarnings();
     addSystemMsg('🔔 Đang hiển thị cảnh báo AI thời gian thực.');
   }
   else if (cmd.includes('xe khách') || cmd.includes('xe bus')) {
@@ -7868,10 +7835,19 @@ function updateCameraGrid(vehicleId) {
 
 // ==================== AI ALERTS ====================
 function toggleAlertsPanel(show) {
-  document.getElementById('aiAlertsPanel').style.display = show ? 'block' : 'none';
-  if (show) {
-    fetchAICurrentWarnings();
-  }
+  const panel = document.getElementById('aiAlertsPanel');
+  const shouldShow = typeof show === 'boolean'
+    ? show
+    : panel.style.display !== 'block';
+  panel.style.display = shouldShow ? 'block' : 'none';
+}
+
+function updateRealtimeAlertBadge() {
+  const badge = document.getElementById('realtimeAlertBadge');
+  const count = document.querySelectorAll('#alertsBody .alert-item').length;
+  if (!badge) return;
+  badge.textContent = String(count);
+  badge.style.display = count > 0 ? 'inline-flex' : 'none';
 }
 
 function fetchAICurrentWarnings() {
@@ -7959,29 +7935,7 @@ function updateAlertsPanel(warnings) {
   // }
 
   if (currentAlerts.length === 0) {
-    // Hiển thị cảnh báo mẫu khi không có cảnh báo thực tế
-    alertsBody.innerHTML = `
-      <div class="alert-item critical">
-        <div>🚨 Tài xế đang NHẮM MẮT QUÁ LÂU!</div>
-        <div class="alert-time"><i class="fa-regular fa-clock"></i> ${new Date().toLocaleTimeString()}</div>
-      </div>
-      <div class="alert-item warning">
-        <div>😴 Tài xế đang NGÁP NGỦ!</div>
-        <div class="alert-time"><i class="fa-regular fa-clock"></i> ${new Date().toLocaleTimeString()}</div>
-      </div>
-      <div class="alert-item critical">
-        <div>📱 Tài xế đang DÙNG ĐIỆN THOẠI!</div>
-        <div class="alert-time"><i class="fa-regular fa-clock"></i> ${new Date().toLocaleTimeString()}</div>
-      </div>
-      <div class="alert-item warning">
-        <div>⚠️ Tài xế KHÔNG THẮT DÂY AN TOÀN!</div>
-        <div class="alert-time"><i class="fa-regular fa-clock"></i> ${new Date().toLocaleTimeString()}</div>
-      </div>
-      <div class="alert-item info">
-        <div>✋ Tài xế KHÔNG ĐỂ TAY LÊN VÔ LĂNG!</div>
-        <div class="alert-time"><i class="fa-regular fa-clock"></i> ${new Date().toLocaleTimeString()}</div>
-      </div>
-    `;
+    alertsBody.innerHTML = '<div class="alerts-empty">Chưa có cảnh báo realtime</div>';
   } else {
     alertsBody.innerHTML = currentAlerts.map(alert => `
       <div class="alert-item ${alert.type}">
@@ -7990,6 +7944,7 @@ function updateAlertsPanel(warnings) {
       </div>
     `).join('');
   }
+  updateRealtimeAlertBadge();
 }
 
 
@@ -8182,7 +8137,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => animateValue('alertCount', 0, 5, 1000), 400);
   
   // Initialize badges
-  document.getElementById('warningBadge').textContent = '2';
   document.getElementById('notificationBadge').textContent = '3';
   
   // Load initial data for management pages
@@ -8313,20 +8267,65 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ==================== AUTO-FETCH AI ALERTS FOR CHATBOT ====================
-let lastAlertTimestamp = '';
+let lastRealtimeAlertId = null;
 let alertCount = 5; // Số cảnh báo ban đầu
 let violationCount = 4; // Số vi phạm ban đầu
+
+function getRealtimeAlertIcon(alertType, level) {
+  const icons = {
+    eye: '🚨',
+    yawn: '😴',
+    head: '😕',
+    phone: '📱',
+    seatbelt: '⚠️',
+    hand: '✋',
+    collision: '💥',
+    lane: '🔄'
+  };
+  return icons[alertType] || (level === 'critical' ? '🚨' : '⚠️');
+}
+
+function appendRealtimeAIAlert(alert) {
+  const alertsPanel = document.getElementById('aiAlertsPanel');
+  const alertsBody = document.getElementById('alertsBody');
+  if (!alertsPanel || !alertsBody) return;
+
+  alertsBody.querySelector('.alerts-empty')?.remove();
+
+  const item = document.createElement('div');
+  item.className = `alert-item ${alert.level || 'warning'}`;
+
+  const message = document.createElement('div');
+  const icon = getRealtimeAlertIcon(alert.type, alert.level);
+  const plate = alert.plate && alert.plate !== 'N/A' ? ` [${alert.plate}]` : '';
+  message.textContent = `${icon}${plate} ${alert.message}`;
+
+  const time = document.createElement('div');
+  time.className = 'alert-time';
+  const clock = document.createElement('i');
+  clock.className = 'fa-regular fa-clock';
+  time.append(clock, document.createTextNode(` ${alert.timestamp || new Date().toLocaleTimeString('vi-VN')}`));
+
+  item.append(message, time);
+  alertsBody.prepend(item);
+
+  updateRealtimeAlertBadge();
+  alertsPanel.style.display = 'block';
+}
 
 function pollAINewAlerts() {
   fetch('/api/get_ai_alerts_history')
     .then(response => response.json())
     .then(data => {
       if (data.status === 'success' && data.alerts && data.alerts.length > 0) {
-        // Kiểm tra cảnh báo mới nhất
         const latestAlert = data.alerts[data.alerts.length - 1];
+        if (lastRealtimeAlertId === null) {
+          lastRealtimeAlertId = latestAlert.id;
+          return;
+        }
 
-        // Nếu có cảnh báo mới, hiển thị vào chatbot và cập nhật UI
-        if (latestAlert.timestamp !== lastAlertTimestamp) {
+        const newAlerts = data.alerts.filter(alert => alert.id > lastRealtimeAlertId);
+        newAlerts.forEach(latestAlert => {
           const icon = latestAlert.level === 'critical' ? '🚨' : latestAlert.level === 'warning' ? '⚠️' : 'ℹ️';
           const alertMsg = `${icon} [${latestAlert.timestamp}] ${latestAlert.message}`;
 
@@ -8355,33 +8354,7 @@ function pollAINewAlerts() {
             }
           }
 
-          // Thêm cảnh báo vào panel nếu đang mở
-          const alertsPanel = document.getElementById('aiAlertsPanel');
-          if (alertsPanel && alertsPanel.style.display === 'block') {
-            const alertsBody = document.getElementById('alertsBody');
-            const newAlert = document.createElement('div');
-            newAlert.className = `alert-item ${latestAlert.level}`;
-            newAlert.style.animation = 'slideIn 0.3s ease-out';
-            const info = `[${latestAlert.plate || 'N/A'} - ${latestAlert.driver_name || 'N/A'}]`;
-            newAlert.innerHTML = `
-              <div>${icon} ${info} ${latestAlert.message}</div>
-              <div class="alert-time"><i class="fa-regular fa-clock"></i> ${new Date().toLocaleTimeString()}</div>
-            `;
-            // Thêm vào đầu danh sách
-            if (alertsBody.firstChild) {
-              alertsBody.insertBefore(newAlert, alertsBody.firstChild);
-            } else {
-              alertsBody.appendChild(newAlert);
-            }
-            // Giới hạn hiển thị 10 cảnh báo gần nhất
-            while (alertsBody.children.length > 10) {
-              alertsBody.removeChild(alertsBody.lastChild);
-            }
-          }
-
-          // Hiển thị toast notification
-          const toastMsg = `[${latestAlert.plate || 'N/A'}] ${latestAlert.message}`;
-          showToast('warning', 'Cảnh báo AI mới', toastMsg);
+          appendRealtimeAIAlert(latestAlert);
 
           // Chỉ hiển thị vào chatbot nếu đang mở
           const chatWidget = document.getElementById('chatWidget');
@@ -8389,8 +8362,8 @@ function pollAINewAlerts() {
             addSystemMsg(alertMsg);
           }
 
-          lastAlertTimestamp = latestAlert.timestamp;
-        }
+          lastRealtimeAlertId = Math.max(lastRealtimeAlertId, latestAlert.id);
+        });
       }
     })
     .catch(error => {

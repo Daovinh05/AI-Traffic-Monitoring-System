@@ -72,6 +72,7 @@ def list_driver_alerts(driver_id: int, limit: int, offset: int):
                 SELECT a.id, a.loai_vi_pham as type, a.noi_dung_vi_pham as message,
                        a.muc_do as level, a.thoi_gian_vi_pham as timestamp,
                        a.da_doc as is_read, v.bien_so as vehicle_plate,
+                       v.loai_xe as vehicle_type,
                        d.ho_ten as driver_name, vid.duong_dan_file as video_path
                 FROM canh_bao_vi_pham a
                 LEFT JOIN phuong_tien v ON a.id_phuong_tien = v.id
@@ -122,6 +123,7 @@ def list_all_alerts(limit: int, offset: int, plate: str = ""):
                 SELECT a.id, a.loai_vi_pham as type, a.noi_dung_vi_pham as message,
                        a.muc_do as level, a.thoi_gian_vi_pham as timestamp,
                        a.da_doc as is_read, v.bien_so as vehicle_plate,
+                       v.loai_xe as vehicle_type,
                        d.ho_ten as driver_name, vid.duong_dan_file as video_path
                 FROM canh_bao_vi_pham a
                 LEFT JOIN phuong_tien v ON a.id_phuong_tien = v.id
@@ -235,6 +237,7 @@ def get_admin_warning(warning_id: int):
             cur.execute(
                 """
                 SELECT w.id, w.bien_so_xe AS vehicle_plate,
+                       p.loai_xe AS vehicle_type,
                        w.noi_dung_thong_bao AS message,
                        w.muc_do_uu_tien AS priority, w.da_doc AS is_read,
                        w.ngay_tao AS created_at, u.ho_ten AS admin_name,
@@ -300,6 +303,7 @@ def list_admin_warnings(limit: int, offset: int, driver_id=None, plate: str = ""
             cur.execute(
                 f"""
                 SELECT w.id, w.bien_so_xe AS vehicle_plate,
+                       p.loai_xe AS vehicle_type,
                        w.noi_dung_thong_bao AS message,
                        w.muc_do_uu_tien AS priority, w.da_doc AS is_read,
                        w.ngay_tao AS created_at, u.ho_ten AS admin_name,

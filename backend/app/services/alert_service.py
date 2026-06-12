@@ -16,6 +16,7 @@ def _format_alert(alert):
         "level": alert["level"],
         "timestamp": alert["timestamp"].isoformat() if alert["timestamp"] else None,
         "vehicle_plate": alert["vehicle_plate"],
+        "vehicle_type": alert["vehicle_type"],
         "driver_name": alert["driver_name"],
         "is_read": bool(alert["is_read"]),
         "video_path": alert["video_path"],
@@ -26,6 +27,7 @@ def _format_admin_warning(warning):
     return {
         "id": warning["id"],
         "vehicle_plate": warning["vehicle_plate"],
+        "vehicle_type": warning["vehicle_type"],
         "message": warning["message"],
         "priority": warning["priority"],
         "is_read": bool(warning["is_read"]),
