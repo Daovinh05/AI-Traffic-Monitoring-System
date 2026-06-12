@@ -124,3 +124,16 @@ def update_user_password(user_id: int, password_hash: str):
         conn.commit()
     finally:
         conn.close()
+
+
+def find_first_admin():
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, ten_dang_nhap AS username, ho_ten AS full_name "
+                "FROM nguoi_dung WHERE vai_tro = 'admin' LIMIT 1"
+            )
+            return cur.fetchone()
+    finally:
+        conn.close()
