@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Chat UI</title>
+
+<style>
+
+body{
+font-family: Arial;
+background:#111;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.chat-box{
+width:350px;
+height:500px;
+background:#1e1e1e;
+border-radius:10px;
+padding:15px;
+overflow-y:auto;
+}
+
+.message{
+max-width:70%;
+padding:10px 14px;
+border-radius:18px;
+margin:6px 0;
+font-size:14px;
+}
+
+.me{
+background:linear-gradient(45deg,#7b2cff,#2f6cff);
+color:white;
+margin-left:auto;
+}
+
+.other{
+background:#333;
+color:white;
+}
+
+.time{
+text-align:center;
+color:#aaa;
+font-size:12px;
+margin:12px 0;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="chat-box" id="chat"></div>
+
+<script>
+
+const messages = [
+{type:"message", sender:"other", text:"Real nhé 🤝🤝"},
+{type:"message", sender:"me", text:"Cái nào cũng chỉnh"},
+{type:"message", sender:"other", text:"Tin là real đi 👉💔👈"},
+{type:"time", text:"21:05 T6"},
+{type:"message", sender:"me", text:":))"},
+{type:"message", sender:"me", text:"Hè chắc dc"}
+];
+
+const chat = document.getElementById("chat");
+
+messages.forEach(m => {
+
+if(m.type === "time"){
+
+const div = document.createElement("div");
+div.className = "time";
+div.innerText = m.text;
+chat.appendChild(div);
+
+}else{
+
+const div = document.createElement("div");
+div.className = "message " + m.sender;
+div.innerText = m.text;
+chat.appendChild(div);
+
+}
+
+});
+
+</script>
+
+</body>
+</html>
