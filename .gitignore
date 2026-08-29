@@ -1,0 +1,28 @@
+# Virtual Environment
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+
+# MacOS
+.DS_Store
+
+# Models
+*.pt
+*.pth
+
+# Dataset
+data/
+dataset/
+
+# Environment variables (CHỨA API KEYS - KHÔNG COMMIT!)
+.env
+
+# Frontend React
+py/Web/frontend/node_modules/
+py/Web/frontend/.vite/
+
+# Flask runtime session files
+flask_session/
