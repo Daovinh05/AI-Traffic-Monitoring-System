@@ -1,0 +1,44 @@
+services:
+  - type: web
+    name: ai-traffic-monitoring
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      pip install gunicorn
+      # Download AI models nếu chưa có
+      if [ ! -f py/weights/shape_predictor_68_face_landmarks.dat ]; then
+        wget -O py/weights/shape_predictor_68_face_landmarks.dat.bz2 http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2
+        bunzip2 py/weights/shape_predictor_68_face_landmarks.dat.bz2
+      fi
+    startCommand: gunicorn py.Web.drive_auth:app
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: False
+      - key: SECRET_KEY
+        generateValue: true
+      - key: MYSQL_HOST
+        value: gateway01.ap-southeast-1.prod.aws.tidbcloud.com
+      - key: MYSQL_PORT
+        value: 4000
+      - key: MYSQL_USER
+        value: 3XuyjmdVP1iQdpe.root
+      - key: MYSQL_PASSWORD
+        sync: false
+      - key: MYSQL_DB
+        value: giam_sat
+      - key: SESSION_TIMEOUT
+        value: 24
+      - key: CORS_ORIGINS
+        value: "*"
+    disk:
+      name: app-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1

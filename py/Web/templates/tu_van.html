@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tư Vấn Luật Giao Thông</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Ảnh nền minh họa */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=1920&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15;
+            z-index: -1;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 85vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0056b3, #007bff);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .header .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .header .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .chat-body {
+            flex: 1;
+            padding: 20px;
+            background: #f9f9f9;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .msg-system {
+            background: #e9ecef;
+            color: #333;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 14px;
+            max-width: 85%;
+            align-self: flex-start;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .msg-user {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 14px;
+            max-width: 85%;
+            align-self: flex-end;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .suggestion-chip {
+            background: white;
+            border: 1px solid #007bff;
+            color: #007bff;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .suggestion-chip:hover {
+            background: #007bff;
+            color: white;
+        }
+
+        .chat-footer {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #007bff;
+        }
+
+        .voice-btn {
+            width: 45px;
+            height: 45px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            transition: transform 0.3s, background 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .voice-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .voice-btn.listening {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .send-btn {
+            width: 45px;
+            height: 45px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #28a745, #218838);
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            transition: transform 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .typing-indicator {
+            display: none;
+            background: #e9ecef;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 80px;
+            align-self: flex-start;
+        }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #999;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .info-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 13px;
+        }
+
+        .law-reference {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 13px;
+        }
+
+        .penalty-box {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-btn" onclick="goBack()">
+                <i class="fa-solid fa-arrow-left"></i> Về trang chủ
+            </button>
+            <h1>🚦 Tư Vấn Luật Giao Thông</h1>
+            <p>Hỏi đáp về luật, quy chế phạt và các vấn đề giao thông</p>
+        </div>
+
+        <div class="chat-body" id="chatBody">
+            <div class="msg-system">
+                <div style="display:flex; gap:10px; align-items:flex-start;">
+                    <div style="background:#007bff; color:white; width:35px; height:35px; min-width:35px; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:16px;">⚖️</div>
+                    <div>
+                        <strong>Chào bạn! Tôi là trợ lý tư vấn luật giao thông.</strong><br><br>
+                        Tôi có thể giúp bạn:<br>
+                        ✅ Tra cứu lỗi vi phạm và mức phạt<br>
+                        ✅ Giải đáp các tình huống giao thông<br>
+                        ✅ Hướng dẫn thủ tục hành chính<br>
+                        ✅ Cập nhật luật mới nhất 2026<br><br>
+                        <div class="suggestions">
+                            <span class="suggestion-chip" onclick="sendQuickMsg('Phạt quá tốc độ bao nhiêu tiền?')">🚗 Phạt quá tốc độ</span>
+                            <span class="suggestion-chip" onclick="sendQuickMsg('Phạt nồng độ cồn 2026?')">🍺 Phạt nồng độ cồn</span>
+                            <span class="suggestion-chip" onclick="sendQuickMsg('Phạt không đội mũ bảo hiểm?')">⛑️ Phạt không mũ bảo hiểm</span>
+                            <span class="suggestion-chip" onclick="sendQuickMsg('Phạt vượt đèn đỏ?')">🚦 Phạt vượt đèn đỏ</span>
+                            <span class="suggestion-chip" onclick="sendQuickMsg('Phạt không có giấy phép lái xe?')">📄 Phạt không bằng lái</span>
+                            <span class="suggestion-chip" onclick="sendQuickMsg('Thủ tục đăng ký xe máy?')">📝 Đăng ký xe</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <span></span><span></span><span></span>
+        </div>
+
+        <div class="chat-footer">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Nhập câu hỏi về luật giao thông..." onkeypress="handleEnter(event)">
+            <button class="voice-btn" id="voiceBtn" onclick="toggleVoiceRecognition()" title="Nói câu hỏi">
+                <i class="fa-solid fa-microphone"></i>
+            </button>
+            <button class="send-btn" onclick="sendUserMsg()" title="Gửi">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let isVoiceListening = false;
+        let recognition = null;
+        let currentVehicleId = null;
+
+        // Kiểm tra hỗ trợ Web Speech API
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'vi-VN';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = function() {
+                isVoiceListening = true;
+                document.getElementById('voiceBtn').classList.add('listening');
+            };
+
+            recognition.onend = function() {
+                isVoiceListening = false;
+                document.getElementById('voiceBtn').classList.remove('listening');
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript.toLowerCase().trim();
+                console.log('Giọng nói nhận diện:', transcript);
+                sendUserMsg(transcript);
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Lỗi nhận diện giọng nói:', event.error);
+                isVoiceListening = false;
+                document.getElementById('voiceBtn').classList.remove('listening');
+                if (event.error === 'not-allowed') {
+                    alert('Bạn cần cấp quyền microphone để sử dụng chức năng giọng nói!');
+                }
+            };
+        } else {
+            console.warn('Trình duyệt không hỗ trợ nhận diện giọng nói');
+            document.getElementById('voiceBtn').style.display = 'none';
+        }
+
+        function goBack() {
+            window.location.href = '/';
+        }
+
+        function handleEnter(e) {
+            if (e.key === 'Enter') sendUserMsg();
+        }
+
+        function sendQuickMsg(text) {
+            sendUserMsg(text);
+        }
+
+        function sendUserMsg(customText = null) {
+            const input = document.getElementById('chatInput');
+            const text = customText || input.value.trim();
+            if (!text) return;
+
+            const chatBody = document.getElementById('chatBody');
+
+            // Hiện tin nhắn người dùng
+            const userDiv = document.createElement('div');
+            userDiv.className = 'msg-user';
+            userDiv.innerText = text;
+            chatBody.appendChild(userDiv);
+
+            if (!customText) {
+                input.value = '';
+            }
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            // Hiện indicator đang gõ
+            document.getElementById('typingIndicator').style.display = 'block';
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            // Gọi API Groq để AI xử lý
+            fetch('/api/groq_law_chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: text
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('typingIndicator').style.display = 'none';
+                if (data.status === 'success') {
+                    setTimeout(() => {
+                        addSystemMsg(data.response);
+                    }, 300);
+                } else {
+                    addSystemMsg("Xin lỗi, tôi gặp sự cố. Vui lòng thử lại.");
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi gửi tin:', error);
+                document.getElementById('typingIndicator').style.display = 'none';
+                setTimeout(() => {
+                    addSystemMsg("Xin lỗi, hệ thống đang bận. Vui lòng thử lại sau.");
+                }, 500);
+            });
+        }
+
+        function addSystemMsg(text) {
+            const chatBody = document.getElementById('chatBody');
+            const sysDiv = document.createElement('div');
+            sysDiv.className = 'msg-system';
+            sysDiv.innerHTML = `
+                <div style="display:flex; gap:10px; align-items:flex-start;">
+                    <div style="background:#007bff; color:white; width:35px; height:35px; min-width:35px; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:16px;">⚖️</div>
+                    <div style="flex:1;">${formatLawResponse(text)}</div>
+                </div>`;
+            chatBody.appendChild(sysDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        function formatLawResponse(text) {
+            // Format các box đặc biệt từ Groq response
+            let formatted = text;
+            
+            // Đậm **text**
+            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // Xuống dòng
+            formatted = formatted.replace(/\n/g, '<br>');
+            
+            // Emoji bullet points
+            formatted = formatted.replace(/• /g, '&bull; ');
+            
+            // Các icon emoji
+            formatted = formatted.replace(/🚗/g, '<span style="font-size:16px">🚗</span>');
+            formatted = formatted.replace(/🏍️/g, '<span style="font-size:16px">🏍️</span>');
+            formatted = formatted.replace(/⚠️/g, '<span style="font-size:16px">⚠️</span>');
+            formatted = formatted.replace(/✅/g, '<span style="font-size:16px">✅</span>');
+            
+            return formatted;
+        }
+
+        function toggleVoiceRecognition() {
+            if (!recognition) {
+                alert('Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Vui lòng sử dụng Google Chrome.');
+                return;
+            }
+            if (isVoiceListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        }
+    </script>
+</body>
+</html>
