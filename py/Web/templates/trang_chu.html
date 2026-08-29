@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Màn hình ô tô</title>
+    <link rel="icon" type="image/png" href="./assets/img/fabicon.jpg">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/themify-icons/1.0.1/css/themify-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet">
+    <script src="assets/node.js"></script>
+    <script>
+        // Kiểm tra hỗ trợ Speech Recognition API
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        let recognition = null;
+        let isListening = false;
+        let startBtn = null;
+        let stopBtn = null;
+        let voiceOutput = null;
+
+        if (SpeechRecognition) {
+            // Khởi tạo nhận diện giọng nói
+            recognition = new SpeechRecognition();
+            recognition.lang = 'vi-VN';
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            // Map các từ khóa với các ứng dụng
+            const appCommands = {
+                'điện thoại': '.dien-thoai a',
+                'tin nhắn': '.tin-nhan a',
+                'google maps': '.google-maps a',
+                'nhạc': '.nhac a',
+                'spotify': '.spotify a',
+                'youtube': '.youtube a',
+                'âm thanh': '.am-thanh a',
+                'dùng tay': '.hands a',
+                'lái xe': '.lai_xe a',
+                'tư vấn': '.tu_van a'
+            };
+
+            // Cờ ngăn chặn mở nhiều tab
+            let isProcessingCommand = false;
+
+            // Hàm đọc văn bản
+            function speak(text) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'vi-VN';
+                window.speechSynthesis.speak(utterance);
+            }
+
+            // Xử lý kết quả nhận diện
+            recognition.onresult = function (event) {
+                const result = event.results[event.results.length - 1];
+                const transcript = result[0].transcript.toLowerCase().trim();
+                console.log('Nhận diện được:', transcript);
+
+                // Nếu đang xử lý lệnh thì bỏ qua
+                if (isProcessingCommand) {
+                    return;
+                }
+
+                if (voiceOutput) {
+                    voiceOutput.textContent = `🗣 Lệnh: ${transcript}`;
+                }
+
+                // Kiểm tra lệnh về trang chủ
+                if (transcript.includes("trang chủ") || transcript.includes("về trang chủ")) {
+                    speak("Đang chuyển về trang chủ");
+                    setTimeout(() => {
+                        window.location.href = "/";
+                    }, 1000);
+                    return;
+                }
+
+                // Kiểm tra và thực hiện lệnh
+                for (const [command, selector] of Object.entries(appCommands)) {
+                    if (transcript.includes(command)) {
+                        console.log('Tìm thấy lệnh:', command);
+                        const element = document.querySelector(selector);
+                        if (element && element.href) {
+                            console.log('Đang mở:', command);
+                            speak(`Đang mở ${command}`);
+
+                            // Đặt cờ để chặn mở nhiều tab
+                            isProcessingCommand = true;
+
+                            // Mở tab mới cho các app ngoài, trừ 'dùng tay' và 'lái xe'
+                            if (command === 'dùng tay' || command === 'lái xe') {
+                                window.location.href = element.href;
+                            } else {
+                                window.open(element.href, '_blank', 'noopener,noreferrer');
+                            }
+
+                            // Reset cờ sau 2 giây
+                            setTimeout(() => {
+                                isProcessingCommand = false;
+                            }, 2000);
+                            break;
+                        }
+                    }
+                }
+                
+                // Xử lý lệnh mở tư vấn luật (nếu không tìm thấy trong appCommands)
+                if (transcript.includes('mở tư vấn') || transcript.includes('tư vấn luật')) {
+                    const tuVanElement = document.querySelector('.tu_van a');
+                    if (tuVanElement && tuVanElement.href) {
+                        console.log('Đang mở tư vấn luật');
+                        speak('Đang mở tra cứu luật giao thông');
+                        isProcessingCommand = true;
+                        window.open(tuVanElement.href, '_blank', 'noopener,noreferrer');
+                        setTimeout(() => {
+                            isProcessingCommand = false;
+                        }, 2000);
+                    }
+                }
+            };
+
+            // Xử lý lỗi
+            recognition.onerror = function (event) {
+                console.error('Lỗi nhận diện giọng nói:', event.error);
+                
+                if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+                    if (voiceOutput) {
+                        voiceOutput.textContent = "❌ Micro bị chặn! Vui lòng cấp quyền microphone.";
+                    }
+                    isListening = false;
+                    if (startBtn) {
+                        startBtn.style.display = 'inline-block';
+                        startBtn.disabled = false;
+                    }
+                    if (stopBtn) {
+                        stopBtn.style.display = 'none';
+                    }
+                } else if (isListening) {
+                    // Tự động restart nếu vẫn đang lắng nghe
+                    setTimeout(() => {
+                        recognition.start();
+                    }, 100);
+                }
+            };
+
+            // Khởi động lại nhận diện khi kết thúc
+            recognition.onend = function () {
+                console.log('Khởi động lại nhận diện giọng nói');
+                // Chỉ tiếp tục nếu chưa bị người dùng tắt
+                if (isListening) {
+                    setTimeout(() => {
+                        recognition.start();
+                    }, 100);
+                } else {
+                    if (voiceOutput) {
+                        voiceOutput.textContent = "🔇 Đã dừng lắng nghe.";
+                    }
+                    if (startBtn) {
+                        startBtn.style.display = 'inline-block';
+                    }
+                    if (stopBtn) {
+                        stopBtn.style.display = 'none';
+                    }
+                }
+            };
+
+            // Khi trang web tải xong, chuẩn bị nút điều khiển
+            window.addEventListener('DOMContentLoaded', function () {
+                // Tạo nút điều khiển giọng nói
+                const buttonContainer = document.createElement('div');
+                buttonContainer.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; gap: 10px; align-items: center;';
+                
+                startBtn = document.createElement('button');
+                startBtn.id = 'start-voice';
+                startBtn.innerHTML = '<i class="fa-solid fa-microphone"></i> Bật giọng nói';
+                startBtn.style.cssText = 'padding: 10px 20px; font-size: 16px; background-color: #1e88e5; color: white; border: none; border-radius: 8px; cursor: pointer;';
+                
+                stopBtn = document.createElement('button');
+                stopBtn.id = 'stop-voice';
+                stopBtn.innerHTML = '🔇 Tắt giọng nói';
+                stopBtn.style.cssText = 'padding: 10px 20px; font-size: 16px; background-color: #e53935; color: white; border: none; border-radius: 8px; cursor: pointer; display: none;';
+                
+                voiceOutput = document.createElement('p');
+                voiceOutput.id = 'voice-output';
+                voiceOutput.style.cssText = 'margin: 0; color: white; font-size: 14px; text-shadow: 1px 1px 2px black;';
+                
+                buttonContainer.appendChild(startBtn);
+                buttonContainer.appendChild(stopBtn);
+                buttonContainer.appendChild(voiceOutput);
+                document.body.appendChild(buttonContainer);
+
+                // Thêm event listeners cho nút
+                startBtn.addEventListener('click', function () {
+                    if (!isListening) {
+                        try {
+                            recognition.start();
+                        } catch (error) {
+                            console.error('Không thể bắt đầu nhận diện giọng nói:', error);
+                            voiceOutput.textContent = '❌ Lỗi: ' + error.message;
+                        }
+                    }
+                });
+
+                stopBtn.addEventListener('click', function () {
+                    isListening = false;
+                    recognition.stop();
+                });
+
+                // Tự động bật mic khi trang web tải xong
+                setTimeout(function () {
+                    if (!isListening) {
+                        try {
+                            recognition.start();
+                            console.log('Đã tự động bật microphone');
+                        } catch (error) {
+                            console.error('Không thể tự động bật microphone (cần tương tác người dùng):', error);
+                            voiceOutput.textContent = '🎤 Click "Bật giọng nói" để kích hoạt';
+                        }
+                    }
+                }, 500);
+            });
+        } else {
+            console.error('Trình duyệt không hỗ trợ Web Speech API');
+            window.addEventListener('DOMContentLoaded', function () {
+                const errorMsg = document.createElement('div');
+                errorMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 10px 20px; background-color: #e53935; color: white; border-radius: 8px;';
+                errorMsg.textContent = '❌ Trình duyệt không hỗ trợ nhận diện giọng nói';
+                document.body.appendChild(errorMsg);
+            });
+        }
+    </script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+
+        .app {
+            width: 100%;
+            height: 100vh;
+            background-image: url('https://luatsunguyenhuuphuoc.com/wp-content/uploads/2023/10/thanit2022mar_90-scaled.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+        }
+
+        .app::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            position: relative;
+            z-index: 2;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .app-item {
+            background-color: #444;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            height: 200px;
+            width: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .app-item:active {
+            transform: scale(0.95);
+        }
+
+        .app-item::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .app-item:hover::after {
+            opacity: 1;
+        }
+
+        .app-item a {
+            text-decoration: none;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        .app-item img {
+            width: 300px;
+            height: 200px;
+            border-radius: 10px;
+            border: 3px solid rgb(90, 56, 56);
+            transition: all 0.3s ease;
+        }
+
+        .app-item:hover img {
+            border-color: rgb(255, 255, 255);
+            filter: brightness(1.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="container">
+            <div class="app-grid">
+                <div class="app-item dien-thoai">
+                    <a href="https://play.google.com/store/apps/details?id=co.kitetech.dialer&hl=vi">
+                        <img src="/static/anh_phone.jpg" alt="Điện thoại">
+                    </a>
+                </div>
+                <div class="app-item tin-nhan">
+                    <a href="https://www.facebook.com/messages/e2ee/t/9808668312549225">
+                        <img src="/static/anh_mesage.webp" alt="Tin nhắn">
+                    </a>
+                </div>
+                <div class="app-item google-maps">
+                    <a href="https://www.google.com/maps/?hl=vi">
+                        <img src="/static/anh_ggmap.jpg" alt="Google Maps">
+                    </a>
+                </div>
+                <div class="app-item nhac">
+                    <a href="https://www.youtube.com/watch?v=BmOwHvMSMh0">
+                        <img src="/static/anh_nhac.jpg" alt="Nhạc">
+                    </a>
+                </div>
+                <div class="app-item spotify">
+                    <a href="https://open.spotify.com/">
+                        <img src="/static/anh_soptify.png" alt="Spotify">
+                    </a>
+                </div>
+                <div class="app-item youtube">
+                    <a href="https://www.youtube.com/" target="_blank">
+                        <img src="/static/anh_youtbe.webp" alt="youtube">
+                    </a>
+                </div>
+                <div class="app-item hands">
+                    <a href="/hands">
+                        <img src="/static/anh_cu_chi.png" alt="Dùng tay">
+                    </a>
+                </div>
+                <div class="app-item lai_xe">
+                    <a href="lai_xe_v2">
+                        <img src="/static/anh_lai_xe.jpg" alt="Lái xe an toàn">
+                    </a>
+                </div>
+                <div class="app-item tu_van">
+                    <a href="tu_van.html" target="_blank" rel="noopener noreferrer">
+                        <img src="/static/attgt.jpg" alt="Tư vấn luật">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+
+</html>
