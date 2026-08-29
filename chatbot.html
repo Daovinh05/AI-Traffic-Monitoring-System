@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hệ Thống Giám Sát & Hỗ Trợ</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+<style>
+body { margin:0; font-family:'Segoe UI',sans-serif; display:flex; height:100vh; overflow:hidden; background:#f4f4f4;}
+#sidebar { width:350px; background:white; display:flex; flex-direction:column; box-shadow:2px 0 10px rgba(0,0,0,0.1);}
+.header { background:#2c3e50; color:white; padding:15px; text-align:center;}
+.vehicle-list { flex:1; overflow-y:auto; padding:10px;}
+#map { flex:1; }
+
+#chatWidget{
+display:none;
+position:fixed; bottom:20px; right:20px;
+width:350px; height:450px;
+background:white; border-radius:10px;
+box-shadow:0 5px 25px rgba(0,0,0,0.2);
+z-index:10000; flex-direction:column;
+overflow:hidden; border:1px solid #ddd;
+}
+
+.chat-header{
+background:#0056b3; color:white; padding:15px;
+display:flex; justify-content:space-between; align-items:center;
+}
+
+.chat-body{
+flex:1; padding:15px; background:#f9f9f9;
+overflow-y:auto; display:flex; flex-direction:column; gap:10px;
+}
+
+.msg-system{
+background:#e9ecef; padding:10px;
+border-radius:10px; font-size:13px; max-width:85%;
+}
+
+.msg-user{
+background:#007bff; color:white;
+padding:10px; border-radius:10px;
+font-size:13px; max-width:85%;
+align-self:flex-end;
+}
+
+.start-btn{
+background:#0056b3; color:white; border:none;
+padding:8px 15px; border-radius:5px;
+cursor:pointer; margin-top:10px; width:100%;
+}
+
+.chat-footer{
+padding:10px; border-top:1px solid #eee;
+display:flex;
+}
+
+.chat-input{
+flex:1; border:1px solid #ddd;
+padding:10px; border-radius:5px;
+}
+
+.chat-send-btn{
+background:#0056b3; color:white;
+border:none; width:40px;
+border-radius:5px; margin-left:10px;
+cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div id="sidebar">
+<div class="header">
+<h3>Quản Lí Xe Lữ Hành Nội Địa</h3>
+<small>Cập nhật lúc: <span id="clock">--:--:--</span></small>
+</div>
+<div class="vehicle-list"></div>
+</div>
+
+<div id="map"></div>
+
+<!-- CHAT -->
+<div id="chatWidget">
+<div class="chat-header">
+<div>Vietravel Supporter</div>
+<div style="cursor:pointer" onclick="toggleChat(false)">&times;</div>
+</div>
+
+<div class="chat-body" id="chatBody">
+<div class="msg-system">
+Xin chào quý khách! Vietravel Supporter có thể giúp gì cho quý khách?
+<button class="start-btn" onclick="addSystemMsg('Mời bạn nhập yêu cầu hỗ trợ.')">
+Bắt đầu trò chuyện
+</button>
+</div>
+</div>
+
+<div class="chat-footer">
+<input type="text" class="chat-input" id="chatInput"
+placeholder="Nhập tin nhắn..."
+onkeypress="handleEnter(event)">
+<button class="chat-send-btn" onclick="sendUserMsg()">
+<i class="fa-solid fa-paper-plane"></i>
+</button>
+</div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// Clock
+setInterval(()=>{
+document.getElementById("clock").innerText =
+new Date().toLocaleTimeString();
+},1000);
+
+// Map
+var map = L.map('map').setView([21.0285,105.8542],12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+attribution:'© OpenStreetMap'
+}).addTo(map);
+
+L.marker([21.0285,105.8542]).addTo(map)
+.bindPopup("Xe đang hoạt động tại Hà Nội");
+
+// Chat functions
+function toggleChat(show){
+document.getElementById("chatWidget").style.display =
+show ? "flex" : "none";
+}
+
+function addSystemMsg(text){
+let div=document.createElement("div");
+div.className="msg-system";
+div.innerText=text;
+document.getElementById("chatBody").appendChild(div);
+scrollChat();
+}
+
+function sendUserMsg(){
+let input=document.getElementById("chatInput");
+let text=input.value.trim();
+if(text==="") return;
+
+let div=document.createElement("div");
+div.className="msg-user";
+div.innerText=text;
+document.getElementById("chatBody").appendChild(div);
+
+input.value="";
+scrollChat();
+
+setTimeout(()=>{
+addSystemMsg("Cảm ơn bạn, chúng tôi sẽ phản hồi sớm nhất.");
+},800);
+}
+
+function handleEnter(e){
+if(e.key==="Enter") sendUserMsg();
+}
+
+function scrollChat(){
+let chat=document.getElementById("chatBody");
+chat.scrollTop=chat.scrollHeight;
+}
+
+// Mở chat sau 2 giây
+setTimeout(()=>toggleChat(true),2000);
+</script>
+
+</body>
+</html>
