@@ -1,0 +1,41 @@
+# flask==2.0.1
+# opencv-python==4.5.3.56
+# dlib==19.22.0
+# numpy==1.21.2
+# pygame==2.1.0
+# ultralytics==8.0.0
+# shapely==1.8.0
+# mediapipe==0.8.9.1
+# flask-cors==3.0.10
+# flask-limiter==2.4.0
+# python-dotenv==0.19.0
+# pyttsx3==2.90
+# speech_recognition==3.10.0 
+
+
+flask==2.2.5
+flask-cors==3.0.10
+flask-limiter==2.9.0
+python-dotenv==1.0.0
+dlib==19.24.2
+# Core AI
+ultralytics==8.0.196
+numpy==1.26.4
+
+# OpenCV (chỉ dùng headless trong Docker)
+opencv-python-headless==4.8.1.78
+
+# Geometry
+shapely==2.0.2
+
+# Media / ML
+mediapipe==0.10.9
+
+# Audio (nếu thật sự cần)
+pygame==2.5.2
+pyttsx3==2.90
+SpeechRecognition==3.10.0
+
+# PyTorch (version < 2.6 để tránh weights_only=True mặc định)
+torch==2.5.1
+torchvision==0.20.1

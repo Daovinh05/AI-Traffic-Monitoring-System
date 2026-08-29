@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dùng tay điều khiển </title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            margin-left: 120px;
+        }
+
+        .frame {
+            background-color: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 5px;
+        }
+
+        .frame-title {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .frame-content {
+            width: 640px;
+            height: 480px;
+            position: relative;
+        }
+
+        .interactive-view {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .anh_img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+        }
+
+        .interactive-view {
+            display: flex;
+            position: relative;
+        }
+
+        .backend-view {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 160px;
+            height: 120px;
+            z-index: 2;
+            border: 2px solid #333;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .backend-view img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .chen {
+            position: absolute;
+            display: none;
+            background-color: #a38d8d;
+            width: 100%;
+            height: 100%;
+            z-index: 1100;
+        }
+
+        .chen-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .chen-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .close {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .chen-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .chen-text {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #666;
+        }
+
+        /* Thêm style cho các nút điều khiển */
+        .control-buttons {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .control-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .home-button {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .home-button:hover {
+            background-color: #06ce10;
+            transition: all 0.3s ease;
+            transform: scale(1.15);
+        }
+
+        /* Footer styles */
+        footer {
+            background-color: #f8f8f8;
+            border-top: 1px solid #ddd;
+        }
+
+        .footer_app {
+            max-width: 1400px;
+            margin: 0 auto;
+            margin-left: 120px;
+            display: flex;
+            gap: 40px;
+        }
+
+        .cu_chi,
+        .giong_noi {
+            display: flex;
+            flex: 1;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .cu_chi h3,
+        .giong_noi h3 {
+
+            margin-top: 0;
+            color: #e93737;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        /* New styles for hand sections */
+        .tay_phai,
+        .tay_trai {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .cu_chi ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .cu_chi li {
+            margin-bottom: 5px;
+        }
+
+        .warning-container {
+            padding: 20px;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            height: 100%;
+        }
+
+        .warning {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .warning.active {
+            display: block;
+            background-color: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #c62828;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Thêm các nút điều khiển -->
+    <div class="control-buttons">
+        <button class="control-button home-button" onclick="goHome()">Trang Chủ</button>
+    </div>
+
+    <div class="container">
+        <div class="frame">
+            <div class="frame-title">Camera người dùng</div>
+            <div class="frame-content">
+                <img src="{{ url_for('camera_feed') }}" width="640" height="480">
+            </div>
+        </div>
+
+        <div class="frame">
+            <div class="frame-title">Interactive View</div>
+            <div class="frame-content">
+                <div class="interactive-view">
+
+
+                    <div id="chen1" class="chen">
+                        <div class="chen-content">
+                            <span class="close">&times;</span>
+                            <h2 class="chen-title">Điện thoại</h2>
+                            <p class="chen-text">Nghe gọi điện thoại rảnh tay khi lái xe không lo vi phạm.</p>
+
+                            <div class="anh">
+                                <img src="https://scontent.fhan7-1.fna.fbcdn.net/v/t1.15752-9/494863624_2258171961243768_1712917661973861768_n.png?_nc_cat=109&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeEsn7df8UBXVXVxhP4n4pkws9y93ieH4a2z3L3eJ4fhrcG088kYw0YLLTYKtj3CvkEoBDf3qTjMClvnC3LHN7lR&_nc_ohc=OeTa_153PwwQ7kNvwGe2vG7&_nc_oc=AdkJZ4R4sdikUOAqvoSoy2K29-4kcMnZGTcIr6xgN9pyxQb9qVrj-PlxLJaBv_YIu5Y&_nc_zt=23&_nc_ht=scontent.fhan7-1.fna&oh=03_Q7cD2QEzch1VbbWsKyJtJbnpc6QvhSJh-hq69Y_jiDexUjc2vA&oe=68626696"
+                                    alt="" class="anh_dienthoaI">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- chen cho Button 2 -->
+                    <div id="chen2" class="chen">
+                        <div class="chen-content">
+                            <span class="close">&times;</span>
+                            <h2 class="chen-title">Google Map</h2>
+                            <p class="chen-text">Đây là nội dung của chen 2. Bạn có thể thêm bất kỳ nội dung nào vào
+                                đây.</p>
+                            <div class="anh">
+                                <iframe
+                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d10145.722427221333!2d105.79770704728345!3d20.98546951307521!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135acc6bdc7f95f%3A0x58ffc66343a45247!2zVHLGsOG7nW5nIMSQ4bqhaSBo4buNYyBDw7RuZyBuZ2jhu4cgR2lhbyB0aMO0bmcgVuG6rW4gdOG6o2k!5e1!3m2!1svi!2s!4v1747758021598!5m2!1svi!2s"
+                                    width="640" height="480" style="border:0;" allowfullscreen="" loading="lazy"
+                                    referrerpolicy="no-referrer-when-downgrade">
+                                </iframe>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- chen cho Button 3 -->
+                    <div id="chen3" class="chen">
+                        <div class="chen-content">
+                            <span class="close">&times;</span>
+                            <h2 class="chen-title">Youtube </h2>
+                            <p class="chen-text">Nonstop TikTok 2025 🎼 Tham Phú Phụ Bần x Sợ Phải Kết Thúc Remix - Nhạc
+                                Remix TikTok
+                                Triệu View 2025</p>
+                            <div class="anh">
+                                <img src="https://scontent.fhan7-1.fna.fbcdn.net/v/t1.15752-9/494819294_1665052557447548_6880313070781631853_n.png?_nc_cat=102&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeHU8h-QcqLCVvqx5EYdCmX6wwSsttHWjPvDBKy20daM-87crN-dRhEK43_GySZCQhbSMeTdfjGAJQqzkdE8Nwv0&_nc_ohc=sSc76Z7lLJ0Q7kNvwGhMQyl&_nc_oc=Adk8__FGWtXU33dg-lSZQMZ7xkfi_ISjhXOS2DI2JIUcvPEoLkvIELUOhFqWR2hEviA&_nc_zt=23&_nc_ht=scontent.fhan7-1.fna&oh=03_Q7cD2QE7rZ5QEI_2hWQ66bmzONaQ_GMy8dhqwNNM3gDXQaG1bw&oe=6862410D"
+                                    width="800" height="600" alt="Anh youtube">
+                            </div>
+                        </div>
+                    </div>
+
+                    <img src="https://scontent.fhan7-1.fna.fbcdn.net/v/t1.15752-9/494824784_1064330805583960_4522238375975215162_n.png?_nc_cat=104&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeE2EOrH6f4F0_HAosGaO-WCvY-rjKKTSv69j6uMopNK_ouN9QseIPr5iI2Q_7DxeEABuTtS1Myi8ce8x8Ylg5wE&_nc_ohc=hgUbJ9erCtMQ7kNvwGi3Gko&_nc_oc=AdkTqAt30vx_CLh754csdWWQNDyRQBXhx3IbgnseWdZM972coHM1XqXgKlQXygstt_k&_nc_zt=23&_nc_ht=scontent.fhan7-1.fna&oh=03_Q7cD2QFdU4wu9nUJqDDPcx2ukvp70Y5h93RSo3g-pmrdbFm_TA&oe=686255E2"
+                        width="120" height="60" alt="" class="anh_img">
+                    <div class="backend-view">
+                        <img src="{{ url_for('interactive_feed') }}" width="160" height="120">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <div class="footer_app">
+            <div class="cu_chi">
+                <h3>Cử chỉ</h3>
+                <div class="tay_phai">Tay phải</div>
+                <ul>
+                    <li>Ngón cái: quay lại</li>
+                    <li>Ngón út: tiếp theo</li>
+                    <li>Ngón trỏ, giữa, nhẫn: theo trình tự set ứng dụng</li>
+                    <li>Ngón trỏ + ngón giữa: chọn ứng dụng</li>
+                </ul>
+                <div class="tay_trai">Tay trái</div>
+                <ul>
+                    <li>Ngón trỏ xoay quanh tâm đốt thứ 2: điều chỉnh âm thanh</li>
+                    <li>Ngón giữa xoay quanh tâm đốt thứ 2: điều chỉnh ánh sáng</li>
+                </ul>
+            </div>
+            <div class="giong_noi">
+                <h3>Giọng nói</h3>
+                <ul>
+                    <li>tăng / giảm âm thanh: âm thanh tăng / giảm 10%</li>
+                    <li>tăng / giảm độ sáng: độ sáng tăng / giảm 10%</li>
+                    <li>độ sáng / âm thanh + mức (số cụ thể)</li>
+                    <li> Ví dụ: âm thanh mức 80% -> âm thanh loa ô tô độ to 80/100%</li>
+                </ul>
+
+            </div>
+        </div>
+    </footer>
+
+    <!-- chen cho Button 1 -->
+
+
+    <script>
+        // Thêm biến để lưu trữ đối tượng nhận diện giọng nói
+        let recognition;
+
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'vi-VN';
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Khởi tạo nhận diện giọng nói
+        function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'vi-VN'; // Sử dụng tiếng Việt
+
+                recognition.onresult = function (event) {
+                    const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
+                    console.log('Nhận diện:', transcript);
+
+                    // Kiểm tra các lệnh thoại
+                    if (transcript.includes('trang chủ') || transcript.includes('về trang chủ')) {
+                        speak("Đang chuyển về trang chủ");
+                        setTimeout(() => {
+                            window.location.href = "/";
+                        }, 1000);
+                        goHome();
+                    }
+                };
+
+                recognition.onerror = function (event) {
+                    console.error('Lỗi nhận diện giọng nói:', event.error);
+                };
+
+                // Bắt đầu nhận diện
+                recognition.start();
+            } else {
+                console.error('Trình duyệt không hỗ trợ nhận diện giọng nói');
+            }
+        }
+
+        // Khởi tạo nhận diện giọng nói khi trang được tải
+        window.onload = function () {
+            initSpeechRecognition();
+        };
+
+
+
+        // Cập nhật kiểm tra click button
+        function updatePage() {
+            fetch('/get_current_page')
+                .then(response => response.json())
+                .then(data => {
+                    // Ẩn tất cả chen trước
+                    document.querySelectorAll('.chen').forEach(chen => {
+                        chen.style.display = 'none';
+                    });
+
+                    // Hiển thị chen tương ứng nếu có button được click
+                    if (data.clicked_button) {
+                        const chen = document.getElementById('chen' + data.clicked_button.slice(-1));
+                        if (chen) {
+                            chen.style.display = 'block';
+                            console.log('Showing chen:', data.clicked_button); // Debug log
+                        }
+                    }
+                });
+        }
+
+        // Cập nhật mỗi 100ms
+        setInterval(updatePage, 100);
+
+        // Xử lý chen
+        document.querySelectorAll('.close').forEach(closeBtn => {
+            closeBtn.onclick = function () {
+                // Ẩn chen
+                this.parentElement.parentElement.style.display = 'none';
+                // Thêm logic để reset clicked_button khi đóng chen
+                resetClickedButton();
+            }
+        });
+
+        window.onclick = function (event) {
+            if (event.target.classList.contains('chen')) {
+                event.target.style.display = 'none';
+                // Thêm logic để reset clicked_button khi đóng chen bằng cách click ra ngoài
+                resetClickedButton();
+            }
+        }
+
+        // Hàm mới để gửi yêu cầu reset clicked_button về server
+        function resetClickedButton() {
+            fetch('/reset_clicked_button', {
+                method: 'POST'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Clicked button reset on server:', data.status);
+                })
+                .catch(error => {
+                    console.error('Error resetting clicked button:', error);
+                });
+        }
+
+        // Thêm các hàm xử lý cho nút điều khiển
+        function goHome() {
+            window.location.href = '/';
+        }
+
+
+        // Cập nhật cảnh báo mỗi giây
+        setInterval(updateWarnings, 1000);
+    </script>
+</body>
+
+</html>

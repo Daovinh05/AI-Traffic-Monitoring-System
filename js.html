@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script>
+function process(x, callback) {
+    console.log("Giá trị: " + x);
+    callback();
+}
+
+function done() {
+    console.log("Xử lý xong!");
+}
+
+process(5, done);
+</script>
+</body>
+</html>

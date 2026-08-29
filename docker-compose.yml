@@ -1,0 +1,34 @@
+services:
+  ai-traffic-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    image: ai-traffic-monitor:latest
+    container_name: ai-traffic-monitor
+    ports:
+      - "5001:5000"
+    environment:
+      - FLASK_APP=py/Web/all_tong.py
+      - FLASK_DEBUG=1
+      - PYTHONUNBUFFERED=1
+      - SDL_AUDIODRIVER=dummy
+      - TORCH_LOAD_WEIGHTS_ONLY=false
+    volumes:
+      # Mount weights directory for YOLO models
+      - ./py/weights:/app/py/weights
+      # Mount recordings directory for video output
+      - ./recordings:/app/recordings
+      # Mount Sound directory for audio files
+      - ./py/Sound:/app/py/Sound
+      # Mount video_input directory for test videos
+      - ./py/video_input:/app/py/video_input
+      # Mount the main application code for hot reload
+      - ./py/Web:/app/py/Web
+    # Auto-restart container unless explicitly stopped
+    restart: unless-stopped
+    # Graceful shutdown timeout
+    stop_grace_period: 30s
+    # Increase shared memory for OpenCV
+    shm_size: '2gb'
