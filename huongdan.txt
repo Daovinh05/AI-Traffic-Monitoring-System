@@ -1,0 +1,87 @@
+vậy khi ng khác kéo code về thì họ có chạy dc k ?
+
+Câu trả lời là: Có, vẫn chạy được — nếu bạn làm đúng chuẩn project Python.
+
+Việc không push venv/ là hoàn toàn đúng và là cách làm chuyên nghiệp.
+
+🎯 Khi người khác clone repo về, họ làm như sau:
+1️⃣ Clone project
+git clone https://github.com/yourname/AI-Traffic-Monitoring-System.git
+cd AI-Traffic-Monitoring-System
+2️⃣ Tạo môi trường ảo mới
+python -m venv venv
+
+Hoặc
+
+python3 -m venv venv
+3️⃣ Kích hoạt môi trường
+
+Mac/Linux:
+
+source venv/bin/activate
+
+Windows:
+
+venv\Scripts\activate
+4️⃣ Cài thư viện từ requirements.txt
+
+👉 Đây là phần QUAN TRỌNG.
+
+Nếu bạn có file:
+
+pip freeze > requirements.txt
+
+thì người khác chỉ cần:
+
+pip install -r requirements.txt
+
+Là toàn bộ:
+
+torch
+
+mediapipe
+
+opencv
+
+ultralytics
+
+v.v.
+
+sẽ được cài lại tự động.
+
+💡 Vì sao không cần push venv?
+
+Vì:
+
+venv chỉ là môi trường tạm
+
+Thư viện có thể cài lại từ PyPI
+
+Push venv chỉ làm repo nặng 400MB+
+
+GitHub chặn file >100MB
+
+📌 Khi nào họ sẽ không chạy được?
+
+Chỉ khi:
+
+❌ Bạn quên tạo requirements.txt
+❌ Bạn dùng model .pt mà không upload
+❌ Bạn dùng dataset local mà không ghi hướng dẫn
+
+🚀 Cách làm repo AI chuẩn nhất
+
+Trong repo chỉ nên có:
+
+src/
+models/ (nếu model nhỏ)
+requirements.txt
+README.md
+.gitignore
+🎯 Kết luận cho bạn
+
+Người khác vẫn chạy được bình thường
+Miễn là bạn:
+
+✔ Có requirements.txt
+✔ Có hướng dẫn trong README
