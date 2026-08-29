@@ -1,0 +1,15 @@
+\section{Thảo luận}
+
+Do trọng tâm của bài báo, chúng tôi tập trung thảo luận về camera như cảm biến chính để giám sát hành vi người lái. Giám sát người lái giải quyết việc phát hiện sớm các trường hợp mất tập trung hoặc có nguy cơ mất tập trung khỏi nhiệm vụ lái xe. Hai nguyên nhân chính là mệt mỏi (yếu tố không tự nguyện) và phân tâm (thường do cố ý). Cả hai đều yêu cầu khả năng thu thập và định vị đầu, khuôn mặt và mắt của người lái trong điều kiện khó khăn như chuyển động xe và ánh sáng thay đổi liên tục, dẫn đến bóng đổ hoặc phơi sáng quá mức \cite{voulodimos2018, lecun2015}.
+
+Kết quả thực nghiệm cho thấy hệ thống đáp ứng tốt các mục tiêu về chức năng và hiệu năng. Hệ thống đạt tốc độ xử lý 20--30 FPS trên GPU, đáp ứng yêu cầu giám sát thời gian thực. Tuy nhiên, một số hạn chế cần được cải thiện:
+
+\begin{itemize}[leftmargin=*,nosep]
+  \item \textbf{Phụ thuộc phần cứng:} Hiệu năng suy giảm rõ rệt khi chạy đồng thời nhiều module AI trên CPU (2--5 FPS). Việc tối ưu pipeline đa luồng và áp dụng frame skipping là cần thiết để giảm tải.
+  \item \textbf{Điều kiện môi trường:} Độ chính xác nhận diện chưa đồng đều trong điều kiện thiếu sáng, che khuất hoặc góc quay bất lợi.
+  \item \textbf{Dữ liệu huấn luyện:} Tập dữ liệu dây an toàn (1.200 ảnh) còn nhỏ, ảnh hưởng khả năng tổng quát hóa.
+  \item \textbf{Đánh giá chuẩn:} Hệ thống chưa được đánh giá trên các bộ dữ liệu chuẩn công khai như NTHU Driver Drowsiness Dataset.
+  \item \textbf{Cơ chế frontend:} Giao diện web sử dụng polling 1 giây thay vì WebSocket real-time, gây độ trễ cập nhật nhất định.
+\end{itemize}
+
+Nhìn chung, hệ thống hoàn thiện về chức năng và khả thi về ứng dụng, còn dư địa cải thiện về tối ưu mô hình và pipeline xử lý. Các hạn chế này là cơ sở cho các nghiên cứu tiếp theo.

@@ -1,0 +1,24 @@
+# Virtual Environment
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+
+# MacOS
+.DS_Store
+
+# Models
+*.pt
+*.pth
+
+# Dataset
+data/
+dataset/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+flask_session/

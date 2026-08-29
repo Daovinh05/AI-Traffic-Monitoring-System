@@ -1,0 +1,17 @@
+\section{Kết luận và hướng phát triển}
+
+Bài báo đã trình bày một hệ thống giám sát tài xế thông minh ứng dụng AI với kiến trúc đa module tích hợp sáu thành phần phát hiện hành vi tài xế: buồn ngủ (dlib EAR), ngáp (facial landmarks), tư thế đầu (PnP), điện thoại (YOLOv8n), dây an toàn (YOLOv8 custom) và tay lái (MediaPipe). Hệ thống được triển khai theo kiến trúc ba tầng với cơ chế tải mô hình lười biếng an toàn đa luồng, hàng đợi cảnh báo và cảnh báo đa kênh (âm thanh, WebSocket, MQTT).
+
+Kết quả thực nghiệm trên GPU (RTX 3050 Ti) cho thấy hệ thống đáp ứng yêu cầu giám sát thời gian thực với tốc độ xử lý 20--30 FPS, độ trễ đầu cuối 100--200 ms.
+
+So với các nghiên cứu hiện có, hệ thống vượt trội về số lượng module tích hợp (6 so với 1--4), trong khi vẫn duy trì tốc độ xử lý thời gian thực.
+
+Hướng phát triển trong tương lai bao gồm:
+\begin{itemize}[leftmargin=*,nosep]
+  \item \textbf{Triển khai Edge AI:} Chuyển suy luận lên thiết bị nhúng NVIDIA Jetson Nano, áp dụng TensorRT và quantization (FP16/INT8) để giảm độ trễ.
+  \item \textbf{Mô hình tiên tiến:} Nâng cấp lên YOLOv10/v11, áp dụng Transformer cho phân tích chuỗi hành vi phức tạp \cite{nimma2025}.
+  \item \textbf{Tối ưu pipeline:} Áp dụng frame skipping, xử lý đa luồng song song (threading), sampling theo chu kỳ, tách luồng nhận diện khỏi luồng render.
+  \item \textbf{Mở rộng dữ liệu:} Tăng cường tập dữ liệu huấn luyện, đánh giá trên các bộ dữ liệu chuẩn công khai.
+  \item \textbf{Tích hợp liên phương tiện:} Kết nối ADAS, GPS, Lidar; tích hợp nền tảng đô thị thông minh.
+  \item \textbf{Ứng dụng thực tế:} Xây dựng trung tâm quản lý giao thông tập trung, mở rộng sang logistics, xe khách, vận tải công cộng.
+\end{itemize}

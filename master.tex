@@ -1,0 +1,416 @@
+% !TEX program = xelatex
+% =====================================================================
+%  JSTT (Journal of Science and Transport Technology) - UTT
+%  Mau ban thao - XeLaTeX version
+%  Bien dich bang XELATEX (khong dung pdflatex)
+% =====================================================================
+\documentclass[10pt]{article}
+
+%---------------------------------------------------------------------
+% Font (XeLaTeX) - Arial / tuong duong Arial
+%---------------------------------------------------------------------
+\usepackage{fontspec}
+\IfFontExistsTF{Arial}{%
+  \setmainfont{Arial}
+}{%
+  \IfFontExistsTF{Liberation Sans}{%
+    \setmainfont{Liberation Sans}
+  }{%
+    \setmainfont{TeX Gyre Heros}
+  }%
+}
+
+\usepackage[a4paper,top=2.6cm,bottom=2.2cm,left=1.8cm,right=1.8cm,columnsep=6mm]
+{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{multicol}
+\usepackage{ragged2e}
+\usepackage[hidelinks,colorlinks=false]{hyperref}
+\usepackage{setspace}
+\graphicspath{{./}{./jstt-xelatex-project/}}
+
+%---------------------------------------------------------------------
+% Mau nen giong file goc (Word "Background 2, Darker 10%")
+%---------------------------------------------------------------------
+\definecolor{jsttbg}{HTML}{DDD9C3}
+
+%---------------------------------------------------------------------
+% Line spacing 1.2, spacing before paragraph = 6pt (giong Word)
+%---------------------------------------------------------------------
+\linespread{1.15}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+%---------------------------------------------------------------------
+% Dinh dang muc (section) - 1. 2. 3.  va  1.1. 1.2. ...
+%---------------------------------------------------------------------
+\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
+
+\titleformat{\section}
+  {\bfseries\fontsize{11}{13}\selectfont}{\thesection.}{0.4em}{}
+\titleformat{\subsection}
+  {\bfseries\fontsize{11}{13}\selectfont}{\thesubsection.}{0.4em}{}
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{6pt}{3pt}
+
+\captionsetup[figure]{labelfont=bf,font={footnotesize},justification=centering,skip=4pt}
+\captionsetup[table]{labelfont=bf,font={footnotesize},justification=raggedright,singlelinecheck=false,skip=4pt}
+
+%---------------------------------------------------------------------
+% Dau trang / chan trang (tu trang 2 tro di)
+%---------------------------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.6pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancyhead[L]{\fontsize{7}{8}\selectfont\itshape JSTT vol X(202X), XX--XX}
+\fancyhead[R]{\fontsize{7}{8}\selectfont\itshape First author. et al}
+\fancyfoot[L]{\fontsize{7}{8}\selectfont JSTT 2021, 14, x. https://doi.org/10.3390/xxxxx}
+\fancyfoot[R]{\fontsize{7}{8}\selectfont www.jstt.utt.edu.vn/index.php/en}
+\fancyfoot[C]{\fontsize{9}{10}\selectfont\thepage}
+
+\fancypagestyle{firstpage}{%
+  \fancyhf{}
+  \renewcommand{\headrulewidth}{0pt}
+  \fancyfoot[L]{\fontsize{7}{8}\selectfont JSTT 2021, 14, x. https://doi.org/10.3390/xxxxx}
+  \fancyfoot[R]{\fontsize{7}{8}\selectfont www.jstt.utt.edu.vn/index.php/en}
+  \fancyfoot[C]{\fontsize{9}{10}\selectfont\thepage}
+}
+
+%---------------------------------------------------------------------
+% Khoi masthead (2 logo + ten tap chi) o dau trang 1
+%---------------------------------------------------------------------
+\newcommand{\masthead}{%
+\noindent
+\begin{minipage}[t]{0.485\textwidth}
+  \rule{\linewidth}{0.6pt}\\[2pt]
+  \colorbox{jsttbg}{%
+    \begin{minipage}[c][1.9cm][c]{\linewidth}
+      \centering
+      \begin{tabular}{@{}c@{\hspace{4pt}}l@{}}
+        \raisebox{-0.5\height}{\safeincludegraphics[width=1.9cm]{jstt_logo.png}} &
+        \begin{minipage}{3.0cm}
+          \centering\fontsize{10}{12}\selectfont
+          Tạp chí điện tử\\
+          Khoa học và Công nghệ Giao thông\\[2pt]
+          {\fontsize{7}{8}\selectfont Trường Đại học Công nghệ Giao thông vận tải}
+        \end{minipage}
+      \end{tabular}
+    \end{minipage}%
+  }
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.485\textwidth}
+  \rule{\linewidth}{0.6pt}\\[2pt]
+  \colorbox{jsttbg}{%
+    \begin{minipage}[c][1.9cm][c]{\linewidth}
+      \centering
+      \begin{tabular}{@{}c@{\hspace{4pt}}l@{}}
+        \raisebox{-0.5\height}{\safeincludegraphics[width=1.9cm]{jstt_logo.png}} &
+        \begin{minipage}{3.2cm}
+          \centering\fontsize{10}{12}\selectfont
+          Journal of Science\\
+          and Transport Technology\\[2pt]
+          {\fontsize{7}{8}\selectfont University of Transport Technology}
+        \end{minipage}
+      \end{tabular}
+    \end{minipage}%
+  }
+\end{minipage}\\[4pt]
+{\fontsize{7}{8}\selectfont\itshape JSTT vol X(202X), XX--XX \hfill First author. et al}\\[2pt]
+\rule{\linewidth}{0.4pt}
+}
+
+%---------------------------------------------------------------------
+% Khoi thong tin bai bao (title box)
+%---------------------------------------------------------------------
+% #1 = tieu de+tac gia+don vi ; #2 = noi dung cot trai (article info)
+% #3 = noi dung cot phai (abstract+keywords)
+\newcommand{\titlebox}[3]{%
+\noindent
+\setlength{\fboxrule}{0.4pt}
+\begin{tabular}{|p{0.28\textwidth}|p{0.69\textwidth}|}
+\hline
+\multicolumn{2}{|p{0.99\textwidth}|}{%
+  \begin{minipage}{\dimexpr 0.99\textwidth-2\tabcolsep\relax}
+    \vspace{2pt}#1\vspace{2pt}
+  \end{minipage}
+} \\
+\hline
+\begin{minipage}{\dimexpr 0.28\textwidth-2\tabcolsep\relax}
+  \fontsize{9}{11}\selectfont #2
+\end{minipage} &
+\begin{minipage}{\dimexpr 0.69\textwidth-2\tabcolsep\relax}
+  \fontsize{9}{11}\selectfont #3
+\end{minipage} \\
+\hline
+\end{tabular}\par\vspace{6pt}%
+}
+
+\newcommand{\safeincludegraphics}[2][]{%
+  \IfFileExists{#2}{%
+    \includegraphics[#1]{#2}%
+  }{%
+    \fbox{\parbox[c][1.2cm][c]{2.5cm}{\centering\scriptsize Image}}%
+  }%
+}
+
+\begin{document}
+\thispagestyle{firstpage}
+\masthead
+\vspace{6pt}
+
+% ============ KHOI TIENG ANH ============
+\titlebox{%
+  {\fontsize{13}{15}\selectfont\bfseries Type the title of your paper}\\[4pt]
+  {\fontsize{10}{12}\selectfont First Author$^{1}$, Second Author$^{2}$, Third Author$^{1,2,\ast}$}\\[3pt]
+  {\fontsize{9}{11}\selectfont\itshape
+  $^{1}$First affiliation, Address, City and Postcode, Country\\
+  $^{2}$Second affiliation, Address, City and Postcode, Country}
+}{%
+  \textbf{Article info}\\[4pt]
+  \textbf{Type of article:}\\
+  Original research paper\\[4pt]
+  \textbf{Corresponding author:}\\
+  E-mail address:\\
+  Email@utt.edu.vn\\[4pt]
+  \textbf{Received:} 00 December 0\\
+  \textbf{Accepted:} 00 February 00\\
+  \textbf{Published:} 00 February 00
+}{%
+  \textbf{Abstract:} The abstract should be about 150 to 300 words in
+  length and in lower case letters. The abstract should state
+  concisely the whole research work including the necessary, purpose,
+  methodology and main results obtained, not just the conclusions. It
+  should contain no citation to other published work and uncommon
+  abbreviations.\\[6pt]
+  \textbf{Keywords:} Type your keywords here with 5 to 7 words,
+  separated by semicolons.
+}
+
+% ============ KHOI TIENG VIET ============
+\titlebox{%
+  {\fontsize{13}{15}\selectfont\bfseries Tên bài báo}\\[4pt]
+  {\fontsize{10}{12}\selectfont Tác giả đầu tiên$^{1}$, Tác giả thứ hai$^{2}$, Tác giả thứ ba$^{1,2,\ast}$}
+  {\fontsize{7}{9}\selectfont\itshape\ (Font chữ Arial; cỡ chữ 10, giãn dòng 1.2, chữ thường, Spacing 12pt Before)}\\[3pt]
+  {\fontsize{9}{11}\selectfont\itshape
+  $^{1}$Bộ môn/Khoa, Đơn vị công tác, địa chỉ và mã bưu điện đầu tiên\\
+  $^{2}$Bộ môn/Khoa, Đơn vị công tác, địa chỉ và mã bưu điện đầu tiên}\\[2pt]
+  {\fontsize{7}{9}\selectfont\itshape (Font chữ Arial; cỡ chữ 10, in nghiêng, giãn dòng 1.2,)}
+}{%
+  \textbf{Thông tin bài viết}\\[4pt]
+  \textbf{Tác giả liên hệ:}\\
+  Địa chỉ E-mail:\\
+  banglh@utt.edu.vn\\[4pt]
+  \textbf{Ngày nộp bài:} 00/00/2021\\
+  \textbf{Ngày chấp nhận:} 00/00/2021\\
+  \textbf{Ngày đăng bài:} 00/00/2021
+}{%
+  \textbf{Tóm tắt:} Tóm tắt phải dài khoảng 150 đến 300 từ và bằng chữ
+  in thường. Tóm tắt nên nêu rõ chính xác toàn bộ công việc nghiên cứu
+  bao gồm các kết quả cần thiết, mục đích, phương pháp và chính thu
+  được, kết luận. Không trích dẫn tài liệu tham khảo trong phần tóm
+  tắt. Phần tóm tắt được viết trong cùng một đoạn văn, không xuống
+  dòng.\\[6pt]
+  \textbf{Từ khóa:} Khoảng 5 đến 7 từ, cách nhau bởi dấu chấm phảy,
+  bằng tiếng Việt, chữ thường.
+}
+
+\vspace{6pt}
+\begin{multicols}{2}
+
+%=======================================================================
+% NOI DUNG CHINH - 2 COT
+%=======================================================================
+
+\section{Giới thiệu}
+
+Phần giới thiệu cần cung cấp cho Người đọc những thông tin cơ bản cần
+thiết để hiểu được chủ đề nghiên cứu; chỉ ra được những hạn chế của các
+công trình nghiên cứu liên quan trước đó; xác định được lý do để tiến
+hành nghiên cứu và những đóng góp về mặt lý thuyết và ứng dụng; trình
+bày được mục tiêu nghiên cứu, phương pháp luận, phương tiện nghiên cứu
+và các kết quả chính thu được.
+
+Bài báo thường có nhiều mục lớn và được đánh số theo thứ tự 1., 2., 3.
+Ví dụ (1. Giới thiệu, 2. Phương pháp/ Phân tích, 3. Thí nghiệm, 4. Thảo
+luận và 5. Kết luận) và có nhiều mục nhỏ được đánh số theo thứ tự:
+\textit{2.1., 2.1.1....}
+
+Tên mục cần được viết ngắn gọn, chứa đựng các thông tin mục đó, tránh
+viết quá ngắn, quá chung chung hoặc viết quá dài, quá chi tiết.
+
+Bản thảo được soạn thảo bằng phần mềm Microsoft Word, hai cột trên khổ
+A4 (21 x 29,7 cm); font chữ Arial, cỡ chữ 11, giãn dòng 1.2, Spacing 06
+pt Before.
+
+Tài liệu tham khảo được đánh số theo thứ tự xuất hiện trong bài báo và
+được đặt trong dấu ngoặc vuông theo dạng Number, ví dụ [1-4] hoặc
+[1, 3, 11].
+
+\section{Phương pháp/ Phân tích}
+
+\subsection{Hình ảnh}
+
+\begin{figure}[!ht]
+\centering
+\safeincludegraphics[width=0.48\linewidth]{fig1a.png}\hfill
+\safeincludegraphics[width=0.48\linewidth]{fig1b.png}
+\caption{Hình ảnh phải được tạo ra từ tác giả phải thể hiện rõ ràng, không bị nhòe, mờ, méo mó và có độ phân giải tối thiểu của hình ảnh là 600 dpi. Hình ảnh sử dụng từ nguồn khác phải có trích dẫn và không vi phạm bản quyền.}
+\end{figure}
+
+Vị trí hình ảnh phải đặt vào giữa và gần với phần miêu tả của tác giả.
+Chú thích đặt ở phía dưới của hình ảnh và căn giữa theo Hình 1, phông
+Arial, cỡ 10, trường hợp gồm nhóm một số hình riêng thì cần có tên
+riêng cho từng hình, như được chỉ ra ở Hình 1. (a) và (b). Cuối dòng
+chú thích có dấu chấm.
+
+Tác giả nên để cỡ chữ trên hình cùng cỡ chữ trong bài báo và để chữ
+thường hoặc chữ đậm.
+
+\begin{table}[!ht]
+\centering
+\caption{Phân tích thống kê cơ sở dữ liệu}
+\fontsize{7}{8.5}\selectfont
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{lrrrrrrrrr}
+\toprule
+ & Count & Mean & Std & Min & Q25\% & Q50\% & Q75\% & Max & Skw \\
+\midrule
+Ash type & 207 & 1.986 & 0.815 & 1.000 & 1.000 & 2.000 & 3.000 & 3.000 & 0.027 \\
+Ash content (\%) & 207 & 14.029 & 16.650 & 0.000 & 4.000 & 8.000 & 12.000 & 60.000 & 1.593 \\
+LL (\%) & 207 & 39.383 & 10.533 & 17.000 & 32.200 & 39.000 & 46.750 & 64.000 & 0.215 \\
+PL (\%) & 207 & 20.646 & 4.565 & 12.800 & 16.900 & 20.000 & 24.050 & 30.100 & 0.341 \\
+OMC (\%) & 207 & 17.775 & 5.107 & 8.910 & 13.915 & 17.020 & 21.200 & 32.500 & 0.508 \\
+MDD (g/cm$^3$) & 207 & 1.615 & 0.103 & 1.370 & 1.535 & 1.620 & 1.680 & 1.880 & 0.308 \\
+CBR (\%) & 207 & 3.775 & 0.990 & 1.860 & 3.055 & 3.890 & 4.510 & 6.460 & -0.149 \\
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+\raggedright
+{\fontsize{7}{8.5}\selectfont Skw=Skewness, Std= Độ lệch chuẩn}
+\end{table}
+
+\subsection{Bảng biểu}
+
+Bảng phải được trình bày rõ ràng, thống nhất định dạng; sử dụng đường
+kẻ ngang (không dùng đường kẻ đứng); được chú thích rõ ràng; viết bằng
+chữ Arial, cỡ chữ 11, chữ thường,
+
+Tên bảng đặt ở trên bảng, có đánh số thứ tự, bằng chữ thường, căn
+giữa. Vị trí hình ảnh phải đặt vào giữa và gần với phần miêu tả của
+tác giả. Chú thích đặt ở phía trên của bảng và căn trái theo Bảng 1.
+Cuối dòng chú thích có dấu chấm.
+
+Phần giải thích kí hiệu viết tắt của bảng biểu viết dưới bảng và căn
+trái, được viết bằng chữ Arial, cỡ chữ 10, chữ thường.
+
+\subsection{Tên mục}
+
+Công thức được soạn thảo bằng công cụ MathType hoặc Microsoft
+Equation. Ký hiệu chữ phải in nghiêng, ký hiệu số, các ký hiệu khác
+phải in đứng. Số thứ tự của công thức được để trong ngoặc đơn, đặt ở
+phía bên phải của công thức, Công thức được đặt phía bên trái.
+
+Ví dụ, công thức như sau:
+
+\begin{equation}
+R^2 = 1-\dfrac{\sum_{i=1}^{N}(p_i-q_i)^2}{\sum_{i=1}^{N}(p_i-\bar{p})^2}
+\end{equation}
+
+\begin{equation}
+MAE = \dfrac{1}{N}\sum_{i=1}^{N}\left| p_i-q_i \right|
+\end{equation}
+
+\begin{equation}
+RMSE = \sqrt{\dfrac{1}{N}\sum_{i=1}^{N}(p_i-q_i)^2}
+\end{equation}
+
+trong đó $p$ là giá trị thí nghiệm thực tế, $q$ là giá trị dự đoán,
+tính theo dự báo của mô hình, $N$ là số lượng mẫu trong cơ sở dữ liệu.
+
+Chú ý, khi giải thích cụm từ ``trong đó'' không được viết hoa ký tự
+đầu.
+
+Sử dụng hệ thống đơn vị quốc tế (SI): Đơn vị lực là kN, N; đơn vị
+chiều dài là m, cm, mm...
+
+\section{Kết luận}
+
+Kết luận được trình bày một cách cô đọng từ các kết quả nghiên cứu
+chính đạt được, tránh nói quá về tầm quan trọng đạt được của nghiên
+cứu. Kết luận phải phù hợp với các mục tiêu nghiên cứu và trong phạm
+vi nghiên cứu được nêu trong phần giới thiệu. Hạn chế của nghiên cứu
+có thể được lưu ý trong phần kết luận.
+
+\subsection*{Lời cảm ơn}
+
+Lời cảm ơn cần chỉ rõ nghiên cứu được tài trợ bởi các tổ chức hoặc cá
+nhân dưới dạng đề tài, dự án nghiên cứu; có mã số cụ thể.
+
+Tác giả chân thành cảm ơn sự hỗ trợ tài chính (hoặc hỗ trợ thiết bị
+thí nghiệm) của ... (viết tên cơ quan hỗ trợ) cho đề tài (hoặc dự án)
+``viết tên đề tài hoặc tên dự án được để trong ngoặc kép'', mã số...
+(viết tên mã số đề tài hoặc dự án).
+
+\subsection*{Tài liệu tham khảo}
+
+Tài liệu tham khảo phải được đánh số theo thứ tự xuất hiện trong văn
+bản. Tác giả nên chuẩn bị các tham chiếu với gói phần mềm thư mục,
+chẳng hạn như EndNote, giới thiệu hoặc Zotero để tránh gõ sai lầm và
+các tài liệu tham khảo trùng lặp.
+
+Số lượng tài liệu tham khảo khuyến nghị tối thiểu là 10. Nên trích dẫn
+các bài báo thuộc Tạp chí uy tín và hạn chế trích dẫn trang website.
+Nếu tài liệu tham khảo có DOI, thì để cuối dòng.
+
+Các tài liệu tham khảo trên tạp chí nên được định dạng theo kiểu bắt
+buộc ví dụ như đối với các bài báo [1], sách [2], sách nhiều tác giả
+[3], kỷ yếu [4], trao đổi cá nhân [5] và tiêu chuẩn [6] được hiển thị
+trong Tài liệu tham khảo bên dưới.
+
+\begin{list}{}{%
+  \setlength{\leftmargin}{1.4em}
+  \setlength{\itemindent}{-1.4em}
+  \setlength{\itemsep}{4pt}
+  \setlength{\parsep}{0pt}
+}
+\fontsize{9}{11}\selectfont
+
+\item[{[1]}.] V. De Semir, C. Ribas and G. Revuelta. (1998). Press
+releases of science journal articles and subsequent newspaper stories
+on the same topic. Jama, 280(3), 294-295.
+
+\item[{[2]}.] I.A. Leonard. (2020). Books of the Brave. University of
+California Press. USA.
+
+\item[{[3]}.] H.J. Gilbert, G. Davies, B. Henrissat and B. Svensson.
+(1999). Recent advances in carbohydrate bioengineering. Royal Society
+of Chemistry: Vol. 246.
+
+\item[{[4]}.] Q.-H. Nguyen, M. Hjiaj, X. Nguyen and H. Nguyen. (2015).
+In Finite element analysis of a hybrid RCS beam-column connection.
+The 3rd international conference CIGOS, pp 11-32.
+
+\item[{[5]}.] I. Glover and P.M. Grant. (2010). Digital
+communications. Pearson Education.
+
+\item[{[6]}.] AASHTO. (2018). Code T 267-86 (2018), Standard Method
+of Test for Determination of Organic Content in Soils by Loss of
+Ignition.
+
+\end{list}
+
+\end{multicols}
+\end{document}

@@ -1,0 +1,36 @@
+\section{Giới thiệu}
+
+Tai nạn giao thông đường bộ vẫn là một trong những nguyên nhân hàng đầu gây tử vong và thiệt hại kinh tế trên toàn thế giới. Theo Tổ chức Y tế Thế giới (WHO), mỗi năm có khoảng 1,19 triệu người tử vong và hàng chục triệu người bị thương do tai nạn giao thông đường bộ, trong đó lỗi của người điều khiển phương tiện vẫn là nguyên nhân chủ yếu. Tại Việt Nam, theo báo cáo của Ủy ban An toàn giao thông Quốc gia, giai đoạn 2024--2025 cả nước ghi nhận hơn 6.000 trường hợp tử vong mỗi năm, trong đó tình trạng buồn ngủ, mất tập trung và sử dụng điện thoại khi lái xe là các yếu tố nguy cơ quan trọng dẫn đến nhiều vụ tai nạn nghiêm trọng \cite{hien2026, baogiaothong2025}.
+
+Bên cạnh đó, nhiều nghiên cứu đã chứng minh rằng trạng thái sinh lý và hành vi của người lái ảnh hưởng trực tiếp đến khả năng điều khiển phương tiện. Hiệp hội An toàn giao thông Hoa Kỳ (AAA Foundation for Traffic Safety) cho thấy người lái ngủ dưới 5 giờ trong vòng 24 giờ có nguy cơ gây tai nạn cao gấp 4,5 lần so với người ngủ đủ 7 giờ trở lên \cite{aaa2018}. Tương tự, Cục Quản lý An toàn Giao thông Đường cao tốc Quốc gia Hoa Kỳ (NHTSA) cũng chỉ ra rằng tình trạng buồn ngủ và mất tập trung là nguyên nhân của hàng chục nghìn vụ tai nạn mỗi năm. Những thống kê này cho thấy nhu cầu cấp thiết đối với các hệ thống hỗ trợ lái xe có khả năng phát hiện sớm các hành vi nguy hiểm và đưa ra cảnh báo kịp thời.
+
+Driver Monitoring System (DMS) là hướng nghiên cứu trọng tâm trong Intelligent Transportation Systems (ITS). Các phương pháp dùng cảm biến sinh lý (EEG, ECG) đạt độ chính xác cao nhưng bất tiện do yêu cầu đeo thiết bị \cite{ji2002}. Thị giác máy tính và học sâu đã mở ra giải pháp không xâm lấn dùng camera thông thường \cite{voulodimos2018, lecun2015}. Các nghiên cứu gần đây áp dụng EAR \cite{soukupova2016}, head pose estimation \cite{lawson2020, malek2021}, YOLO \cite{redmon2016, jocher2023} để phát hiện buồn ngủ, mất tập trung, điện thoại và dây an toàn. Tuy nhiên, phần lớn chỉ tập trung vào một vài nhiệm vụ riêng lẻ, chưa có hệ thống tích hợp nhiều module giám sát tài xế trên cùng một pipeline thời gian thực.
+
+Bài báo này đề xuất hệ thống giám sát tài xế thông minh tích hợp 6 module thị giác máy tính trên kiến trúc ba tầng (AI suy luận, cơ sở dữ liệu, giao diện web), kết hợp chatbot AI tư vấn luật giao thông.
+
+Các đóng góp chính:
+
+\begin{itemize}[leftmargin=*,nosep]
+  \item Kiến trúc AI thống nhất tích hợp 6 module giám sát tài xế (buồn ngủ, ngáp, tư thế đầu, điện thoại, dây an toàn, tay lái) trên cùng pipeline thời gian thực.
+  \item Kết hợp Dlib, MediaPipe, YOLOv8 và PnP với chi phí tính toán thấp, phù hợp thiết bị biên.
+  \item Cơ chế cảnh báo đa kênh (âm thanh, WebSocket, MQTT, chatbot RAG) hỗ trợ người lái thời gian thực.
+\end{itemize}
+
+
+\section{Các nghiên cứu liên quan}
+
+\subsection{Phát hiện buồn ngủ và trạng thái tài xế}
+
+Phương pháp phát hiện buồn ngủ kinh điển nhất là sử dụng chỉ số PERCLOS và Eye Aspect Ratio (EAR). Soukupova và Cech \cite{soukupova2016} đã giới thiệu EAR được tính từ sáu điểm mốc quanh mắt sử dụng bộ dự đoán khuôn mặt 68 điểm của dlib \cite{king2009}. Khi EAR giảm dưới ngưỡng trong thời gian liên tục, hệ thống xác định tài xế đang buồn ngủ. Các nghiên cứu khác \cite{ji2002, ngxande2017} sử dụng kết hợp nhiều chỉ số sinh lý để nâng cao độ chính xác.
+
+\subsection{Ước lượng tư thế đầu và phát hiện mất tập trung}
+
+Lawson và cộng sự \cite{lawson2020} sử dụng thuật toán Perspective-n-Point (PnP) với mô hình khuôn mặt 3D để ước lượng ba góc Euler. Malek và cộng sự \cite{malek2021} phân loại tư thế đầu dựa trên landmark cho bài toán phục hồi chức năng. Phát hiện tư thế đầu bất thường (yaw $>40^\circ$ hoặc pitch $>35^\circ$) được sử dụng làm tín hiệu cảnh báo mất tập trung.
+
+\subsection{Phát hiện vật thể bằng YOLO}
+
+Họ mô hình YOLO \cite{redmon2016} đã chứng tỏ hiệu quả vượt trội trong phát hiện vật thể thời gian thực. Các phiên bản YOLOv8 \cite{jocher2023} với kiến trúc CSPDarknet, PANet và head detection anchor-free cho phép đạt độ chính xác cao với tốc độ nhanh. Voulodimos và cộng sự \cite{voulodimos2018} cung cấp tổng quan về học sâu trong thị giác máy tính. Shorten và Khoshgoftaar \cite{shorten2019} khảo sát các kỹ thuật tăng cường dữ liệu ảnh cho học sâu.
+
+\subsection{Hệ thống giám sát tích hợp và ứng dụng thực tế}
+
+Các hệ thống thương mại như Seeing Machines \cite{seeingmachines2022}, Smart Eye đã được triển khai trên xe hạng sang nhưng yêu cầu phần cứng chuyên dụng với chi phí cao. Xu hướng hiện nay là xây dựng các hệ thống DMS chi phí thấp trên nền tảng mã nguồn mở, phù hợp cho cả hậu mãi và tích hợp OEM. Nghiên cứu của Nimma và cộng sự \cite{nimma2025} đề xuất mô hình Transformer-YOLOv8 cho giám sát video thời gian thực.

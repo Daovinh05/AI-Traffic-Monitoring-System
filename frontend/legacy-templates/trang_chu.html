@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Màn hình ô tô</title>
+    <link rel="icon" type="image/png" href="./assets/img/fabicon.jpg">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/themify-icons/1.0.1/css/themify-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet">
+    <script>
+        // Kiểm tra hỗ trợ Speech Recognition API
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        let recognition = null;
+        let isListening = false;
+        let startBtn = null;
+        let stopBtn = null;
+        let voiceOutput = null;
+
+        if (SpeechRecognition) {
+            // Khởi tạo nhận diện giọng nói
+            recognition = new SpeechRecognition();
+            recognition.lang = 'vi-VN';
+            recognition.continuous = false; // Tắt continuous để nhanh có kết quả cuối cùng
+            recognition.interimResults = true; // Hiển thị lời nói liên tục
+            recognition.onstart = function () {
+                isListening = true;
+                startBtn.style.display = 'none';
+                stopBtn.style.display = 'inline-flex';
+                voiceOutput.textContent = 'Đang lắng nghe...';
+            };
+
+            // Map các từ khóa với các ứng dụng
+            const appCommands = {
+                'điện thoại': '.dien-thoai a',
+                'tin nhắn': '.tin-nhan a',
+                'google maps': '.google-maps a',
+                'nhạc': '.nhac a',
+                'spotify': '.spotify a',
+                'youtube': '.youtube a',
+                'âm thanh': '.am-thanh a',
+                'dùng tay': '.hands a',
+                'lái xe': '.lai_xe a',
+                'mở tư vấn': '.tu_van a',
+                'mở quản lý': '.quanly a',
+                'quản lý xe': '.quanly a',
+                'quản trị': '.quanly a',
+                'tư vấn luật': '.tu_van a',
+                'luật giao thông': '.tu_van a',
+                'traffic bus': '.quanly a',
+                'quản lý xe bus': '.quanly a'
+            };
+
+            // Cờ ngăn chặn mở nhiều tab
+            let isProcessingCommand = false;
+            let lastOpenedTab = null;
+            let lastOpenTime = 0;
+            let lastCommand = '';
+            let lastCommandTime = 0;
+
+            // Hàm đọc văn bản (nhanh, không chờ)
+            function speak(text) {
+                window.speechSynthesis.cancel(); // Dừng đọc cũ
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'vi-VN';
+                utterance.rate = 1.5; // Đọc nhanh hơn (1.5x)
+                utterance.pitch = 1.0;
+                window.speechSynthesis.speak(utterance);
+            }
+
+            // Xử lý kết quả nhận diện
+            recognition.onresult = function (event) {
+                const result = event.results[event.results.length - 1];
+                const transcript = result[0].transcript.toLowerCase().trim();
+
+                // Hiển thị lời nói liên tục (cả interim và final)
+                if (voiceOutput) {
+                    voiceOutput.textContent = `🗣 ${result.isFinal ? '✓' : '🎤'} ${transcript}`;
+                }
+
+                // Chỉ xử lý lệnh khi có kết quả cuối cùng
+                if (!result.isFinal) {
+                    return;
+                }
+
+                console.log('Nhận diện được:', transcript);
+
+                // Kiểm tra trùng lệnh: không xử lý cùng lệnh trong vòng 3 giây
+                const currentTime = Date.now();
+                if (lastCommand && (currentTime - lastCommandTime) < 3000 && transcript.includes(lastCommand)) {
+                    console.log('Lệnh trùng, bỏ qua');
+                    return;
+                }
+
+                // Kiểm tra lệnh về trang chủ
+                if (transcript.includes("trang chủ") || transcript.includes("về trang chủ")) {
+                    speak("Đang chuyển về trang chủ");
+                    window.top.location.href = "/user/dashboard";
+                    return;
+                }
+
+                // Kiểm tra và thực hiện lệnh - ưu tiên khớp dài nhất trước
+                const sortedCommands = Object.entries(appCommands).sort((a, b) => b[0].length - a[0].length);
+
+                for (const [command, selector] of sortedCommands) {
+                    if (transcript.includes(command)) {
+                        console.log('Tìm thấy lệnh:', command);
+                        const element = document.querySelector(selector);
+                        if (element && element.href) {
+                            console.log('Đang mở:', command);
+                            
+                            // Đặt cờ để chặn mở nhiều tab
+                            isProcessingCommand = true;
+                            lastOpenedTab = element.href;
+                            lastOpenTime = Date.now();
+                            lastCommand = command;
+                            lastCommandTime = Date.now();
+
+                            // Đọc phản hồi nhanh (không chờ)
+                            speak(`Đang mở ${command}`);
+
+                            // Mở tab mới cho các app ngoài, trừ 'dùng tay' và 'lái xe'
+                            if (command === 'dùng tay' || command === 'lái xe') {
+                                window.top.location.href = element.href;
+                            } else {
+                                window.open(element.href, '_blank', 'noopener,noreferrer');
+                            }
+
+                            // Reset cờ sau 3 giây
+                            setTimeout(() => {
+                                isProcessingCommand = false;
+                            }, 3000);
+                            break;
+                        }
+                    }
+                }
+
+                // Xử lý lệnh mở tư vấn luật và quản lý - chỉ xử lý trong appCommands
+                // Không cần xử lý riêng vì đã có trong appCommands
+            };
+
+            // Xử lý lỗi
+            recognition.onerror = function (event) {
+                console.error('Lỗi nhận diện giọng nói:', event.error);
+                
+                if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+                    if (voiceOutput) {
+                        voiceOutput.textContent = "❌ Micro bị chặn! Vui lòng cấp quyền microphone.";
+                    }
+                    isListening = false;
+                    if (startBtn) {
+                        startBtn.style.display = 'inline-flex';
+                        startBtn.disabled = false;
+                    }
+                    if (stopBtn) {
+                        stopBtn.style.display = 'none';
+                    }
+                } else if (isListening) {
+                    // Tự động restart nếu vẫn đang lắng nghe
+                    setTimeout(() => {
+                        recognition.start();
+                    }, 50); // Restart nhanh hơn (50ms)
+                }
+            };
+
+            // Khởi động lại nhận diện khi kết thúc
+            recognition.onend = function () {
+                console.log('Khởi động lại nhận diện giọng nói');
+                // Chỉ tiếp tục nếu chưa bị người dùng tắt
+                if (isListening) {
+                    setTimeout(() => {
+                        recognition.start();
+                    }, 50); // Restart nhanh hơn (50ms)
+                } else {
+                    if (voiceOutput) {
+                        voiceOutput.textContent = "🔇 Đã dừng lắng nghe.";
+                    }
+                    if (startBtn) {
+                        startBtn.style.display = 'inline-flex';
+                    }
+                    if (stopBtn) {
+                        stopBtn.style.display = 'none';
+                    }
+                }
+            };
+
+            // Kết nối chức năng nhận diện với nút trên header.
+            window.addEventListener('DOMContentLoaded', function () {
+                startBtn = document.getElementById('start-voice');
+                stopBtn = document.getElementById('stop-voice');
+                voiceOutput = document.getElementById('voice-output');
+
+                startBtn.addEventListener('click', function () {
+                    if (!isListening) {
+                        try {
+                            recognition.start();
+                        } catch (error) {
+                            console.error('Không thể bắt đầu nhận diện giọng nói:', error);
+                            voiceOutput.textContent = '❌ Lỗi: ' + error.message;
+                        }
+                    }
+                });
+
+                stopBtn.addEventListener('click', function () {
+                    isListening = false;
+                    recognition.stop();
+                });
+            });
+        } else {
+            console.error('Trình duyệt không hỗ trợ Web Speech API');
+            window.addEventListener('DOMContentLoaded', function () {
+                document.getElementById('start-voice').disabled = true;
+                document.getElementById('voice-output').textContent = 'Không hỗ trợ giọng nói';
+            });
+        }
+
+        // Hàm đăng xuất
+        function toggleUserMenu() {
+            document.getElementById('user-menu').classList.toggle('open');
+        }
+
+        function showUserLoading(message) {
+            document.getElementById('user-loading-text').textContent = message;
+            document.getElementById('user-loading').classList.add('show');
+        }
+
+        function hideUserLoading() {
+            document.getElementById('user-loading').classList.remove('show');
+        }
+
+        function openUserPanel(type) {
+            showUserLoading(type === 'settings' ? 'Đang tải cấu hình...' : 'Đang tải tài khoản...');
+            document.getElementById('user-menu').classList.remove('open');
+            window.setTimeout(function () {
+                hideUserLoading();
+                document.getElementById(type === 'settings' ? 'settings-modal' : 'account-modal').classList.add('show');
+            }, 350);
+        }
+
+        function closeUserPanel(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        function switchAccountTab(tab) {
+            document.querySelectorAll('.account-tab-button').forEach(function (button) {
+                button.classList.toggle('active', button.dataset.tab === tab);
+            });
+            document.querySelectorAll('.account-tab-panel').forEach(function (panel) {
+                panel.classList.toggle('active', panel.id === 'account-' + tab);
+            });
+        }
+
+        function showAccountMessage(message, isError) {
+            const element = document.getElementById('account-message');
+            element.textContent = message;
+            element.className = 'account-message show ' + (isError ? 'error' : 'success');
+        }
+
+        function togglePasswordVisibility(inputId, button) {
+            const input = document.getElementById(inputId);
+            const showPassword = input.type === 'password';
+            input.type = showPassword ? 'text' : 'password';
+            button.innerHTML = showPassword
+                ? '<i class="fa-solid fa-eye-slash"></i>'
+                : '<i class="fa-solid fa-eye"></i>';
+            button.setAttribute(
+                'aria-label',
+                showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'
+            );
+        }
+
+        function previewAccountAvatar(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) {
+                event.target.value = '';
+                showAccountMessage('Ảnh đại diện không được vượt quá 5 MB.', true);
+                return;
+            }
+            document.getElementById('account-avatar-preview').src = URL.createObjectURL(file);
+        }
+
+        async function updateAccountProfile(event) {
+            event.preventDefault();
+            showUserLoading('Đang cập nhật thông tin...');
+            try {
+                const response = await fetch('/api/account/profile', {
+                    method: 'PUT',
+                    credentials: 'same-origin',
+                    body: new FormData(event.currentTarget)
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.message || 'Không thể cập nhật');
+
+                const avatarUrl = data.driver.avatar
+                    ? '/static/images/' + encodeURIComponent(data.driver.avatar)
+                    : '/static/admin.jpg';
+                document.querySelector('.user-profile-button img').src = avatarUrl;
+                document.getElementById('account-avatar-preview').src = avatarUrl;
+                document.querySelector('.user-profile-name strong').textContent = data.driver.name;
+                showAccountMessage(data.message, false);
+            } catch (error) {
+                showAccountMessage(error.message, true);
+            } finally {
+                hideUserLoading();
+            }
+        }
+
+        async function changeAccountPassword(event) {
+            event.preventDefault();
+            showUserLoading('Đang đổi mật khẩu...');
+            const form = event.currentTarget;
+            const payload = Object.fromEntries(new FormData(form).entries());
+            try {
+                const response = await fetch('/api/account/password', {
+                    method: 'PUT',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.message || 'Không thể đổi mật khẩu');
+                form.reset();
+                showAccountMessage(data.message, false);
+            } catch (error) {
+                showAccountMessage(error.message, true);
+            } finally {
+                hideUserLoading();
+            }
+        }
+
+        async function logout() {
+            showUserLoading('Đang đăng xuất...');
+            try {
+                const response = await fetch('/api/logout', {
+                    method: 'POST',
+                    credentials: 'same-origin'
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Đăng xuất thất bại');
+                }
+                window.top.location.href = data.redirect || '/login';
+            } catch (error) {
+                hideUserLoading();
+                alert(error.message || 'Có lỗi xảy ra khi đăng xuất');
+            }
+        }
+
+        document.addEventListener('click', function (event) {
+            const profile = document.querySelector('.user-profile');
+            if (profile && !profile.contains(event.target)) {
+                document.getElementById('user-menu')?.classList.remove('open');
+            }
+        });
+    </script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+
+        .user-header {
+            position: fixed;
+            inset: 0 0 auto 0;
+            z-index: 10000;
+            height: 62px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            background: #1b2942;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+        }
+
+        .admin-warning-ticker {
+            display: none;
+            position: fixed;
+            top: 78px;
+            left: 50%;
+            z-index: 9999;
+            width: min(760px, calc(100% - 32px));
+            align-items: center;
+            gap: 16px;
+            padding: 16px 18px;
+            box-sizing: border-box;
+            transform: translateX(-50%);
+            border: 1px solid rgba(255, 214, 102, 0.75);
+            border-left: 6px solid #ffd166;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #8a2c16, #a63d1d);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.42);
+            color: white;
+        }
+
+        .admin-warning-ticker.show {
+            display: flex;
+            animation: adminWarningAppear 0.3s ease-out;
+        }
+
+        .admin-warning-label {
+            display: flex;
+            flex: 0 0 auto;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.14);
+            color: #ffe29a;
+            font-size: 24px;
+        }
+
+        .admin-warning-content {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .admin-warning-heading {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .admin-warning-heading strong {
+            font-size: 16px;
+        }
+
+        .warning-priority {
+            padding: 3px 8px;
+            border: 1px solid rgba(255, 255, 255, 0.48);
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.14);
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .admin-warning-message {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.45;
+        }
+
+        .admin-warning-meta {
+            display: block;
+            margin-top: 6px;
+            color: #ffdcb5;
+            font-size: 12px;
+        }
+
+        .admin-warning-actions {
+            display: flex;
+            flex: 0 0 auto;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .admin-warning-actions button,
+        .admin-warning-actions a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            min-width: 112px;
+            padding: 8px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.36);
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .admin-warning-ack {
+            background: #fff;
+            color: #7b2415;
+        }
+
+        .admin-warning-ack:disabled {
+            opacity: 0.65;
+            cursor: wait;
+        }
+
+        .admin-warning-history-link {
+            background: rgba(0, 0, 0, 0.14);
+            color: white;
+        }
+
+        @keyframes adminWarningAppear {
+            from { transform: translate(-50%, -16px); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+
+        .user-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .user-brand i {
+            color: #2ecc71;
+        }
+
+        .user-profile {
+            position: relative;
+            margin-left: 12px;
+        }
+
+        .header-voice {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .header-voice button {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 13px;
+            border: 1px solid rgba(74, 158, 255, 0.45);
+            border-radius: 8px;
+            background: rgba(74, 158, 255, 0.14);
+            color: #a9ccff;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .header-voice button:hover {
+            background: rgba(74, 158, 255, 0.25);
+            color: white;
+        }
+
+        .header-voice #stop-voice {
+            display: none;
+            border-color: rgba(255, 82, 82, 0.45);
+            background: rgba(255, 82, 82, 0.14);
+            color: #ff9b9b;
+        }
+
+        #voice-output {
+            max-width: 260px;
+            overflow: hidden;
+            color: #b8c6dc;
+            font-size: 12px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .user-profile-button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 10px;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+        }
+
+        .user-profile-button:hover {
+            border-color: rgba(74, 158, 255, 0.4);
+            background: rgba(74, 158, 255, 0.1);
+        }
+
+        .user-profile-button img {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #4a9eff;
+        }
+
+        .user-profile-name {
+            text-align: left;
+        }
+
+        .user-profile-name strong,
+        .user-profile-name small {
+            display: block;
+        }
+
+        .user-profile-name small {
+            margin-top: 2px;
+            color: #9aabc5;
+        }
+
+        .user-menu {
+            display: none;
+            position: absolute;
+            top: 52px;
+            right: 0;
+            width: 230px;
+            padding: 8px;
+            border: 1px solid #354867;
+            border-radius: 10px;
+            background: #202f49;
+            box-shadow: 0 14px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .user-menu.open {
+            display: block;
+        }
+
+        .user-menu button {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 12px;
+            border: 0;
+            border-radius: 7px;
+            background: transparent;
+            color: #e8eef8;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .user-menu button:hover {
+            background: rgba(74, 158, 255, 0.14);
+        }
+
+        .user-menu .logout-menu-item {
+            color: #ff7474;
+        }
+
+        .user-loading {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 11000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 14px;
+            background: rgba(8, 15, 29, 0.72);
+            backdrop-filter: blur(3px);
+        }
+
+        .user-loading.show {
+            display: flex;
+        }
+
+        .user-spinner {
+            width: 42px;
+            height: 42px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #4a9eff;
+            border-radius: 50%;
+            animation: userSpin 0.75s linear infinite;
+        }
+
+        @keyframes userSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        .user-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10500;
+            align-items: center;
+            justify-content: center;
+            background: rgba(8, 15, 29, 0.72);
+        }
+
+        .user-modal.show {
+            display: flex;
+        }
+
+        .user-modal-card {
+            width: min(680px, calc(100% - 32px));
+            max-height: calc(100vh - 60px);
+            overflow-y: auto;
+            padding: 22px;
+            border: 1px solid #354867;
+            border-radius: 14px;
+            background: #202f49;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+        }
+
+        .user-modal-card h3 {
+            margin: 0 0 18px;
+        }
+
+        .user-info-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .user-info-row span {
+            color: #9aabc5;
+        }
+
+        .user-modal-close {
+            width: 100%;
+            margin-top: 18px;
+            padding: 10px;
+            border: 0;
+            border-radius: 8px;
+            background: #4a9eff;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .account-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 18px;
+            padding: 5px;
+            border-radius: 9px;
+            background: #17243a;
+        }
+
+        .account-tab-button {
+            padding: 10px;
+            border: 0;
+            border-radius: 7px;
+            background: transparent;
+            color: #9aabc5;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .account-tab-button.active {
+            background: #4a9eff;
+            color: white;
+        }
+
+        .account-tab-panel {
+            display: none;
+        }
+
+        .account-tab-panel.active {
+            display: block;
+        }
+
+        .account-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .account-field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .account-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .account-field label {
+            color: #c8d3e3;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .account-field input {
+            min-height: 42px;
+            padding: 9px 11px;
+            border: 1px solid #405371;
+            border-radius: 8px;
+            background: #17243a;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        .account-field input:focus {
+            outline: none;
+            border-color: #4a9eff;
+            box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.12);
+        }
+
+        .account-field input[readonly] {
+            color: #8392a9;
+            cursor: not-allowed;
+        }
+
+        .password-input {
+            position: relative;
+        }
+
+        .password-input input {
+            width: 100%;
+            padding-right: 44px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 7px;
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            transform: translateY(-50%);
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: #9aabc5;
+            cursor: pointer;
+        }
+
+        .password-toggle:hover {
+            background: rgba(74, 158, 255, 0.14);
+            color: white;
+        }
+
+        .account-avatar-edit {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .account-avatar-edit img {
+            width: 82px;
+            height: 82px;
+            border: 2px solid #4a9eff;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .account-submit {
+            width: 100%;
+            margin-top: 18px;
+            padding: 11px;
+            border: 0;
+            border-radius: 8px;
+            background: #4a9eff;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .account-message {
+            display: none;
+            margin: 0 0 14px;
+            padding: 10px 12px;
+            border-radius: 7px;
+            font-size: 13px;
+        }
+
+        .account-message.show {
+            display: block;
+        }
+
+        .account-message.success {
+            color: #70e69c;
+            background: rgba(0, 200, 83, 0.12);
+        }
+
+        .account-message.error {
+            color: #ff8f8f;
+            background: rgba(255, 82, 82, 0.12);
+        }
+
+        .app {
+            width: 100%;
+            height: 100vh;
+            background-image: url('https://luatsunguyenhuuphuoc.com/wp-content/uploads/2023/10/thanit2022mar_90-scaled.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+        }
+
+        .app::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding-top: 62px;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 2;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .app-item {
+            background-color: #444;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            height: 200px;
+            width: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .app-item:active {
+            transform: scale(0.95);
+        }
+
+        .app-item::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .app-item:hover::after {
+            opacity: 1;
+        }
+
+        .app-item a {
+            text-decoration: none;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        .app-item img {
+            width: 300px;
+            height: 200px;
+            border-radius: 10px;
+            border: 3px solid rgb(90, 56, 56);
+            transition: all 0.3s ease;
+        }
+
+        .app-item:hover img {
+            border-color: rgb(255, 255, 255);
+            filter: brightness(1.1);
+        }
+
+        @media (max-width: 720px) {
+            .admin-warning-ticker {
+                top: 70px;
+                align-items: flex-start;
+                gap: 10px;
+                padding: 13px;
+            }
+
+            .admin-warning-label {
+                width: 38px;
+                height: 38px;
+                font-size: 19px;
+            }
+
+            .admin-warning-actions {
+                align-self: stretch;
+            }
+
+            .admin-warning-actions button,
+            .admin-warning-actions a {
+                min-width: auto;
+                padding: 7px 9px;
+                font-size: 0;
+            }
+
+            .admin-warning-actions i {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="user-header">
+        <div class="user-brand">
+            <span>🚦 AI Traffic Monitoring UTT</span>
+        </div>
+        <div class="header-voice">
+            <span id="voice-output">Giọng nói đang tắt</span>
+            <button id="start-voice" type="button">
+                <i class="fa-solid fa-microphone"></i> Bật giọng nói
+            </button>
+            <button id="stop-voice" type="button">
+                <i class="fa-solid fa-microphone-slash"></i> Tắt giọng nói
+            </button>
+        </div>
+        <div class="user-profile">
+            <button class="user-profile-button" type="button" onclick="toggleUserMenu()">
+                <img src="{{ '/static/images/' + driver.avatar if driver.avatar else '/static/admin.jpg' }}"
+                     alt="{{ full_name }}" onerror="this.src='/static/admin.jpg'">
+                <span class="user-profile-name">
+                    <strong>{{ full_name }}</strong>
+                    <small>{{ driver.code or user }}</small>
+                </span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="user-menu" id="user-menu">
+                <button type="button" onclick="openUserPanel('settings')">
+                    <i class="fa-solid fa-gear"></i> Cấu hình
+                </button>
+                <button type="button" onclick="openUserPanel('account')">
+                    <i class="fa-solid fa-user"></i> Tài khoản
+                </button>
+                <button class="logout-menu-item" type="button" onclick="logout()">
+                    <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <aside class="admin-warning-ticker" id="admin-warning-ticker" aria-live="polite">
+        <div class="admin-warning-label">
+            <i class="fa-solid fa-bell"></i>
+        </div>
+        <div class="admin-warning-content">
+            <div class="admin-warning-heading">
+                <strong>Cảnh báo từ Admin</strong>
+                <span class="warning-priority" id="admin-warning-priority"></span>
+            </div>
+            <p class="admin-warning-message" id="admin-warning-message"></p>
+            <small class="admin-warning-meta" id="admin-warning-meta"></small>
+        </div>
+        <div class="admin-warning-actions">
+            <button class="admin-warning-ack" id="admin-warning-ack" type="button">
+                <i class="fa-solid fa-check"></i> Đã hiểu
+            </button>
+            <a class="admin-warning-history-link" href="/user/history?tab=warnings" target="_top">
+                <i class="fa-solid fa-clock-rotate-left"></i> Lịch sử
+            </a>
+        </div>
+    </aside>
+
+    <div class="user-loading" id="user-loading">
+        <div class="user-spinner"></div>
+        <strong id="user-loading-text">Đang xử lý...</strong>
+    </div>
+
+    <div class="user-modal" id="account-modal" onclick="if(event.target===this) closeUserPanel('account-modal')">
+        <div class="user-modal-card">
+            <h3><i class="fa-solid fa-circle-user"></i> Quản lý tài khoản</h3>
+            <div class="account-tabs">
+                <button class="account-tab-button active" data-tab="profile" type="button" onclick="switchAccountTab('profile')">
+                    <i class="fa-solid fa-user-pen"></i> Cập nhật thông tin
+                </button>
+                <button class="account-tab-button" data-tab="password" type="button" onclick="switchAccountTab('password')">
+                    <i class="fa-solid fa-key"></i> Cập nhật mật khẩu
+                </button>
+            </div>
+            <div class="account-message" id="account-message"></div>
+
+            <div class="account-tab-panel active" id="account-profile">
+                <form onsubmit="updateAccountProfile(event)">
+                    <div class="account-form-grid">
+                        <div class="account-field">
+                            <label>Tên đăng nhập</label>
+                            <input value="{{ user }}" readonly>
+                        </div>
+                        <div class="account-field">
+                            <label>Mã tài xế</label>
+                            <input value="{{ driver.code or 'Chưa cập nhật' }}" readonly>
+                        </div>
+                        <div class="account-field full-width">
+                            <label for="account-full-name">Họ và tên</label>
+                            <input id="account-full-name" name="full_name" value="{{ full_name }}" placeholder="Nhập họ và tên" required>
+                        </div>
+                        <div class="account-field">
+                            <label for="account-phone">Số điện thoại</label>
+                            <input id="account-phone" name="phone" type="tel" maxlength="20"
+                                   value="{{ driver.phone or '' }}" placeholder="Nhập số điện thoại" required>
+                        </div>
+                        <div class="account-field">
+                            <label for="account-license">Số giấy phép lái xe</label>
+                            <input id="account-license" name="license_number" maxlength="50"
+                                   value="{{ driver.license_number or '' }}" placeholder="Nhập số GPLX" required>
+                        </div>
+                        <div class="account-field full-width">
+                            <label for="account-avatar">Ảnh đại diện</label>
+                            <div class="account-avatar-edit">
+                                <img id="account-avatar-preview"
+                                     src="{{ '/static/images/' + driver.avatar if driver.avatar else '/static/admin.jpg' }}"
+                                     alt="{{ full_name }}" onerror="this.src='/static/admin.jpg'">
+                                <input id="account-avatar" name="avatar" type="file"
+                                       accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                                       onchange="previewAccountAvatar(event)">
+                            </div>
+                        </div>
+                    </div>
+                    <button class="account-submit" type="submit">
+                        <i class="fa-solid fa-floppy-disk"></i> Lưu thông tin
+                    </button>
+                </form>
+            </div>
+
+            <div class="account-tab-panel" id="account-password">
+                <form onsubmit="changeAccountPassword(event)">
+                    <div class="account-form-grid">
+                        <div class="account-field full-width">
+                            <label for="current-password">Mật khẩu hiện tại</label>
+                            <div class="password-input">
+                                <input id="current-password" name="current_password" type="password"
+                                       placeholder="Nhập mật khẩu hiện tại" autocomplete="current-password" required>
+                                <button class="password-toggle" type="button"
+                                        onclick="togglePasswordVisibility('current-password', this)"
+                                        aria-label="Hiện mật khẩu"><i class="fa-solid fa-eye"></i></button>
+                            </div>
+                        </div>
+                        <div class="account-field">
+                            <label for="new-password">Mật khẩu mới</label>
+                            <div class="password-input">
+                                <input id="new-password" name="new_password" type="password" minlength="6"
+                                       placeholder="Nhập mật khẩu mới" autocomplete="new-password" required>
+                                <button class="password-toggle" type="button"
+                                        onclick="togglePasswordVisibility('new-password', this)"
+                                        aria-label="Hiện mật khẩu"><i class="fa-solid fa-eye"></i></button>
+                            </div>
+                        </div>
+                        <div class="account-field">
+                            <label for="confirm-password">Xác nhận mật khẩu mới</label>
+                            <div class="password-input">
+                                <input id="confirm-password" name="confirm_password" type="password" minlength="6"
+                                       placeholder="Nhập lại mật khẩu mới" autocomplete="new-password" required>
+                                <button class="password-toggle" type="button"
+                                        onclick="togglePasswordVisibility('confirm-password', this)"
+                                        aria-label="Hiện mật khẩu"><i class="fa-solid fa-eye"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="account-submit" type="submit">
+                        <i class="fa-solid fa-key"></i> Đổi mật khẩu
+                    </button>
+                </form>
+            </div>
+            <button class="user-modal-close" type="button" onclick="closeUserPanel('account-modal')">Đóng</button>
+        </div>
+    </div>
+
+    <div class="user-modal" id="settings-modal" onclick="if(event.target===this) closeUserPanel('settings-modal')">
+        <div class="user-modal-card">
+            <h3><i class="fa-solid fa-gear"></i> Cấu hình</h3>
+            <div class="user-info-row"><span>Trạng thái tài xế</span><strong>{{ driver.status or 'Chưa cập nhật' }}</strong></div>
+            <div class="user-info-row"><span>Nhận cảnh báo AI</span><strong>Đang bật</strong></div>
+            <div class="user-info-row"><span>Nhận diện giọng nói</span><strong>Có thể bật ở góc phải</strong></div>
+            <button class="user-modal-close" type="button" onclick="closeUserPanel('settings-modal')">Đóng</button>
+        </div>
+    </div>
+
+    <div class="app">
+        <div class="container">
+            <div class="app-grid">
+                <div class="app-item dien-thoai">
+                    <a href="https://play.google.com/store/apps/details?id=co.kitetech.dialer&hl=vi"
+                       target="_blank" rel="noopener noreferrer">
+                        <img src="/static/anh_phone.jpg" alt="Điện thoại">
+                    </a>
+                </div>
+                <div class="app-item tin-nhan">
+                    <a href="https://www.facebook.com/messages/e2ee/t/9808668312549225"
+                       target="_blank" rel="noopener noreferrer">
+                        <img src="/static/anh_mesage.webp" alt="Tin nhắn">
+                    </a>
+                </div>
+                <div class="app-item google-maps">
+                    <a href="https://www.google.com/maps/?hl=vi"
+                       target="_blank" rel="noopener noreferrer">
+                        <img src="/static/anh_ggmap.jpg" alt="Google Maps">
+                    </a>
+                </div>
+
+                <div class="app-item youtube">
+                    <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">
+                        <img src="/static/anh_youtbe.webp" alt="youtube">
+                    </a>
+                </div>
+                <div class="app-item lai_xe">
+                    <a href="/user/drive" target="_top">
+                        <img src="/static/anh_lai_xe.jpg" alt="Lái xe an toàn">
+                    </a>
+                </div>
+                <div class="app-item tu_van">
+                    <a href="/user/chatbot" target="_top">
+                        <img src="/static/tu_van.png" alt="Tư vấn luật">
+                    </a>
+                </div>
+                <div class="app-item quanly">
+                    <a href="/traffic_bus">
+                        <img src="/static/attgt.jpg" alt="Quản lý xe">
+                    </a>
+                </div>
+                <div class="app-item lich_su">
+                    <a href="/user/history" target="_top">
+                        <img src="/static/lich_su.png" alt="Lịch sử vi phạm">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAdminWarning = null;
+        let adminWarningEvents = null;
+        let adminWarningRevision = 0;
+        let adminWarningPolling = null;
+
+        const adminWarningPriorityLabels = {
+            high: 'Khẩn cấp',
+            medium: 'Quan trọng',
+            low: 'Nhắc nhở'
+        };
+
+        function showAdminWarning(warning) {
+            const ticker = document.getElementById('admin-warning-ticker');
+            const createdAt = warning.created_at
+                ? new Date(warning.created_at).toLocaleString('vi-VN')
+                : '';
+            document.getElementById('admin-warning-priority').textContent =
+                adminWarningPriorityLabels[warning.priority] || 'Cảnh báo';
+            document.getElementById('admin-warning-message').textContent = warning.message;
+            document.getElementById('admin-warning-meta').textContent =
+                `${warning.vehicle_plate || 'Không rõ biển số'}${createdAt ? ' • ' + createdAt : ''}`;
+            currentAdminWarning = warning;
+            adminWarningRevision += 1;
+            ticker.classList.add('show');
+        }
+
+        function hideAdminWarning() {
+            currentAdminWarning = null;
+            adminWarningRevision += 1;
+            document.getElementById('admin-warning-ticker').classList.remove('show');
+        }
+
+        async function loadLatestUnreadAdminWarning() {
+            const revisionAtRequestStart = adminWarningRevision;
+            try {
+                const response = await fetch('/api/admin-warnings?page=1', {
+                    credentials: 'same-origin',
+                    cache: 'no-store'
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) return;
+                if (revisionAtRequestStart !== adminWarningRevision) return;
+                const latestUnread = (data.warnings || []).find(warning => !warning.is_read);
+                if (latestUnread) {
+                    showAdminWarning(latestUnread);
+                } else {
+                    hideAdminWarning();
+                }
+            } catch (error) {
+                console.error('Lỗi lấy cảnh báo từ admin:', error);
+            }
+        }
+
+        async function acknowledgeAdminWarning() {
+            if (!currentAdminWarning) return;
+            const warningId = currentAdminWarning.id;
+            const button = document.getElementById('admin-warning-ack');
+            button.disabled = true;
+            try {
+                const response = await fetch(
+                    `/api/admin-warnings/${warningId}/read`,
+                    { method: 'POST', credentials: 'same-origin' }
+                );
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Không thể xác nhận cảnh báo');
+                }
+                if (currentAdminWarning && currentAdminWarning.id === warningId) {
+                    hideAdminWarning();
+                }
+                await loadLatestUnreadAdminWarning();
+            } catch (error) {
+                alert(error.message || 'Không thể xác nhận cảnh báo');
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        function connectAdminWarningStream() {
+            startAdminWarningPolling();
+            if (!window.EventSource) {
+                return;
+            }
+            adminWarningEvents = new EventSource('/api/admin-warnings/stream');
+            adminWarningEvents.addEventListener('admin-warning', event => {
+                try {
+                    showAdminWarning(JSON.parse(event.data));
+                } catch (error) {
+                    console.error('Dữ liệu cảnh báo realtime không hợp lệ:', error);
+                }
+            });
+            adminWarningEvents.onerror = () => {
+                console.warn('Mất kết nối cảnh báo realtime, đang dùng đồng bộ dự phòng.');
+            };
+        }
+
+        function startAdminWarningPolling() {
+            if (adminWarningPolling) return;
+            adminWarningPolling = setInterval(loadLatestUnreadAdminWarning, 2000);
+        }
+
+        document.getElementById('admin-warning-ack')
+            .addEventListener('click', acknowledgeAdminWarning);
+        loadLatestUnreadAdminWarning();
+        connectAdminWarningStream();
+    </script>
+</body>
+
+
+</html>

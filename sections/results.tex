@@ -1,0 +1,102 @@
+\section{Thực nghiệm và kết quả}
+
+\subsection{Thiết lập thực nghiệm}
+
+Hệ thống được kiểm thử trên hai cấu hình: GPU (Intel Core i7-12700H, NVIDIA RTX 3050 Ti) và CPU (Intel Core i7-1165G7, Intel Iris Xe). Camera webcam độ phân giải 640$\times$480 ở 20 FPS, YOLOv8 chạy đầu vào 640$\times$640. Dữ liệu huấn luyện: module dây an toàn sử dụng 1.200 ảnh cabin (1 lớp seat\_belt), module điện thoại sử dụng YOLOv8n tiền huấn luyện trên COCO (117.000 ảnh, 80 lớp) kết hợp fine-tuning.
+
+\subsection{Kết quả và đánh giá}
+
+Hệ thống có cơ chế đo thời gian suy luận (timing instrumentation) ghi log mỗi 100 frame. Bảng~\ref{tab:thresholds} liệt kê các tham số ngưỡng phát hiện của từng module.
+
+Việc lựa chọn ngưỡng ảnh hưởng trực tiếp đến độ chính xác và tốc độ phát hiện. Ngưỡng EAR = 0,30 kết hợp với thời gian nhắm mắt tối thiểu 2 giây giúp phân biệt chớp mắt tự nhiên (100--400~ms) với buồn ngủ thực sự, giảm dương tính giả. Ngưỡng YAWN = 25~pixel và 15 khung hình liên tiếp (tương đương 0,75~giây ở 20~FPS) loại bỏ các chuyển động miệng ngắn (nói chuyện, cười). Ngưỡng tư thế đầu $|yaw| > 40^\circ$ và $pitch > 35^\circ$ được chọn dựa trên nghiên cứu về góc nhìn tự nhiên khi lái xe. Ngưỡng tin cậy 0,5 cho YOLO và FistScore $\geq 3$ (cơ chế đa số với 4/5 ngón) cân bằng giữa độ nhạy và độ đặc hiệu. Cơ chế cooldown (2--4~giây) ngăn cảnh báo trùng lặp, giảm nhiễu cho người lái.
+
+\begin{table}[H]
+\centering
+\caption{Tham số ngưỡng phát hiện các module}
+\fontsize{7}{8.5}\selectfont
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{llr}
+\toprule
+Module & Tham số & Giá trị \\
+\midrule
+Phát hiện nhắm mắt & EAR\_THRESHOLD & 0,30 \\
+ & EAR\_MIN\_DURATION & 2 giây \\
+Phát hiện ngáp & YAWN\_THRESHOLD & 25 pixel \\
+ & YAWN\_CONSEC\_FRAMES & 15 khung hình \\
+Tư thế đầu & Ngưỡng yaw & $>40^\circ$ \\
+ & Ngưỡng pitch & $>35^\circ$ \\
+Điện thoại & Confidence & $>0,5$ \\
+Dây an toàn & Confidence & $>0,5$ \\
+Tay lái & warning\_duration & 3 giây \\
+ & FistScore & $\geq 3$ \\
+\midrule
+Cooldown & eye/yawn/head/phone & 2--3 giây \\
+ & seatbelt/hand & 4 giây \\
+\bottomrule
+\end{tabular}
+\label{tab:thresholds}
+\end{table}
+
+
+\begin{table}[H]
+\centering
+\caption{Mức ưu tiên và hành động xử lý cảnh báo}
+\fontsize{7}{8.5}\selectfont
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{llcc}
+\toprule
+Module & Mức & Âm thanh & Kênh truyền \\
+\midrule
+Nhắm mắt & critical & nham\_mat.wav & WebSocket + MQTT \\
+Điện thoại & critical & not\_phone.wav & WebSocket + MQTT \\
+Dây an toàn & critical & seatbelt\_alert.wav & WebSocket + MQTT \\
+Ngáp & warning & ngap\_ngu.wav & WebSocket \\
+Mất tập trung & warning & dau\_quay.wav & WebSocket \\
+Tay lái & warning & tay\_lai\_xe.wav & WebSocket \\
+\bottomrule
+\end{tabular}
+\label{tab:priority}
+\end{table}
+
+Bảng~\ref{tab:inference} trình bày thời gian suy luận của từng mô-đun trên CPU với độ phân giải 640$\times$480. Pipeline xử lý tuần tự đạt tốc độ 2,16 FPS (462,37 ms/frame), trong đó các mô hình YOLOv8 chiếm phần lớn thời gian xử lý.
+
+Độ chính xác của từng module chịu ảnh hưởng trực tiếp từ ngưỡng phát hiện. dlib đạt 95,0\% nhờ HOG+SVM phát hiện khuôn mặt chính diện ổn định, nhưng giảm khi góc nghiêng vượt $30^\circ$. YOLOv8n phát hiện điện thoại đạt precision 99,8\% ở ngưỡng conf $>0,5$ — rất cao nhờ backbone CSPDarknet, nhưng tỷ lệ phát hiện thực tế chỉ 55\% do khác biệt góc camera và điều kiện ánh sáng so với tập COCO. YOLOv8 phát hiện dây an toàn đạt 80,7\% với conf $>0,5$, thấp hơn do tập huấn luyện chỉ 1.200 ảnh. MediaPipe đạt 90,5\% nhờ mô hình TFLite nhẹ hoạt động ổn định trong cabin. Độ chính xác trung bình toàn hệ thống 89,9\% phản ánh sự cân bằng giữa độ nhạy và độ đặc hiệu ở các ngưỡng đã chọn. Về thời gian, hai mô hình YOLOv8 chiếm $\sim$71\% tổng thời gian xử lý (327 ms), cho thấy đây là nút thắt cổ chai cần tối ưu.
+
+\begin{table}[H]
+\centering
+\caption{Hiệu năng suy luận của các mô-đun trong hệ thống}
+\fontsize{7}{8.5}\selectfont
+\setlength{\tabcolsep}{2.5pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrr}
+\toprule
+Mô-đun & Thời gian (ms) & FPS & Độ chính xác (\%) \\
+\midrule
+Phát hiện khuôn mặt và điểm mốc (dlib) & 51,96 & 19,24 & 95,0 \\
+Phát hiện điện thoại (YOLOv8n-custom) & 173,23 & 5,77 & 99,8 \\
+Phát hiện dây an toàn (YOLOv8-custom) & 153,92 & 6,49 & 80,7 \\
+Ước lượng tư thế (MediaPipe) & 83,26 & 12,01 & 90,5 \\
+Toàn bộ hệ thống & 462,37 & 2,16 & 89,9 \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:inference}
+\end{table}
+
+Trên GPU, hệ thống đạt tốc độ 20--30 FPS với độ trễ 100--200 ms, trong khi trên CPU chỉ đạt 2--5 FPS với độ trễ 200--500 ms (Bảng~\ref{tab:comparison}). GPU nhanh hơn 6--10 lần, khẳng định vai trò thiết yếu của tăng tốc phần cứng trong các hệ thống DMS đa module.
+
+\begin{table}[H]
+\centering
+\caption{So sánh hiệu năng CPU vs GPU}
+\fontsize{7}{8.5}\selectfont
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{lrrr}
+\toprule
+Cấu hình & FPS & Độ trễ (ms) & Độ chính xác \\
+\midrule
+CPU (i7-1165G7, Iris Xe) & 2--5 & 200--500 & $\sim$85\% \\
+GPU (i7-12700H, RTX 3050 Ti) & 20--30 & 100--200 & $\sim$92\% \\
+\bottomrule
+\end{tabular}
+\label{tab:comparison}
+\end{table}

@@ -1,0 +1,19 @@
+Bảng 3. Độ trễ tính toán và hiệu năng suy luận của quy trình giám sát người lái trong cabin (Đánh giá trên cơ sở hạ tầng CPU)
+
+Mô-đun hành vi người lái | Thời gian suy luận (ms) | Thông lượng (FPS) | Độ chính xác phân loại | Tỷ lệ phát hiện thực nghiệm
+---|---|---|---|---
+Phát hiện khuôn mặt và điểm mốc (dlib) | 51,955 | 19,24 | 95,0% | 95,0%
+Sự xao nhãng do thiết bị di động gây ra (YOLOv8n-custom) | 173,233 | 5,77 | 99,8% | 55,0%
+Vi phạm quy định thắt dây an toàn (YOLOv8-custom) | 153,922 | 6,49 | 80,7% | 24,0%
+Ước lượng cử chỉ và tư thế lái (MediaPipe) | 83,258 | 12,01 | 90,5% | 94,0%
+Đường ống cabin tuần tự (Tổng cộng) | 462,368 | 2,16 | Điểm trung bình: 89,9% | --
+
+Bảng 6. Thống kê hiệu năng và quá trình huấn luyện toàn diện của mô hình học sâu (Được ghi nhận tại kỷ nguyên hội tụ)
+
+Mã định danh trọng lượng (.pt) | Nguồn dữ liệu miền | Số lượng mẫu huấn luyện | mAP@50 | mAP@50-95
+---|---|---|---|---
+dien_thoai.pt (CellPhone-YOLOv8n) | Bộ dữ liệu COCO được gắn nhãn Core + In-Cabin Real | 8.500 | 0,975 | 0,748
+day_an_toan.pt (Dây an toàn-YOLOv8) | Cơ sở dữ liệu khoang hành khách hậu cần tùy chỉnh | 1.200 | 0,753 | 0,354
+bien_bao.pt (TrafficSign-YOLOv8) | Cơ sở dữ liệu biển báo giao thông Việt Nam được tăng cường | 5.200 | 0,915 | 0,580
+lech_lan.pt (LaneDeparture-YOLOv8) | Video camera hành trình trên đường cao tốc Việt Nam được trích xuất | 3.800 | 0,878 | 0,510
+vat_can.pt (Chướng ngại vật/Ổ gà-YOLOv8) | Các mẫu hư hại bề mặt đường thực tế | 2.100 | 0,863 | 0,490
