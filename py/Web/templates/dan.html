@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Hệ thống Hỗ trợ Lái xe Thông minh</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-image: radial-gradient(circle, #92adad 0%, #e0eafc 70%);
+
+            padding: 10px;
+            color: #333;
+        }
+
+        .header {
+            background-image: linear-gradient(0, #a5d2da, #67a4cf);
+            border-radius: 10px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+
+
+
+        h1 {
+            text-align: center;
+            font-size: 26px;
+            margin-bottom: 10px;
+            color: #1a237e;
+            text-shadow: 1px 1px 2px #aaa;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            background-color: #1e88e5;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #1565c0;
+            transform: translateY(-2px);
+        }
+
+        .anh_img {
+            display: block;
+            margin: 0 auto;
+            width: 90%;
+            max-width: 1250px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .section {
+            display: none;
+            background-color: #ffffffee;
+            padding: 20px;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 1300px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        h2 {
+            font-size: 20px;
+            color: #0d47a1;
+            margin-bottom: -20px;
+        }
+
+        p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            background-color: #dcdff4;
+            padding: 20px;
+            border-radius: 10px;
+            width: 95%;
+            margin: 0 auto;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .video-container {
+            border: 4px solid #1e88e5;
+            border-radius: 10px;
+            overflow: hidden;
+            width: 640px;
+            height: 480px;
+            box-shadow: 0 0 20px rgba(30, 136, 229, 0.3);
+        }
+
+        .video-feed {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .alert-panel {
+            width: 440px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert-panel h2 {
+            font-size: 22px;
+            margin: 10px;
+            color: #e53935;
+            text-align: center;
+        }
+
+        .warning-item {
+            background-color: #fff;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 6px solid #4caf50;
+            font-size: 18px;
+            border-radius: 5px;
+            min-height: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .warning-item.no-warning {
+            border-left-color: #4caf50;
+            color: #4caf50;
+        }
+
+        .warning-item.warning {
+            border-left-color: #e53935;
+            color: #e53935;
+            animation: pulse 1s infinite;
+        }
+
+        /* Switch Toggle Styles */
+        .switch-toggle {
+            width: 50px;
+            height: 26px;
+            appearance: none;
+            background: #f00909;
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .switch-toggle::before {
+            content: "";
+            width: 22px;
+            height: 22px;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            background: #efe2bf;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        /* mặc định màu xanh là bật */
+        .switch-toggle:checked {
+            background: #0cafdd;
+        }
+
+        .switch-toggle:checked::before {
+            /* left: 40px; */
+            transform: translateX(24px);
+
+        }
+
+        .warning-with-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #fff;
+            transition: all 0.3s ease;
+        }
+
+        /* Thêm style đặc biệt cho cảnh báo tay lái */
+        #hand-warning-driver.warning {
+            background-color: #ffebee;
+            font-weight: bold;
+            border-left-width: 8px;
+            box-shadow: 0 2px 4px rgba(229, 57, 53, 0.2);
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.4);
+            }
+
+            70% {
+                transform: scale(1.02);
+                box-shadow: 0 0 0 10px rgba(229, 57, 53, 0);
+            }
+
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(229, 57, 53, 0);
+            }
+        }
+
+        .status-panel {
+            background-color: #e3dce4;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px auto;
+            width: 95%;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-panel h3 {
+            color: #1a237e;
+            text-align: center;
+            margin-bottom: 10px;
+            margin-top: -15px;
+            margin-right: -15px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .status-item {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            display: flex;
+            flex-direction: row;
+            /* Xếp các phần tử theo chiều ngang */
+            align-items: center;
+            /* Căn giữa theo chiều dọc */
+            justify-content: center;
+            /* Căn giữa theo chiều ngang */
+            gap: 20px;
+            /* Khoảng cách giữa label và value */
+        }
+
+        .status-item .label {
+            color: #2f2d2d;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .status-item .haicham {
+            color: #2f2d2d;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .status-item .value {
+            color: #1a237e;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .controls {
+            margin: 20px 0;
+            width: 100%;
+            text-align: center;
+        }
+
+        .stop-button {
+            background-color: #e53935;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .video-container,
+            .alert-panel {
+                width: 90%;
+                max-width: 640px;
+            }
+
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+
+
+
+
+
+        /* Location Icons Common Styles */
+        .location-icon1,
+        .location-icon2,
+        .location-icon3,
+        .location-icon4 {
+            position: absolute;
+            z-index: 1000;
+            color: white;
+            width: 55px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+
+        .location-icon1:hover,
+        .location-icon2:hover,
+        .location-icon3:hover .location-icon4:hover {
+            transform: scale(1.1);
+        }
+
+        .location-icon1 i,
+        .location-icon2 i,
+        .location-icon3 i,
+        .location-icon4 i {
+            font-size: 24px;
+        }
+
+        /* Individual Location Icon Positions and Colors */
+        .location-icon1 {
+            top: 200px;
+            right: 200px;
+            background-color: #f21818;
+        }
+
+        .location-icon2 {
+            top: 300px;
+            right: 400px;
+            background-color: #f218bb;
+        }
+
+        .location-icon3 {
+            top: 180px;
+            right: 450px;
+            background-color: #490fdb;
+        }
+
+        .location-icon4 {
+            top: 300px;
+            right: 150px;
+            background-color: #85a337;
+        }
+
+        /*  */
+
+
+        .header-frame {
+            width: 90%;
+            display: flex;
+
+            /* position: absolute; */
+            align-items: center;
+            /* justify-content: space-between; */
+        }
+
+
+        .iframe-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            height: 480px;
+            border-radius: 5px;
+            justify-content: center;
+            position: relative;
+        }
+
+        .video-container {
+            width: 640px;
+            height: 480px;
+            background-color: #daeee1;
+            flex-shrink: 0;
+        }
+
+        .stats-container {
+            width: 80%;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+        }
+
+        .region-stats {
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+            margin-top: 15px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .region-item {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            min-width: 200px;
+            flex: 0 0 auto;
+        }
+
+        .vehicle-count {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .vehicle-count.car {
+            background-color: rgba(255, 0, 0, 0.1);
+        }
+
+        .vehicle-count.motorcycle {
+            background-color: rgba(255, 255, 0, 0.1);
+        }
+
+        .vehicle-count.bus {
+            background-color: rgba(0, 255, 0, 0.1);
+        }
+
+        .vehicle-count.truck {
+            background-color: rgba(0, 0, 128, 0.1);
+        }
+
+        .traffic-status {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .traffic-status.normal {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .traffic-status.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .traffic-status.danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .traffic-status.critical {
+            background-color: #dc3545;
+            color: white;
+            border: 1px solid #bd2130;
+        }
+
+        .status-icon {
+            font-size: 1.5em;
+            display: inline-block;
+        }
+
+        .status-icon.normal::before {
+            content: "🟢";
+        }
+
+        .status-icon.warning::before {
+            content: "🟡";
+        }
+
+        .status-icon.danger::before {
+            content: "🟠";
+        }
+
+        .status-icon.critical::before {
+            content: "🔴";
+        }
+
+        #status-message {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .total-count {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #007bff;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .time-display {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        @media (max-width: 1400px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .video-container,
+            .stats-container {
+                width: 100%;
+                max-width: 640px;
+            }
+        }
+
+
+        .time-display {
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        .stats-box {
+            display: flex;
+            align-items: center;
+        }
+
+        .stats-title {
+            font-size: 22px;
+            font-weight: 500;
+            color: #1e1b1b;
+            margin-right: 20px;
+        }
+
+        .stats-value {
+            font-size: 26px;
+            font-weight: 700;
+            color: #007bff;
+        }
+
+
+
+        /* Thêm style đặc biệt cho cảnh báo va chạm */
+        #collision-warning-vacham.warning {
+            background-color: #ffebee;
+            font-weight: bold;
+            border-left-width: 8px;
+            box-shadow: 0 2px 4px rgba(229, 57, 53, 0.2);
+            animation: pulse 1s infinite;
+        }
+
+        #lane-warning-vacham.warning {
+            background-color: #fff3e0;
+            font-weight: bold;
+            border-left-width: 8px;
+            box-shadow: 0 2px 4px rgba(255, 152, 0, 0.2);
+            animation: pulse 1s infinite;
+        }
+
+        /* Style cho nút trang chủ */
+        .trangchu {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            font-size: 18px;
+            color: #000000;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .trangchu:hover {
+            transform: translateY(-50%) scale(1.1);
+            color: #a3a6c2;
+        }
+
+        .trangchu i {
+            font-size: 20px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <button class="trangchu" onclick="window.location.href='/'">
+            <i class="fas fa-home"></i>
+            Trang chủ</button>
+        <h1>🚘 Hệ thống Hỗ trợ Lái xe Thông minh</h1>
+    </header>
+
+
+    <!-- //////////////////////////////////////////////////////////////////////////////////////////////////// -->
+    <div class="button-container">
+        <button onclick="showSection('driver')">👤⚠️ Giám sát tài xế</button>
+        <button onclick="showSection('traffic')">🚧🚦 Cảnh báo biển báo</button>
+        <button onclick="showSection('sign')">🚗 Lưu lượng giao thông</button>
+        <button onclick="showSection('vacham')"> 💥↔️Cảnh báo va chạm và lệch làn </button>
+        <button id="start-voice"><i class="fa-solid fa-microphone"></i> Bật giọng
+            nói</button>
+        <button id="stop-voice" style="display:none;">🔇 Tắt giọng nói</button>
+        <p id="voice-output"></p>
+    </div>
+
+    <div id="img" class="anh_img">
+        <img src="https://scontent.fhan7-1.fna.fbcdn.net/v/t1.15752-9/495263334_1053352123425696_5101938831418618148_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_ohc=F5lP8p2ZvkUQ7kNvwGiBnHt&_nc_oc=AdmmGeMNUmVj5AnrAVvJEub3EZC-xuM5E-E_c2c_APlARErMAUp_V3cQ1dUbgUaTE-E&_nc_zt=23&_nc_ht=scontent.fhan7-1.fna&oh=03_Q7cD2QFToqpkZ6eggznDjgrVvw8a1vlvvTosU3VPa_fJSEU0aA&oe=685EB78B"
+            alt="Mô tả" width="1250" height="760">
+    </div>
+    <!-- ////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+    <!-- Driver Monitoring -->
+    <div id="driver" class="section">
+        <h2>👤 Giám sát tài xế</h2>
+        <p>Hệ thống sử dụng camera để giám sát tình trạng buồn ngủ, ngáp, không thắt dây an toàn, sử dụng điện
+            thoại...
+        </p>
+        <div class="container">
+            <div class="video-container">
+                <img id="video-feed-driver" class="video-feed" src="" alt="Camera tài xế">
+            </div>
+            <div class="alert-panel">
+                <h2>CẢNH BÁO</h2>
+
+                <div class="warning-with-toggle">
+                    <div id="eye-warning-driver" class="warning-item no-warning">Mắt: Bình thường</div>
+                    <input type="checkbox" class="switch-toggle" id="eye-warning-toggle" checked>
+                </div>
+
+                <div class="warning-with-toggle">
+                    <div id="yawn-warning-driver" class="warning-item no-warning">Ngáp: Bình thường</div>
+                    <input type="checkbox" class="switch-toggle" id="yawn-warning-toggle" checked>
+                </div>
+
+                <div class="warning-with-toggle">
+                    <div id="head-warning-driver" class="warning-item no-warning">Đầu: Bình thường</div>
+                    <input type="checkbox" class="switch-toggle" id="head-warning-toggle" checked>
+                </div>
+
+                <div class="warning-with-toggle">
+                    <div id="phone-warning-driver" class="warning-item no-warning">Điện thoại: Bình thường</div>
+                    <input type="checkbox" class="switch-toggle" id="phone-warning-toggle" checked>
+                </div>
+
+                <div class="warning-with-toggle">
+                    <div id="seatbelt-warning-driver" class="warning-item no-warning">Dây an toàn: Bình thường</div>
+                    <input type="checkbox" class="switch-toggle" id="seatbelt-warning-toggle" checked>
+                </div>
+
+                <div class="warning-with-toggle">
+                    <div id="hand-warning-driver" class="warning-item no-warning">Tay lái: Bình thường</div>
+                    <input type="checkbox" class="switch-toggle" id="hand-warning-toggle" checked>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="status-panel">
+            <h3>THÔNG TIN HỆ THỐNG</h3>
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="label">Thời gian hoạt động </div>
+                    <div class="haicham"> : </div>
+                    <div class="value" id="uptime-driver">00:00:00</div>
+                </div>
+                <div class="status-item">
+                    <div class="label">Trạng thái ghi hình </div>
+                    <div class="haicham"> : </div>
+                    <div class="value" id="recording-status-driver">Không ghi hình</div>
+                </div>
+            </div>
+        </div>
+        <div class="controls">
+            <button onclick="startRecording('driver')">Bắt đầu ghi hình</button>
+            <button onclick="stopRecording('driver')">Dừng ghi hình</button>
+            <button class="stop-button" onclick="stopMonitoring()">⛔ Dừng giám sát</button>
+        </div>
+    </div>
+
+
+    <!-- Traffic Analysis //////////////////////////////////////////////// -->
+    <div id="traffic" class="section">
+        <h2>🚧 Cảnh báo biển báo giao thông</h2>
+        <p>Nhận diện biển báo như tốc độ, cấm rẽ... từ hình ảnh phía trước xe để cảnh báo kịp thời.</p>
+        <div class="container">
+            <div class="video-container">
+                <img id="video-feed-traffic" class="video-feed" src="" alt="Camera biển báo">
+            </div>
+            <div class="alert-panel">
+                <h2>CẢNH BÁO</h2>
+                <div id="sign-warning-traffic" class="warning-item no-warning">Biển báo: Không có</div>
+            </div>
+        </div>
+        <div class="status-panel">
+            <h3>THÔNG TIN HỆ THỐNG</h3>
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="label">Thời gian hoạt động </div>
+                    <div class="haicham"> : </div>
+                    <div class="value" id="uptime-traffic">00:00:00</div>
+                </div>
+                <div class="status-item">
+                    <div class="label">Trạng thái ghi hình </div>
+                    <div class="haicham"> : </div>
+                    <div class="value" id="recording-status-traffic">Không ghi hình</div>
+                </div>
+            </div>
+        </div>
+        <div class="controls">
+            <button onclick="startRecording('traffic')">Bắt đầu ghi hình</button>
+            <button onclick="stopRecording('traffic')">Dừng ghi hình</button>
+            <button class="stop-button" onclick="stopMonitoring()">⛔ Dừng giám sát</button>
+        </div>
+    </div>
+
+    <!-- Lưu lượng giao thông  ///////////////////////////////////////////////////////////////////-->
+    <div id="sign" class="section">
+        <h2>🚗 Phân tích lưu lượng giao thông</h2>
+        <p>Phân tích số lượng xe cộ trên một đoạn đường để cảnh báo kẹt xe, đông đúc...</p>
+
+        <div class="app">
+            <div class="header-frame">
+                <div class="iframe-container">
+                    <a class="location-icon1" onclick="changeRegionPoints('single')">
+                        <i class="fa-solid fa-location-dot"></i>Hà Nội
+                    </a>
+                    <a class="location-icon2" onclick="changeRegionPoints('multiple')">
+                        <i class="fa-solid fa-location-dot"></i>Hà Đông
+                    </a>
+                    <a class="location-icon3" onclick="changeRegionPoints('thanhxuan')">
+                        <i class="fa-solid fa-location-dot"></i>Thanh Xuân
+                    </a>
+                    <a class="location-icon4" onclick="changeRegionPoints('ngatuso')">
+                        <i class="fa-solid fa-location-dot"></i>Ngã tư sở
+                    </a>
+                    <iframe
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d10145.722427221333!2d105.79770704728345!3d20.98546951307521!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135acc6bdc7f95f%3A0x58ffc66343a45247!2zVHLGsOG7nW5nIMSQ4bqhaSBo4buNYyBDw7RuZyBuZ2jhu4cgR2lhbyB0aMO0bmcgVuG6rW4gdOG6o2k!5e1!3m2!1svi!2s!4v1747758021598!5m2!1svi!2s"
+                        width="640" height="480" style="border:0;" allowfullscreen="" loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                </div>
+                <div class="video-container">
+                    <img id="video-feed-sign" class="video-feed" src="" alt="Camera giao thông">
+                </div>
+            </div>
+            <div class="container">
+
+                <div class="stats-container">
+                    <h2>Thống kê lưu lượng giao thông</h2>
+                    <div class="time-display">
+                        Thời gian: <span id="current-time"></span>
+                    </div>
+
+                    <div class="traffic-status" id="traffic-status">
+                        <span class="status-icon normal"></span>
+                        <span id="status-message">Giao thông thông thoáng, di chuyển bình thường</span>
+                    </div>
+
+                    <div class="stats-box">
+                        <div class="stats-title">Tổng số xe hiện tại</div>
+                        <div class="stats-value" id="total-vehicles">0</div>
+                    </div>
+
+                    <div class="stats-box_region">
+                        <div class="stats-title">Thống kê theo khu vực</div>
+                        <div class="region-stats" id="region-stats">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="status-panel">
+                <h3>THÔNG TIN HỆ THỐNG</h3>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <div class="label">Thời gian hoạt động</div>
+                        <div class="haicham">:</div>
+                        <div class="value" id="uptime-sign">00:00:00</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="label">Trạng thái ghi hình</div>
+                        <div class="haicham">:</div>
+                        <div class="value" id="recording-status-sign">Không ghi hình</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button onclick="startRecording('sign')">Bắt đầu ghi hình</button>
+                <button onclick="stopRecording('sign')">Dừng ghi hình</button>
+                <button class="stop-button" onclick="stopMonitoring()">⛔ Dừng tra cứu</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="vacham" class="section">
+        <h2>🚗 Cảnh báo va chạm và lệch làn</h2>
+        <p>Cảnh báo tài xế khi xe có nguy cơ đâm vào phương tiện phía trước do không giữ khoảng cách an toàn.</p>
+        <p>Nhắc nhở lệch làn hoặc thông báo khi xe rời khỏi làn đường một cách không chủ ý.</p>
+        <div class="container">
+            <div class="video-container">
+                <img id="video-feed-vacham" class="video-feed" src="" alt="Camera va chạm">
+            </div>
+            <div class="alert-panel">
+                <h2>CẢNH BÁO</h2>
+                <div id="collision-warning-vacham" class="warning-item no-warning">Va chạm: Không có</div>
+                <div id="lane-warning-vacham" class="warning-item no-warning">Lệch làn: Không có</div>
+            </div>
+        </div>
+        <div class="status-panel">
+            <h3>THÔNG TIN HỆ THỐNG</h3>
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="label">Thời gian hoạt động</div>
+                    <div class="haicham">:</div>
+                    <div class="value" id="uptime-vacham">00:00:00</div>
+                </div>
+                <div class="status-item">
+                    <div class="label">Trạng thái ghi hình</div>
+                    <div class="haicham">:</div>
+                    <div class="value" id="recording-status-vacham">Không ghi hình</div>
+                </div>
+            </div>
+        </div>
+        <div class="controls">
+            <button onclick="startRecording('vacham')">Bắt đầu ghi hình</button>
+            <button onclick="stopRecording('vacham')">Dừng ghi hình</button>
+            <button class="stop-button" onclick="stopMonitoring()">⛔ Dừng giám sát</button>
+        </div>
+    </div>
+
+
+
+    <audio id="alert-audio">
+        <source src="{{ url_for('static', filename='alert.mp3') }}" type="audio/mpeg">
+    </audio>
+
+    <script>
+        let warningInterval = null;
+        let currentSectionId = null;
+        let startTimes = {
+            driver: Date.now(),
+            sign: Date.now(),
+            traffic: Date.now(),
+            vacham: Date.now()
+        };
+
+        // Khởi tạo trạng thái cho tất cả các cảnh báo
+        let warningStates = {
+            eye: true,
+            yawn: true,
+            head: true,
+            phone: true,
+            seatbelt: true,
+            hand: true
+        };
+
+        // Cập nhật thời gian hoạt động cho tất cả các section mỗi giây
+        setInterval(() => {
+            const sections = ['driver', 'sign', 'traffic', 'vacham'];
+            sections.forEach(sectionId => {
+                const uptimeElement = document.getElementById(`uptime-${sectionId}`);
+                if (uptimeElement) {
+                    const now = Date.now();
+                    const diff = now - startTimes[sectionId];
+                    const hours = Math.floor(diff / 3600000);
+                    const minutes = Math.floor((diff % 3600000) / 60000);
+                    const seconds = Math.floor((diff % 60000) / 1000);
+                    uptimeElement.textContent =
+                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            });
+        }, 1000);
+
+        // Hàm xử lý chung cho tất cả các toggle switch
+        function handleWarningToggle(warningType, e) {
+            warningStates[warningType] = e.target.checked;
+            const warningContainer = e.target.closest('.warning-with-toggle');
+            const warningElement = document.getElementById(`${warningType}-warning-driver`);
+
+            fetch('/toggle_warning', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    warning_type: warningType,
+                    enabled: warningStates[warningType]
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        if (!warningStates[warningType]) {
+                            warningElement.textContent = `${warningType.charAt(0).toUpperCase() + warningType.slice(1)}: Cảnh báo đã tắt`;
+                            warningElement.classList.add('no-warning');
+                            warningElement.classList.remove('warning');
+                        }
+                    } else {
+                        console.error(`Error toggling ${warningType} warning:`, data.message);
+                        e.target.checked = !warningStates[warningType];
+                        warningStates[warningType] = !warningStates[warningType];
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    e.target.checked = !warningStates[warningType];
+                    warningStates[warningType] = !warningStates[warningType];
+                });
+        }
+
+        // Thêm event listeners cho tất cả các toggle switch
+        document.getElementById('eye-warning-toggle').addEventListener('change', (e) => handleWarningToggle('eye', e));
+        document.getElementById('yawn-warning-toggle').addEventListener('change', (e) => handleWarningToggle('yawn', e));
+        document.getElementById('head-warning-toggle').addEventListener('change', (e) => handleWarningToggle('head', e));
+        document.getElementById('phone-warning-toggle').addEventListener('change', (e) => handleWarningToggle('phone', e));
+        document.getElementById('seatbelt-warning-toggle').addEventListener('change', (e) => handleWarningToggle('seatbelt', e));
+        document.getElementById('hand-warning-toggle').addEventListener('change', (e) => handleWarningToggle('hand', e));
+
+        // Đảm bảo tất cả các toggle switch được bật mặc định khi trang được tải
+        window.onload = function () {
+            // Ẩn tất cả các section
+            document.querySelectorAll('.section').forEach(sec => sec.style.display = 'none');
+
+            // Hiển thị ảnh mặc định
+            const img = document.getElementById('img');
+            if (img) {
+                img.style.display = 'block';
+            }
+
+            // Bật tất cả các toggle switch
+            const toggleSwitches = document.querySelectorAll('.switch-toggle');
+            toggleSwitches.forEach(toggle => {
+                toggle.checked = true;
+            });
+
+            // Khởi động nhận diện giọng nói
+            if (recognition) {
+                recognition.start();
+            }
+        };
+
+        function updateStats() {
+            fetch('/get_stats')
+                .then(response => response.json())
+                .then(data => {
+                    // Cập nhật tổng số xe
+                    document.getElementById('total-vehicles').textContent = data.total_vehicles;
+
+                    // Cập nhật thống kê theo khu vực
+                    const regionStats = document.getElementById('region-stats');
+                    regionStats.innerHTML = '';
+
+                    data.region_details.forEach((region, index) => {
+                        const regionItem = document.createElement('div');
+                        regionItem.className = 'region-item';
+                        regionItem.innerHTML = `
+                            <div class="region-title">Khu vực ${index + 1}</div>
+                            <div class="vehicle-count car">
+                                <span>Ô tô:</span>
+                                <span>${region.car}</span>
+                            </div>
+                            <div class="vehicle-count motorcycle">
+                                <span>Xe máy:</span>
+                                <span>${region.motorcycle}</span>
+                            </div>
+                            <div class="vehicle-count bus">
+                                <span>Xe buýt:</span>
+                                <span>${region.bus}</span>
+                            </div>
+                            <div class="vehicle-count truck">
+                                <span>Xe tải:</span>
+                                <span>${region.truck}</span>
+                            </div>
+                            <div class="total-count">
+                                Tổng: ${region.total}
+                            </div>
+                        `;
+                        regionStats.appendChild(regionItem);
+                    });
+
+                    // Cập nhật trạng thái giao thông
+                    const statusElement = document.getElementById('traffic-status');
+                    const statusMessage = document.getElementById('status-message');
+                    const statusIcon = document.querySelector('.status-icon');
+
+                    // Xóa tất cả các class cũ
+                    statusElement.className = 'traffic-status';
+                    statusIcon.className = 'status-icon';
+
+                    // Thêm class mới dựa trên trạng thái từ backend
+                    statusElement.classList.add(data.traffic_status.level);
+                    statusIcon.classList.add(data.traffic_status.level);
+                    statusMessage.textContent = data.traffic_status.message;
+                });
+        }
+
+        // Cập nhật thống kê mỗi giây
+        setInterval(updateStats, 1000);
+        // Cập nhật ngay khi trang được tải
+        updateStats();
+
+        function showSection(sectionId) {
+            // Ẩn tất cả
+            document.querySelectorAll('.section').forEach(sec => sec.style.display = 'none');
+
+            // Ẩn ảnh
+            const img = document.getElementById('img');
+            if (img) {
+                img.style.display = 'none';
+            }
+
+            // Hiện phần được chọn
+            const section = document.getElementById(sectionId);
+            section.style.display = 'block';
+            currentSectionId = sectionId;
+
+            // Gửi mode lên server
+            fetch('/set_mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode: sectionId })
+            }).then(() => startMonitoring(sectionId));
+        }
+
+        function startMonitoring(sectionId) {
+            const video = document.getElementById(`video-feed-${sectionId}`);
+            startTimes[sectionId] = Date.now();
+
+            let videoSrc = '';
+            if (sectionId === 'driver') {
+                videoSrc = '/video_driver';
+            } else if (sectionId === 'sign') {
+                videoSrc = '/video_sign';
+            } else if (sectionId === 'traffic') {
+                videoSrc = '/video_traffic';
+            } else if (sectionId === 'vacham') {
+                videoSrc = '/video_vacham';
+            }
+
+            video.src = videoSrc + '?ts=' + new Date().getTime();
+
+            // Cập nhật thời gian và cảnh báo
+            if (!warningInterval) {
+                warningInterval = setInterval(() => {
+                    updateUptime(sectionId);
+                    updateWarnings(sectionId);
+                }, 1000);
+            }
+        }
+
+        function updateUptime(sectionId) {
+            const now = Date.now();
+            const diff = now - startTimes[sectionId];
+            const hours = Math.floor(diff / 3600000);
+            const minutes = Math.floor((diff % 3600000) / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+            const uptimeElement = document.getElementById(`uptime-${sectionId}`);
+            if (uptimeElement) {
+                uptimeElement.textContent =
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+
+        function updateWarnings(sectionId) {
+            fetch('/get_warnings')
+                .then(response => response.json())
+                .then(warnings => {
+                    if (sectionId === 'driver') {
+                        updateWarningItem(`eye-warning-${sectionId}`, warnings.eye, 'Mắt');
+                        updateWarningItem(`yawn-warning-${sectionId}`, warnings.yawn, 'Ngáp');
+                        updateWarningItem(`head-warning-${sectionId}`, warnings.head, 'Đầu');
+                        updateWarningItem(`phone-warning-${sectionId}`, warnings.phone, 'Điện thoại');
+                        updateWarningItem(`seatbelt-warning-${sectionId}`, warnings.seatbelt, 'Dây an toàn');
+                        updateWarningItem(`hand-warning-${sectionId}`, warnings.hand, 'Tay lái');
+                    } else if (sectionId === 'sign') {
+                        updateWarningItem(`traffic-warning-${sectionId}`, warnings.traffic, 'Lưu lượng');
+                        updateWarningItem(`congestion-warning-${sectionId}`, warnings.congestion, 'Kẹt xe');
+                    } else if (sectionId === 'traffic') {
+                        updateWarningItem(`sign-warning-${sectionId}`, warnings.sign, 'Biển báo');
+                    } else if (sectionId === 'vacham') {
+                        updateWarningItem(`collision-warning-${sectionId}`, warnings.collision, 'Va chạm');
+                        updateWarningItem(`lane-warning-${sectionId}`, warnings.lane, 'Lệch làn');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching warnings:', error);
+                });
+        }
+
+        function updateWarningItem(elementId, warning, type) {
+            const element = document.getElementById(elementId);
+            if (!element) {
+                console.error(`Element not found: ${elementId}`);
+                return;
+            }
+
+            if (warning) {
+                element.textContent = `${type}: ${warning}`;
+                element.classList.remove('no-warning');
+                element.classList.add('warning');
+                // Thêm hiệu ứng nhấp nháy cho cảnh báo tay lái
+                if (type === 'Tay lái') {
+                    element.style.animation = 'pulse 1s infinite';
+                    element.style.backgroundColor = '#ffebee';
+                }
+            } else {
+                element.textContent = `${type}: Bình thường`;
+                element.classList.add('no-warning');
+                element.classList.remove('warning');
+                // Xóa hiệu ứng nhấp nháy
+                if (type === 'Tay lái') {
+                    element.style.animation = 'none';
+                    element.style.backgroundColor = '';
+                }
+            }
+        }
+
+        function startRecording(sectionId) {
+            fetch('/start_recording')
+                .then(response => response.text())
+                .then(data => {
+                    console.log(data);
+                    document.getElementById(`recording-status-${sectionId}`).textContent = 'Đang ghi hình';
+                });
+        }
+
+        function stopRecording(sectionId) {
+            fetch('/stop_recording')
+                .then(response => response.text())
+                .then(data => {
+                    console.log(data);
+                    document.getElementById(`recording-status-${sectionId}`).textContent = 'Không ghi hình';
+                });
+        }
+
+        function stopMonitoring() {
+            if (!currentSectionId) return;
+
+            // Ẩn phần hiện tại
+            const section = document.getElementById(currentSectionId);
+            section.style.display = 'none';
+
+            // Hiển thị ảnh
+            const img = document.getElementById('img');
+            if (img) {
+                img.style.display = 'block';
+            }
+
+            // Xóa src video
+            const video = document.getElementById(`video-feed-${currentSectionId}`);
+            if (video) {
+                video.src = '';
+            }
+
+            // Dừng camera backend
+            fetch('/stop_camera');
+
+            // Dừng cảnh báo nếu đang chạy
+            if (warningInterval) {
+                clearInterval(warningInterval);
+                warningInterval = null;
+            }
+
+            currentSectionId = null;
+        }
+
+        // Cập nhật cảnh báo mỗi 500ms thay vì 1000ms
+        setInterval(() => {
+            if (currentSectionId) {
+                updateWarnings(currentSectionId);
+            }
+        }, 500);
+
+        function updateCurrentTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleString();
+        }
+        // Cập nhật thời gian mỗi giây
+        setInterval(updateCurrentTime, 1000);
+        updateCurrentTime(); // Cập nhật ngay lập tức
+
+
+        // thay đổi cam và vùng làn đường 
+        function changeRegionPoints(type) {
+            // Dừng video hiện tại
+            const videoFeed = document.getElementById('video-feed-sign');
+            if (videoFeed) {
+                videoFeed.src = '';
+            }
+
+            // Hiển thị thông báo đang xử lý
+            const statusMessage = document.getElementById('status-message');
+            if (statusMessage) {
+                statusMessage.textContent = 'Đang chuyển đổi video...';
+            }
+
+            // Gửi request đến server
+            fetch('/change_region_points', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ type: type })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Đợi một chút để đảm bảo server đã xử lý xong
+                        setTimeout(() => {
+                            // Reload the video feed
+                            if (videoFeed) {
+                                videoFeed.src = '/video_sign?ts=' + new Date().getTime();
+                            }
+                            if (statusMessage) {
+                                statusMessage.textContent = 'Giao thông thông thoáng, di chuyển bình thường';
+                            }
+                        }, 1000);
+                    } else {
+                        console.error('Error:', data.message);
+                        alert('Có lỗi xảy ra: ' + data.message);
+                        if (statusMessage) {
+                            statusMessage.textContent = 'Có lỗi xảy ra khi chuyển đổi video';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra khi chuyển đổi video');
+                    if (statusMessage) {
+                        statusMessage.textContent = 'Có lỗi xảy ra khi chuyển đổi video';
+                    }
+                });
+        }
+
+
+
+
+        const startBtn = document.getElementById('start-voice');
+        const stopBtn = document.getElementById('stop-voice');
+        const voiceOutput = document.getElementById('voice-output');
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+
+        recognition.lang = 'vi-VN';
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 1;
+
+        let isListening = false;
+
+        recognition.onstart = () => {
+            isListening = true;
+            voiceOutput.textContent = "🎧 Đang lắng nghe...";
+            startBtn.style.display = "none";
+            stopBtn.style.display = "inline-block";
+        };
+
+        recognition.onend = () => {
+            if (isListening) {
+                // Tự động restart ngay lập tức nếu vẫn đang lắng nghe
+                setTimeout(() => {
+                    recognition.start();
+                }, 100);
+            } else {
+                voiceOutput.textContent = "🔇 Đã dừng lắng nghe.";
+            }
+        };
+
+        recognition.onresult = (event) => {
+            let transcript = "";
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                transcript += event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    voiceOutput.textContent = `🗣 Lệnh: ${transcript.trim()}`;
+                    transcript = transcript.trim().toLowerCase();
+
+                    // Xử lý lệnh ngay lập tức
+                    if (transcript.includes("mở giám sát tài xế")) {
+                        showSection('driver');
+                    } else if (transcript.includes("mở biển báo giao thông") || transcript.includes("cảnh báo")) {
+                        showSection('traffic');
+                    } else if (transcript.includes("mở lưu lượng giao thông") ||
+                        transcript.includes("mở lưu lượng") ||
+                        transcript.includes("lưu lượng giao thông") ||
+                        transcript.includes("xem lưu lượng")) {
+                        showSection('sign');
+                    } else if (transcript.includes("mở va chạm") ||
+                        transcript.includes("mở cảnh báo va chạm") ||
+                        transcript.includes("mở lệch làn") ||
+                        transcript.includes("mở cảnh báo lệch làn") ||
+                        transcript.includes("mở va chạm và lệch làn")) {
+                        showSection('vacham');
+                    } else if (transcript.includes("dừng lại")) {
+                        stopMonitoring();
+                    } else if (transcript.includes("tắt mic")) {
+                        stopVoiceRecognition();
+                    } else if (transcript.includes("hà nội")) {
+                        changeRegionPoints('single');
+                    } else if (transcript.includes("hà đông")) {
+                        changeRegionPoints('multiple');
+                    } else if (transcript.includes("thanh xuân")) {
+                        changeRegionPoints('thanhxuan');
+                    } else if (transcript.includes("ngã tư sở")) {
+                        changeRegionPoints('ngatuso');
+                    }
+
+
+                }
+            }
+        };
+
+        // Thêm xử lý lỗi để tự động khởi động lại nếu có vấn đề
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            if (isListening) {
+                setTimeout(() => {
+                    recognition.start();
+                }, 100);
+            }
+        };
+
+        function stopVoiceRecognition() {
+            if (recognition && isListening) {
+                recognition.stop();
+                isListening = false;
+                startBtn.style.display = "inline-block";
+                stopBtn.style.display = "none";
+            }
+        }
+
+        // Thêm event listeners cho nút bật/tắt giọng nói
+        startBtn.addEventListener("click", () => {
+            if (!isListening) {
+                recognition.start();
+            }
+        });
+
+        stopBtn.addEventListener("click", () => {
+            isListening = false;
+            recognition.stop();
+            startBtn.style.display = "inline-block";
+            stopBtn.style.display = "none";
+        });
+    </script>
+
+</body>
+
+</html>

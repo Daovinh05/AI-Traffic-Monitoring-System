@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Giám Sát & Hỗ Trợ</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; background-color: #f4f4f4; overflow: hidden; }
+
+        /* --- SIDEBAR --- */
+        #sidebar { width: 380px; background: white; display: flex; flex-direction: column; box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 2; }
+        .header { background: #2c3e50; color: white; padding: 15px; text-align: center; }
+        .vehicle-list { padding: 10px; overflow-y: auto; flex: 1; }
+        .vehicle-item { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin-bottom: 10px; cursor: pointer; display: flex; align-items: center; transition: 0.2s; }
+        .vehicle-item:hover { background: #f1f1f1; border-color: #007bff; }
+        .vehicle-item.active { border-left: 5px solid #007bff; background: #eef7ff; }
+        .vehicle-icon-preview { width: 40px; height: 40px; margin-right: 15px; opacity: 0.9; }
+
+        /* --- MAP & POPUP --- */
+        #map { flex: 1; height: 100%; z-index: 1; }
+        .leaflet-popup-content-wrapper { border-radius: 8px; width: 350px; }
+        .leaflet-popup-content { margin: 15px; line-height: 1.6; }
+        .info-row { margin-bottom: 5px; font-size: 14px; border-bottom: 1px dashed #eee; padding-bottom: 5px; }
+        .status-tag { padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; color: white; }
+        .tag-run { background-color: #28a745; }
+        .tag-stop { background-color: #dc3545; }
+        .location-highlight { color: #d63031; font-weight: bold; }
+        .section-title { margin-top: 15px; margin-bottom: 5px; font-weight: bold; color: #e74c3c; font-size: 13px; text-transform: uppercase; }
+        .placeholder-img { width: 100%; height: 120px; background-color: #eee; border: 1px solid #ccc; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #777; font-size: 12px; object-fit: cover; margin-bottom: 5px; }
+        .popup-video { width: 100%; height: 150px; background: #000; border-radius: 4px; object-fit: cover; margin-bottom: 5px; }
+        .eta-box { background-color: #e2e6ea; padding: 8px; border-radius: 5px; margin: 10px 0; font-size: 13px; color: #333; border-left: 4px solid #007bff; }
+
+        /* --- MODAL HỒ SƠ TÀI XẾ --- */
+        #driverModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); z-index: 9000; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 900px; max-width: 90%; max-height: 90vh; border-radius: 10px; overflow-y: auto; position: relative; box-shadow: 0 5px 20px rgba(0,0,0,0.3); animation: slideDown 0.3s ease-out; }
+        @keyframes slideDown { from {transform: translateY(-50px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 30px; font-weight: bold; color: white; cursor: pointer; z-index: 100; }
+        .profile-header { background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 30px; display: flex; align-items: center; }
+        .avatar { width: 100px; height: 100px; border-radius: 50%; border: 4px solid white; object-fit: cover; margin-right: 20px; background: #eee;}
+        .btn-action { padding: 8px 15px; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; margin-right: 5px; margin-top: 10px; }
+        .btn-call { background: #28a745; color: white; }
+        .btn-msg { background: white; color: #007bff; }
+        .modal-body { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }
+        .info-list { list-style: none; padding: 0; }
+        .info-list li { padding: 8px 0; border-bottom: 1px dashed #ccc; display: flex; justify-content: space-between; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; }
+        th { background: #e9ecef; }
+
+        /* --- CHAT WIDGET --- */
+        #chatWidget {
+            display: none;
+            position: fixed; bottom: 20px; right: 20px;
+            width: 350px; height: 450px;
+            background: white; border-radius: 10px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+            z-index: 10000;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #ddd;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .chat-header {
+            background-color: #0056b3;
+            color: white; padding: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .chat-header-title { font-weight: bold; font-size: 16px; }
+        .chat-header-sub { font-size: 12px; opacity: 0.9; margin-top: 2px; }
+        .chat-close { cursor: pointer; font-size: 20px; }
+
+        .chat-body {
+            flex: 1; padding: 15px; background: #f9f9f9; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+
+        .msg-system {
+            background: #e9ecef; color: #333; padding: 10px;
+            border-radius: 10px; font-size: 13px; max-width: 85%; align-self: flex-start;
+        }
+        .msg-user {
+            background: #007bff; color: white; padding: 10px;
+            border-radius: 10px; font-size: 13px; max-width: 85%; align-self: flex-end;
+        }
+        .start-btn {
+            background: #0056b3; color: white; border: none; padding: 8px 15px;
+            border-radius: 5px; cursor: pointer; margin-top: 10px; width: 100%; font-weight: bold;
+        }
+
+        .chat-footer {
+            padding: 10px; border-top: 1px solid #eee; background: white;
+            display: flex; align-items: center;
+        }
+        .chat-input {
+            flex: 1; border: 1px solid #ddd; padding: 10px; border-radius: 5px;
+            background: #f1f2f6; outline: none;
+        }
+        .chat-send-btn {
+            background: #0056b3; color: white; border: none;
+            width: 40px; height: 40px; border-radius: 5px; margin-left: 10px;
+            cursor: pointer; display: flex; justify-content: center; align-items: center;
+        }
+
+        /* --- FLOATING MESSAGE BUTTON --- */
+        #chatToggleBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: #0056b3;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 9999;
+            font-size: 24px;
+            transition: transform 0.2s, background 0.2s;
+        }
+        #chatToggleBtn:hover {
+            background: #007bff;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <div class="header">
+            <h3>Quản Lí Xe </h3>
+            <small>Cập nhật lúc: <span id="clock">--:--:--</span></small>
+        </div>
+        <div class="vehicle-list" id="vehicleList"></div>
+    </div>
+
+    <div id="map"></div>
+
+    <div id="driverModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <div id="modalBodyContent"></div>
+        </div>
+    </div>
+
+    <!-- Floating Message Button -->
+    <div id="chatToggleBtn" onclick="toggleChat(true)">
+        <i class="fa-solid fa-comment-dots"></i>
+    </div>
+
+    <div id="chatWidget">
+        <div class="chat-header">
+            <div style="display: flex; align-items: center;">
+                <div style="background: white; color:#0056b3; width: 35px; height: 35px; border-radius: 50%; display:flex; align-items:center; justify-content:center; margin-right: 10px; font-weight:bold;">V</div>
+                <div>
+                    <div class="chat-header-title">Vietravel Supporter</div>
+                    <div class="chat-header-sub">Xin chào quý khách</div>
+                </div>
+            </div>
+            <div class="chat-close" onclick="toggleChat(false)">&times;</div>
+        </div>
+        <div class="chat-body" id="chatBody">
+            <div style="text-align: center; color: #999; font-size: 12px; margin-bottom: 10px;">Vietravel - Đã gửi vừa xong</div>
+            <div class="msg-system">
+                <div style="display:flex; gap:10px;">
+                    <div style="background:#007bff; color:white; width:25px; height:25px; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:12px;">V</div>
+                    <div>
+                        Xin chào quý khách! Vietravel Supporter có thể giúp gì cho quý khách?
+                        <button class="start-btn" onclick="addSystemMsg('Mời bạn nhập yêu cầu hỗ trợ hoặc gọi trực tiếp cho tài xế.')">Bắt đầu trò chuyện</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="chat-footer">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Nhập tin nhắn..." onkeypress="handleEnter(event)">
+            <button class="chat-send-btn" onclick="sendUserMsg()"><i class="fa-solid fa-paper-plane"></i> ➤</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        var map = L.map('map').setView([21.0285, 105.8542], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
+
+        var carIconUrl = "https://cdn-icons-png.flaticon.com/512/3202/3202926.png";
+        var busIconUrl = "bus1.png";
+        var CarIcon = L.icon({ iconUrl: carIconUrl, iconSize: [35, 35], iconAnchor: [17, 17], popupAnchor: [0, -10] });
+        var BusIcon = L.icon({ iconUrl: busIconUrl, iconSize: [35, 35], iconAnchor: [17, 17], popupAnchor: [0, -10] });
+
+        function calculateETA(km, speed) {
+            if (speed <= 0) return "Không xác định";
+            var hours = km / speed; var minutes = Math.round(hours * 60);
+            if (minutes < 60) return `${minutes} phút`;
+            return `${Math.floor(minutes / 60)} giờ ${minutes % 60} phút`;
+        }
+
+        const vehicles = [
+            { id: 1, plate: "29A-111.11", type: "car", driver: "Nguyễn Văn Đức", phone: "0901.123.456", age: 45, license: "Hạng E", experience: "10 năm", passengers: 4, capacity: 7, status: 1, speed: 45, remainingKm: 12.5, currentAddress: "Võ Chí Công", route: "Nội Bài -> Võ Chí Công -> Đào Tấn", lat: 21.0450, lng: 105.8100, imgVehicle: "https://hyundaingocan.com/wp-content/uploads/2022/09/bien-so-xe-phong-thuy-3.jpg", imgDashcam: "https://via.placeholder.com/300x150?text=Cam+Car+1", videoDashcam: "1.mp4", imgDriver: "https://randomuser.me/api/portraits/men/32.jpg", schedule: [{ date: "09/12", time: "07:00", route: "Hà Nội - Hạ Long", status: "Sắp chạy" }] },
+            { id: 2, plate: "29B-222.22", type: "bus", driver: "Trần Văn Hoan", phone: "0909.888.999", age: 38, license: "Hạng D", experience: "8 năm", passengers: 35, capacity: 45, status: 0, speed: 0, remainingKm: 5, currentAddress: "Bến xe Mỹ Đình (Cổng ra)", route: "BX Mỹ Đình -> Phạm Hùng -> BX Yên Nghĩa", lat: 21.0300, lng: 105.7800, imgVehicle: "https://xekhachhanoi.com/files/sanpham/238/1/jpg/xe-khach-ha-noi-dien-bien.jpg", imgDashcam: "https://via.placeholder.com/300x150?text=Cam+Bus+2", videoDashcam: "5.mp4", imgDriver: "https://randomuser.me/api/portraits/men/50.jpg", schedule: [{ date: "09/12", time: "10:30", route: "Mỹ Đình - Hải Phòng", status: "Đang xếp khách" }] },
+            { id: 3, plate: "30E-333.33", type: "car", driver: "Lê Thị Đào", passengers: 2, capacity: 4, status: 1, speed: 30, remainingKm: 6, currentAddress: "Minh Khai", route: "Times City -> Cầu Vĩnh Tuy", lat: 21.0000, lng: 105.8600, imgVehicle: "https://hyundaingocan.com/wp-content/uploads/2022/09/bien-so-xe-phong-thuy-5.jpg", imgDashcam: "https://via.placeholder.com/300x150?text=Cam+Car+3", videoDashcam: "2.mp4", imgDriver: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", schedule: [] },
+            { id: 4, plate: "29H-444.44", type: "car", driver: "Phạm Văn Dũng", passengers: 1, capacity: 4, status: 1, speed: 50, remainingKm: 25, currentAddress: "Ngã tư Sở", route: "Royal City -> Tây Sơn", lat: 21.0050, lng: 105.8150, imgVehicle: "https://img.otofun.net/upload/v6/2019/10/02/3858085-690363-581cdd09-f0aa-437d-a080-7e907f6fdd7c-tht3nxxwtmpjakmm89dr.jpeg", imgDashcam: "https://via.placeholder.com/300x150?text=Cam+Car+4", videoDashcam: "3.mp4", imgDriver: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", schedule: [] },
+            { id: 5, plate: "15B-555.55", type: "bus", driver: "Hoàng Văn Việt", passengers: 12, capacity: 16, status: 1, speed: 40, remainingKm: 60, currentAddress: "Cao tốc 5B", route: "Hải Phòng -> BX Nước Ngầm", lat: 20.9800, lng: 105.8500, imgVehicle: "https://otoanphuoc.com/uploads/noidung/images/sanpham/Xe%20khach/Daewoo-29cho-g8/xe-khach-daewoo-29-cho-g8-mau-do-tuoi-moi.jpg", imgDashcam: "https://via.placeholder.com/300x150?text=Cam+Bus+5", videoDashcam: "bus2.mp4", imgDriver: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", schedule: [] },
+            { id: 6, plate: "30G-666.66", type: "car", driver: "Vũ Thị Hồng", passengers: 3, capacity: 5, status: 1, speed: 40, remainingKm: 3.2, currentAddress: "Phủ Tây Hồ", route: "Hồ Tây -> Lăng Bác", lat: 21.0400, lng: 105.8350, imgVehicle: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQi3qcBRcyTncZy9_qSPdpkb1SKWwxwrTKz7g&s", imgDashcam: "https://via.placeholder.com/300x150?text=Cam+Car+6", videoDashcam: "4.mp4", imgDriver: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", schedule: [] },
+            { id: 7, plate: "29LD-777.77", type: "bus", driver: "Công ty Travel", passengers: 40, capacity: 45, status: 1, speed: 60, remainingKm: 15, currentAddress: "Cầu Chương Dương", route: "Nhà Hát Lớn -> Bát Tràng", lat: 21.0250, lng: 105.8600, imgVehicle: "https://motogo.vn/wp-content/uploads/2022/04/xe-khach-ha-noi-sapa-19.jpg", imgDashcam: "https://via.placeholder.com/300x150?text=Cam+Bus+7", videoDashcam: "bus3.mp4", imgDriver: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", schedule: [] },
+        ];
+
+        const markers = {};
+
+        function initSystem() {
+            const listContainer = document.getElementById('vehicleList');
+
+            vehicles.forEach(vehicle => {
+                let iconObj = (vehicle.type === 'car') ? CarIcon : BusIcon;
+                let iconImgUrl = (vehicle.type === 'car') ? carIconUrl : busIconUrl;
+                let typeName = (vehicle.type === 'car') ? "Xe Con" : "Xe Khách";
+                let statusText = vehicle.status === 1 ? "Đang chạy" : "Đang dừng";
+                let statusClass = vehicle.status === 1 ? "tag-run" : "tag-stop";
+
+                const item = document.createElement('div');
+                item.className = 'vehicle-item';
+                item.id = `item-${vehicle.id}`;
+                item.innerHTML = `
+                    <img src="${iconImgUrl}" class="vehicle-icon-preview">
+                    <div>
+                        <strong>${vehicle.plate}</strong> <span class="status-tag ${statusClass}">${statusText}</span><br>
+                        <small style="color:#666">${typeName} • ${vehicle.passengers}/${vehicle.capacity} khách</small>
+                    </div>
+                `;
+                item.onclick = () => focusVehicle(vehicle.id);
+                listContainer.appendChild(item);
+
+                const marker = L.marker([vehicle.lat, vehicle.lng], {icon: iconObj}).addTo(map);
+
+                let statusHtml = (vehicle.status === 1)
+                    ? `<div class="eta-box"><div><span class="status-tag tag-run">ĐANG CHẠY</span> - ${vehicle.speed} km/h</div><div style="margin-top:5px;">🏁 Cách đích: <b>${vehicle.remainingKm} km</b></div><div style="margin-top:2px;">⏱️ Dự kiến đến: <b>${calculateETA(vehicle.remainingKm, vehicle.speed)}</b> nữa</div></div>`
+                    : `<div class="eta-box" style="border-left-color: #dc3545;"><span class="status-tag tag-stop">ĐANG DỪNG</span><br><span style="font-size:12px; color:#666">Phương tiện đang tắt máy hoặc dừng đỗ.</span></div>`;
+
+                let mediaContent = (vehicle.videoDashcam && vehicle.videoDashcam.trim() !== "")
+                    ? `<video class="popup-video" autoplay muted loop controls><source src="${vehicle.videoDashcam}" type="video/mp4"></video>`
+                    : `<img src="${vehicle.imgDashcam}" class="placeholder-img" alt="Chưa có tín hiệu">`;
+
+                const popupContent = `
+                    <div style="font-size:16px; font-weight:bold; margin-bottom:5px; color:#007bff; text-align:center;">${vehicle.plate}</div>
+                    ${statusHtml}
+                    <div class="info-row"><strong>Vị trí:</strong> <span class="location-highlight">${vehicle.currentAddress}</span></div>
+                    <div class="info-row"><strong>Tài xế:</strong> ${vehicle.driver}</div>
+                    <div class="info-row"><strong>Lộ trình:</strong> ${vehicle.route}</div>
+                    <div style="text-align:center; margin: 10px 0;">
+                        <button onclick="openDriverModal(${vehicle.id})" style="background-color: #28a745; color: white; border:none; padding: 8px 15px; border-radius: 5px; cursor:pointer; font-weight:bold;">📄 Xem Hồ Sơ Tài Xế</button>
+                    </div>
+                    <div class="section-title">Hình ảnh phương tiện:</div>
+                    <img src="${vehicle.imgVehicle}" class="placeholder-img" alt="Chưa có ảnh">
+                    <div class="section-title">Camera hành trình:</div>
+                    ${mediaContent}
+                `;
+
+                marker.bindPopup(popupContent);
+                markers[vehicle.id] = marker;
+            });
+            simulateMovement();
+        }
+
+        function focusVehicle(id) {
+            const vehicle = vehicles.find(v => v.id === id);
+            if (vehicle) {
+                map.flyTo([vehicle.lat, vehicle.lng], 16);
+                markers[id].openPopup();
+                document.querySelectorAll('.vehicle-item').forEach(el => el.classList.remove('active'));
+                document.getElementById(`item-${id}`).classList.add('active');
+            }
+        }
+
+        function simulateMovement() {
+            setInterval(() => {
+                vehicles.forEach(vehicle => {
+                    if(vehicle.status === 1) {
+                        vehicle.lat += (Math.random() - 0.5) * 0.0004;
+                        vehicle.lng += (Math.random() - 0.5) * 0.0004;
+                        if(vehicle.remainingKm > 0) vehicle.remainingKm -= 0.01;
+                        if (markers[vehicle.id]) markers[vehicle.id].setLatLng(new L.LatLng(vehicle.lat, vehicle.lng));
+                    }
+                });
+            }, 1000);
+        }
+
+        // --- HÀM MODAL HỒ SƠ ---
+        function openDriverModal(id) {
+            const vehicle = vehicles.find(v => v.id === id);
+            if(!vehicle) return;
+
+            let scheduleRows = "";
+            if(vehicle.schedule && vehicle.schedule.length > 0) {
+                vehicle.schedule.forEach(trip => { scheduleRows += `<tr><td>${trip.date}</td><td>${trip.time}</td><td>${trip.route}</td><td class="st-ok">${trip.status}</td></tr>`; });
+            } else { scheduleRows = `<tr><td colspan="4" style="text-align:center; color:#999;">Chưa có lịch xuất bến.</td></tr>`; }
+
+            const content = `
+                <div class="profile-header">
+                    <img src="${vehicle.imgDriver || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" class="avatar">
+                    <div class="driver-info">
+                        <h2>${vehicle.driver}</h2>
+                        <p style="margin:5px 0 10px; opacity:0.9;">Biển số: <strong>${vehicle.plate}</strong></p>
+                        <button class="btn-action btn-call" onclick="alert('Đang gọi ${vehicle.phone || '...'}.')">📞 Gọi điện</button>
+                        <button class="btn-action btn-msg" onclick="toggleChat(true, '${vehicle.driver}')">💬 Nhắn tin hỗ trợ</button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="card">
+                        <h3>📋 Thông tin cá nhân</h3>
+                        <ul class="info-list">
+                            <li><strong>Họ tên:</strong> ${vehicle.driver}</li>
+                            <li><strong>SĐT:</strong> ${vehicle.phone || '...'}</li>
+                            <li><strong>Bằng lái:</strong> ${vehicle.license || 'Hạng E'}</li>
+                            <li><strong>Kinh nghiệm:</strong> ${vehicle.experience || '...'}</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h3>📅 Lịch trình sắp tới</h3>
+                        <table><thead><tr><th>Ngày</th><th>Giờ</th><th>Tuyến</th><th>TT</th></tr></thead><tbody>${scheduleRows}</tbody></table>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modalBodyContent').innerHTML = content;
+            document.getElementById('driverModal').style.display = 'flex';
+        }
+
+        function closeModal() { document.getElementById('driverModal').style.display = 'none'; }
+        window.onclick = function(event) { if (event.target == document.getElementById('driverModal')) closeModal(); }
+
+        // --- HÀM CHAT WIDGET ---
+        function toggleChat(show, driverName) {
+            const chatWidget = document.getElementById('chatWidget');
+            const chatBtn = document.getElementById('chatToggleBtn');
+            if(show) {
+                chatWidget.style.display = 'flex';
+                chatBtn.style.display = 'none'; // Ẩn nút khi mở chat
+                if(driverName) {
+                    document.querySelector('.chat-header-sub').innerText = "Hỗ trợ: " + driverName;
+                } else {
+                    document.querySelector('.chat-header-sub').innerText = "Xin chào quý khách";
+                }
+            } else {
+                chatWidget.style.display = 'none';
+                chatBtn.style.display = 'flex'; // Hiện nút khi đóng chat
+            }
+        }
+
+        function handleEnter(e) {
+            if(e.key === 'Enter') sendUserMsg();
+        }
+
+        function sendUserMsg() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if(!text) return;
+
+            const chatBody = document.getElementById('chatBody');
+
+            const userDiv = document.createElement('div');
+            userDiv.className = 'msg-user';
+            userDiv.innerText = text;
+            chatBody.appendChild(userDiv);
+
+            input.value = '';
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            setTimeout(() => {
+                addSystemMsg("Cảm ơn bạn. Chúng tôi đã nhận được thông tin và sẽ phản hồi sớm nhất.");
+            }, 1000);
+        }
+
+        function addSystemMsg(text) {
+            const chatBody = document.getElementById('chatBody');
+            const sysDiv = document.createElement('div');
+            sysDiv.className = 'msg-system';
+            sysDiv.innerHTML = `
+                <div style="display:flex; gap:10px;">
+                    <div style="background:#007bff; color:white; width:25px; height:25px; min-width:25px; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:12px;">V</div>
+                    <div>${text}</div>
+                </div>`;
+            chatBody.appendChild(sysDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        initSystem();
+    </script>
+</body>
+</html>

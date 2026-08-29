@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Màn hình ô tô</title>
+    <link rel="icon" type="image/png" href="./assets/img/fabicon.jpg">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/themify-icons/1.0.1/css/themify-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet">
+    <script src="assets/node.js"></script>
+    <script>
+        // Kiểm tra hỗ trợ Speech Recognition API
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SpeechRecognition) {
+            // Khởi tạo nhận diện giọng nói
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'vi-VN';
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            // Map các từ khóa với các ứng dụng
+            const appCommands = {
+                'điện thoại': '.dien-thoai a',
+                'tin nhắn': '.tin-nhan a',
+                'google maps': '.google-maps a',
+                'nhạc': '.nhac a',
+                'spotify': '.spotify a',
+                'youtube': '.youtube a',
+                'âm thanh': '.am-thanh a',
+                'dùng tay': '.hands a',
+                'lái xe': '.lai_xe a'
+            };
+
+            // Hàm đọc văn bản
+            function speak(text) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'vi-VN';
+                window.speechSynthesis.speak(utterance);
+            }
+
+            // Xử lý kết quả nhận diện
+            recognition.onresult = function (event) {
+                const result = event.results[event.results.length - 1];
+                const transcript = result[0].transcript.toLowerCase().trim();
+                console.log('Nhận diện được:', transcript);
+
+                // Kiểm tra lệnh về trang chủ
+                if (transcript.includes("trang chủ") || transcript.includes("về trang chủ")) {
+                    speak("Đang chuyển về trang chủ");
+                    setTimeout(() => {
+                        window.location.href = "/";
+                    }, 1000);
+                    return;
+                }
+
+                // Kiểm tra và thực hiện lệnh
+                for (const [command, selector] of Object.entries(appCommands)) {
+                    if (transcript.includes(command)) {
+                        console.log('Tìm thấy lệnh:', command);
+                        const element = document.querySelector(selector);
+                        if (element && element.href) {
+                            console.log('Đang mở:', command);
+                            speak(`Đang mở ${command}`);
+                            element.click();
+                            break;
+                        }
+                    }
+                }
+            };
+
+            // Xử lý lỗi
+            recognition.onerror = function (event) {
+                console.error('Lỗi nhận diện giọng nói:', event.error);
+                speak('Có lỗi xảy ra với hệ thống nhận diện giọng nói');
+                // Thử khởi động lại sau một khoảng thời gian
+                setTimeout(() => {
+                    if (typeof isListening !== 'undefined' && isListening) {
+                        recognition.start();
+                    }
+                }, 1000);
+            };
+
+            // Khởi động lại nhận diện khi kết thúc
+            recognition.onend = function () {
+                console.log('Khởi động lại nhận diện giọng nói');
+                // Chỉ tiếp tục nếu chưa bị người dùng tắt
+                if (typeof isListening === 'undefined' || isListening) {
+                    recognition.start();
+                }
+            };
+
+            // Biến để theo dõi trạng thái
+            let isListening = false;
+
+            // Bắt đầu nhận diện khi trang được tải
+            window.onload = function () {
+                console.log('Đang yêu cầu quyền truy cập microphone...');
+                isListening = true;
+                try {
+                    recognition.start();
+                    speak('Hệ thống đã sẵn sàng. Bạn có thể ra lệnh bằng giọng nói.');
+                } catch (error) {
+                    console.error('Không thể bắt đầu nhận diện giọng nói:', error);
+                    speak('Cần có quyền truy cập microphone để sử dụng tính năng giọng nói.');
+                }
+            };
+        } else {
+            console.error('Trình duyệt không hỗ trợ Web Speech API');
+            alert('Trình duyệt của bạn không hỗ trợ tính năng nhận diện giọng nói. Vui lòng sử dụng Chrome hoặc Edge để có trải nghiệm tốt nhất.');
+        }
+    </script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+
+        .app {
+            width: 100%;
+            height: 100vh;
+            background-image: url('https://luatsunguyenhuuphuoc.com/wp-content/uploads/2023/10/thanit2022mar_90-scaled.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+        }
+
+        .app::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            position: relative;
+            z-index: 2;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .app-item {
+            background-color: #444;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            height: 200px;
+            width: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .app-item:active {
+            transform: scale(0.95);
+        }
+
+        .app-item::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .app-item:hover::after {
+            opacity: 1;
+        }
+
+        .app-item a {
+            text-decoration: none;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        .app-item img {
+            width: 300px;
+            height: 200px;
+            border-radius: 10px;
+            border: 3px solid rgb(90, 56, 56);
+            transition: all 0.3s ease;
+        }
+
+        .app-item:hover img {
+            border-color: rgb(255, 255, 255);
+            filter: brightness(1.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="container">
+            <div class="app-grid">
+                <div class="app-item dien-thoai">
+                    <a href="https://play.google.com/store/apps/details?id=co.kitetech.dialer&hl=vi">
+                        <img src="/static/anh_phone.jpg" alt="Điện thoại">
+                    </a>
+                </div>
+                <div class="app-item tin-nhan">
+                    <a href="https://www.facebook.com/messages/e2ee/t/9808668312549225">
+                        <img src="/static/anh_mesage.webp" alt="Tin nhắn">
+                    </a>
+                </div>
+                <div class="app-item google-maps">
+                    <a href="https://www.google.com/maps/?hl=vi">
+                        <img src="/static/anh_ggmap.jpg" alt="Google Maps">
+                    </a>
+                </div>
+                <div class="app-item nhac">
+                    <a href="https://www.youtube.com/watch?v=BmOwHvMSMh0">
+                        <img src="/static/anh_nhac.jpg" alt="Nhạc">
+                    </a>
+                </div>
+                <div class="app-item spotify">
+                    <a href="https://open.spotify.com/">
+                        <img src="/static/anh_soptify.png" alt="Spotify">
+                    </a>
+                </div>
+                <div class="app-item youtube">
+                    <a href="https://www.youtube.com/" target="_blank">
+                        <img src="/static/anh_youtbe.webp" alt="youtube">
+                    </a>
+                </div>
+                <div class="app-item hands">
+                    <a href="/hands">
+                        <img src="/static/anh_cu_chi.png" alt="Dùng tay">
+                    </a>
+                </div>
+                <div class="app-item lai_xe">
+                    <a href="lai_xe">
+                        <img src="/static/anh_lai_xe.jpg" alt="Lái xe an toàn">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+
+</html>
