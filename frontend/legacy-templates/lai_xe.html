@@ -1557,17 +1557,6 @@
 
       // Đảm bảo tất cả các toggle switch được bật mặc định khi trang được tải
       window.onload = function () {
-        // Ẩn tất cả các section
-        document
-          .querySelectorAll(".section")
-          .forEach((sec) => (sec.style.display = "none"));
-
-        // Hiển thị ảnh mặc định
-        const img = document.getElementById("img");
-        if (img) {
-          img.style.display = "block";
-        }
-
         // Bật tất cả các toggle switch
         const toggleSwitches = document.querySelectorAll(".switch-toggle");
         toggleSwitches.forEach((toggle) => {
@@ -1578,6 +1567,9 @@
         if (recognition) {
           recognition.start();
         }
+
+        // Mặc định hiển thị phần giám sát tài xế và khởi động camera
+        showSection("driver");
       };
 
       function updateStats() {
