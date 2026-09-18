@@ -553,7 +553,7 @@ Tay lái & warning & tay\_lai\_xe.wav & WebSocket \\
 \label{tab:priority}
 \end{table}
 
-Bảng~\ref{tab:inference} trình bày thời gian suy luận và độ chính xác phân loại của từng mô-đun trong kiểm thử lab trên CPU với độ phân giải 640$\times$480. Pipeline xử lý tuần tự đạt tốc độ 2,16 FPS (462,37 ms/frame), trong đó các mô hình YOLOv8 chiếm phần lớn thời gian xử lý.
+Bảng~\ref{tab:inference} trình bày thời gian suy luận và độ chính xác phân loại của từng mô-đun trong kiểm thử lab trên CPU với độ phân giải 640$\times$480. Bảng này chỉ đo chi tiết trên CPU nhằm chỉ ra nút thắt cổ chai; trên GPU không đo bóc tách từng module mà chỉ đo end-to-end ở Bảng~\ref{tab:comparison} để so sánh trực tiếp. Pipeline xử lý tuần tự trên CPU đạt 2,16 FPS (462,37 ms/frame), trong đó các mô hình YOLOv8 chiếm phần lớn thời gian xử lý.
 
 \vspace{6pt}
 \noindent
