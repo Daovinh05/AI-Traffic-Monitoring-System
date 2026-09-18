@@ -553,13 +553,13 @@ Tay lái & warning & tay\_lai\_xe.wav & WebSocket \\
 \label{tab:priority}
 \end{table}
 
-Bảng~\ref{tab:inference} trình bày thời gian suy luận và độ chính xác phân loại của từng mô-đun trong kiểm thử lab trên CPU với độ phân giải 640$\times$480. Bảng này chỉ đo chi tiết trên CPU nhằm chỉ ra nút thắt cổ chai; trên GPU không đo bóc tách từng module mà chỉ đo end-to-end ở Bảng~\ref{tab:comparison} để so sánh trực tiếp. Pipeline xử lý tuần tự trên CPU đạt 2,16 FPS (462,37 ms/frame), trong đó các mô hình YOLOv8 chiếm phần lớn thời gian xử lý.
+Bảng~\ref{tab:inference} trình bày thời gian suy luận và độ chính xác phân loại của từng module trong kiểm thử lab trên CPU với độ phân giải 640$\times$480. Pipeline xử lý tuần tự trên CPU đạt 2,16 FPS (462,37 ms/frame), trong đó các mô hình YOLOv8 chiếm phần lớn thời gian xử lý.
 
 \vspace{6pt}
 \noindent
 \begin{minipage}{\columnwidth}
 \centering
-\captionof{table}{Hiệu năng suy luận và độ chính xác phân loại của các mô-đun trong kiểm thử lab trên CPU (giá trị toàn hệ thống 89,9\% là trung bình các module trong điều kiện lab, khác với độ chính xác end-to-end ở Bảng~\ref{tab:comparison})}
+\captionof{table}{Hiệu năng suy luận và độ chính xác phân loại của các mô-đun trong kiểm thử lab trên CPU.}
 \label{tab:inference}
 \fontsize{7}{8.5}\selectfont
 \setlength{\tabcolsep}{2.5pt}
@@ -581,7 +581,7 @@ Toàn bộ hệ thống & 462,37 & 2,16 & 89,9 \\
 
 Độ chính xác của từng module chịu ảnh hưởng trực tiếp từ ngưỡng phát hiện. dlib đạt 95,0\% nhờ HOG+SVM phát hiện khuôn mặt chính diện ổn định, nhưng giảm khi góc nghiêng vượt $30^\circ$. YOLOv8n phát hiện điện thoại đạt precision 99,8\% ở ngưỡng conf $>0,5$ trên tập kiểm thử -- đây là độ chính xác phân loại, khác với tỷ lệ phát hiện thực tế ngoài cabin (khoảng 55\% do khác biệt góc camera và ánh sáng so với tập COCO). YOLOv8 phát hiện dây an toàn đạt 80,7\% với conf $>0,5$, thấp hơn do tập huấn luyện chỉ 1.200 ảnh. MediaPipe đạt 90,5\% nhờ mô hình TFLite nhẹ hoạt động ổn định trong cabin. Giá trị trung bình 89,9\% trong bảng này là kết quả lab trên CPU, phản ánh sự cân bằng giữa độ nhạy và độ đặc hiệu ở các ngưỡng đã chọn. Về thời gian, hai mô hình YOLOv8 chiếm $\sim$71\% tổng thời gian xử lý (327~ms), cho thấy đây là nút thắt cổ chai cần tối ưu.
 
-Bảng~\ref{tab:comparison} là phép đo khác: độ chính xác cảnh báo end-to-end trên luồng webcam trực tiếp. Trên GPU, hệ thống đạt tốc độ 20--30 FPS với độ trễ 100--200 ms và độ chính xác end-to-end khoảng 92\%, trong khi trên CPU chỉ đạt 2--5 FPS với độ trễ 200--500 ms và khoảng 85\% (Bảng~\ref{tab:comparison}). GPU nhanh hơn 6--10 lần, khẳng định vai trò thiết yếu của tăng tốc phần cứng trong các hệ thống DMS đa module. Như vậy con số 92\% trong tóm tắt là kết quả end-to-end trên GPU, không mâu thuẫn với 89,9\% trung bình module trong kiểm thử lab trên CPU.
+Trên luồng webcam trực tiếp, hệ thống đạt tốc độ 20--30 FPS với độ trễ 100--200 ms và độ chính xác end-to-end khoảng 92\% trên GPU, trong khi trên CPU chỉ đạt 2--5 FPS với độ trễ 200--500 ms và khoảng 85\% (Bảng~\ref{tab:comparison}). GPU nhanh hơn 6--10 lần, khẳng định vai trò thiết yếu của tăng tốc phần cứng trong các hệ thống DMS đa module.
 
 \begin{table}[H]
 \centering
