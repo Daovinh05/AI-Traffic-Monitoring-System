@@ -291,8 +291,8 @@
   yawning, mobile phone usage, seatbelt status, head posture, and steering wheel grip. The system
   employs YOLOv8, MediaPipe, Dlib, and the Perspective-n-Point (PnP) method on a traditional
   three-tier architecture (presentation layer, application layer, data layer). The Flask-based
-  application layer integrates a specialized AI inference module for real-time video processing. Experimental results demonstrate an average
-  accuracy of 92\%, 20--30 FPS on GPU, and 100--200~ms latency, offering a cost-effective real-time
+  application layer integrates a specialized AI inference module for real-time video processing. Experimental results demonstrate
+  89,9\% average module accuracy in CPU lab tests and $\sim$92\% end-to-end accuracy with 20--30 FPS on GPU, and 100--200~ms latency, offering a cost-effective real-time
   monitoring solution for enhanced driving safety.\par
   \vspace{\baselineskip} % Cách ra đúng 1 dòng
   \textbf{Keywords:} Driver monitoring; YOLOv8; MediaPipe; Dlib; computer vision;
@@ -333,7 +333,7 @@
   phân tích hành vi tài xế theo thời gian thực. Hệ thống được tổ chức theo kiến trúc ba tầng
   truyền thống gồm tầng giao diện, tầng ứng dụng và tầng dữ liệu, trong đó tầng ứng dụng
   (Flask) tích hợp một module AI suy luận chuyên biệt để xử lý video thời gian thực. Kết quả thực nghiệm
-  cho thấy hệ thống đạt độ chính xác trung bình khoảng 92\%, tốc độ xử lý 20--30 FPS và độ trễ
+  cho thấy hệ thống đạt 89,9\% trung bình các module trong kiểm thử lab trên CPU và khoảng 92\% end-to-end trên GPU, tốc độ xử lý 20--30 FPS và độ trễ
   đầu cuối 100--200~ms, đáp ứng yêu cầu giám sát thời gian thực và hỗ trợ nâng cao an toàn lái xe.\par
   \vspace{\baselineskip} % Cách ra đúng 1 dòng
   \textbf{Từ khóa:} Giám sát tài xế; YOLOv8; MediaPipe; Dlib; thị giác máy tính;
@@ -498,7 +498,7 @@ Pipeline xử lý AI hoạt động tuần tự qua các module phát hiện. M�
 
 \subsection{Thiết lập thực nghiệm}
 
-Hệ thống được kiểm thử trên hai cấu hình: GPU (Intel Core i7-12700H, NVIDIA RTX 3050 Ti) và CPU (Intel Core i7-1165G7, Intel Iris Xe). Camera webcam độ phân giải 640$\times$480 ở 20 FPS, YOLOv8 chạy đầu vào 640$\times$640. Dữ liệu huấn luyện: module dây an toàn sử dụng 1.200 ảnh cabin (1 lớp seat\_belt), module điện thoại sử dụng YOLOv8n tiền huấn luyện trên COCO (117.000 ảnh, 80 lớp) kết hợp fine-tuning.
+Hệ thống được kiểm thử trên hai cấu hình: GPU (Intel Core i7-12700H, NVIDIA RTX 3050 Ti) và CPU (Intel Core i7-1165G7, Intel Iris Xe). Camera webcam độ phân giải 640$\times$480 ở 20 FPS, YOLOv8 chạy đầu vào 640$\times$640. Đánh giá gồm ba mức tách biệt: (1) chỉ số huấn luyện offline (mAP trên tập dữ liệu, Bảng~\ref{tab:yolo_training}: module điện thoại dùng 8.500 ảnh COCO kết hợp cabin, module dây an toàn dùng 1.200 ảnh cabin tùy chỉnh); (2) kiểm thử chức năng từng module trong phòng lab trên CPU với video cabin (độ chính xác phân loại, Bảng~\ref{tab:inference}); (3) kiểm thử toàn hệ thống end-to-end trên luồng webcam trực tiếp (độ chính xác cảnh báo và FPS/độ trễ, Bảng~\ref{tab:comparison}). Thời gian suy luận được đo bằng cơ chế timing instrumentation ghi log mỗi 100 frame.
 
 \subsection{Kết quả và đánh giá}
 
@@ -553,20 +553,20 @@ Tay lái & warning & tay\_lai\_xe.wav & WebSocket \\
 \label{tab:priority}
 \end{table}
 
-Bảng~\ref{tab:inference} trình bày thời gian suy luận của từng mô-đun trên CPU với độ phân giải 640$\times$480. Pipeline xử lý tuần tự đạt tốc độ 2,16 FPS (462,37 ms/frame), trong đó các mô hình YOLOv8 chiếm phần lớn thời gian xử lý.
+Bảng~\ref{tab:inference} trình bày thời gian suy luận và độ chính xác phân loại của từng mô-đun trong kiểm thử lab trên CPU với độ phân giải 640$\times$480. Pipeline xử lý tuần tự đạt tốc độ 2,16 FPS (462,37 ms/frame), trong đó các mô hình YOLOv8 chiếm phần lớn thời gian xử lý.
 
 \vspace{6pt}
 \noindent
 \begin{minipage}{\columnwidth}
 \centering
-\captionof{table}{Hiệu năng suy luận của các mô-đun trong hệ thống}
+\captionof{table}{Hiệu năng suy luận và độ chính xác phân loại của các mô-đun trong kiểm thử lab trên CPU (giá trị toàn hệ thống 89,9\% là trung bình các module trong điều kiện lab, khác với độ chính xác end-to-end ở Bảng~\ref{tab:comparison})}
 \label{tab:inference}
 \fontsize{7}{8.5}\selectfont
 \setlength{\tabcolsep}{2.5pt}
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{lrrr}
 \toprule
-Mô-đun & Thời gian (ms) & FPS & Độ chính xác (\%) \\
+Mô-đun & Thời gian (ms) & FPS & Độ chính xác phân loại lab (\%) \\
 \midrule
 Phát hiện khuôn mặt và điểm mốc (dlib) & 51,96 & 19,24 & 95,0 \\
 Phát hiện điện thoại (YOLOv8n-custom) & 173,23 & 5,77 & 99,8 \\
@@ -579,18 +579,18 @@ Toàn bộ hệ thống & 462,37 & 2,16 & 89,9 \\
 \end{minipage}
 \vspace{6pt}
 
-Độ chính xác của từng module chịu ảnh hưởng trực tiếp từ ngưỡng phát hiện. dlib đạt 95,0\% nhờ HOG+SVM phát hiện khuôn mặt chính diện ổn định, nhưng giảm khi góc nghiêng vượt $30^\circ$. YOLOv8n phát hiện điện thoại đạt precision 99,8\% ở ngưỡng conf $>0,5$ -- rất cao nhờ backbone CSPDarknet, nhưng tỷ lệ phát hiện thực tế chỉ 55\% do khác biệt góc camera và điều kiện ánh sáng so với tập COCO. YOLOv8 phát hiện dây an toàn đạt 80,7\% với conf $>0,5$, thấp hơn do tập huấn luyện chỉ 1.200 ảnh. MediaPipe đạt 90,5\% nhờ mô hình TFLite nhẹ hoạt động ổn định trong cabin. Độ chính xác trung bình toàn hệ thống 89,9\% phản ánh sự cân bằng giữa độ nhạy và độ đặc hiệu ở các ngưỡng đã chọn. Về thời gian, hai mô hình YOLOv8 chiếm $\sim$71\% tổng thời gian xử lý (327~ms), cho thấy đây là nút thắt cổ chai cần tối ưu.
+Độ chính xác của từng module chịu ảnh hưởng trực tiếp từ ngưỡng phát hiện. dlib đạt 95,0\% nhờ HOG+SVM phát hiện khuôn mặt chính diện ổn định, nhưng giảm khi góc nghiêng vượt $30^\circ$. YOLOv8n phát hiện điện thoại đạt precision 99,8\% ở ngưỡng conf $>0,5$ trên tập kiểm thử -- đây là độ chính xác phân loại, khác với tỷ lệ phát hiện thực tế ngoài cabin (khoảng 55\% do khác biệt góc camera và ánh sáng so với tập COCO). YOLOv8 phát hiện dây an toàn đạt 80,7\% với conf $>0,5$, thấp hơn do tập huấn luyện chỉ 1.200 ảnh. MediaPipe đạt 90,5\% nhờ mô hình TFLite nhẹ hoạt động ổn định trong cabin. Giá trị trung bình 89,9\% trong bảng này là kết quả lab trên CPU, phản ánh sự cân bằng giữa độ nhạy và độ đặc hiệu ở các ngưỡng đã chọn. Về thời gian, hai mô hình YOLOv8 chiếm $\sim$71\% tổng thời gian xử lý (327~ms), cho thấy đây là nút thắt cổ chai cần tối ưu.
 
-Trên GPU, hệ thống đạt tốc độ 20--30 FPS với độ trễ 100--200 ms, trong khi trên CPU chỉ đạt 2--5 FPS với độ trễ 200--500 ms (Bảng~\ref{tab:comparison}). GPU nhanh hơn 6--10 lần, khẳng định vai trò thiết yếu của tăng tốc phần cứng trong các hệ thống DMS đa module.
+Bảng~\ref{tab:comparison} là phép đo khác: độ chính xác cảnh báo end-to-end trên luồng webcam trực tiếp. Trên GPU, hệ thống đạt tốc độ 20--30 FPS với độ trễ 100--200 ms và độ chính xác end-to-end khoảng 92\%, trong khi trên CPU chỉ đạt 2--5 FPS với độ trễ 200--500 ms và khoảng 85\% (Bảng~\ref{tab:comparison}). GPU nhanh hơn 6--10 lần, khẳng định vai trò thiết yếu của tăng tốc phần cứng trong các hệ thống DMS đa module. Như vậy con số 92\% trong tóm tắt là kết quả end-to-end trên GPU, không mâu thuẫn với 89,9\% trung bình module trong kiểm thử lab trên CPU.
 
 \begin{table}[H]
 \centering
-\caption{So sánh hiệu năng CPU vs GPU}
+\caption{So sánh hiệu năng end-to-end trên luồng webcam trực tiếp (CPU vs GPU)}
 \fontsize{7}{8.5}\selectfont
 \setlength{\tabcolsep}{2.5pt}
 \begin{tabular}{lrrr}
 \toprule
-Cấu hình & FPS & Độ trễ (ms) & Độ chính xác \\
+Cấu hình & FPS & Độ trễ (ms) & Độ chính xác end-to-end \\
 \midrule
 CPU (i7-1165G7, Iris Xe) & 2--5 & 200--500 & $\sim$85\% \\
 GPU (i7-12700H, RTX 3050 Ti) & 20--30 & 100--200 & $\sim$92\% \\
