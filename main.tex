@@ -46,13 +46,21 @@
 \usepackage{setspace}
 \usepackage{calc}
 \usepackage{tikz}
-\usepackage[colorlinks=true,linkcolor=black,citecolor=black,urlcolor=black]{hyperref}
 
 %---------------------------------------------------------------------
 % Colors
 %---------------------------------------------------------------------
 \definecolor{jsttbg}{HTML}{DDD9C3}
 \definecolor{jsttblue}{HTML}{003366}
+\definecolor{jsttcite}{HTML}{0055A5} % Màu xanh chuẩn link & text tài liệu tham khảo
+
+% Cấu hình Hyperref: Màu xanh link trích dẫn và liên kết web
+\usepackage[colorlinks=true,linkcolor=black,citecolor=jsttcite,urlcolor=jsttcite]{hyperref}
+
+% Đổi màu số thứ tự [1], [2]... trong danh mục Tài liệu tham khảo thành màu xanh
+\makeatletter
+\renewcommand{\@biblabel}[1]{\textcolor{jsttcite}{[#1]}}
+\makeatother
 
 %---------------------------------------------------------------------
 % Figure/Table names
@@ -129,59 +137,94 @@
 }
 
 %---------------------------------------------------------------------
-% JSTT Header - three-row masthead matching JSTT template
+% JSTT Header - Tiếng Việt
 %---------------------------------------------------------------------
 \newcommand{\JSTTHeader}{%
 \noindent
-% Dòng 1: Tên tạp chí
-{\fontsize{16}{18}\selectfont\bfseries\centering Tạp chí Khoa học và Công nghệ Giao thông Tập 6 Số 4, 11-25\par}
-\vspace{-2pt}
-\noindent\rule{\textwidth}{0.6pt}\\[4pt]
-%
-% Dòng 2: Ba khối 19.5% | 61% | 19.5%
+% Đường kẻ ngang trên cùng
+\rule{\textwidth}{1.3pt}\par
+\vspace{5pt}
+
 \noindent
-\begin{tabularx}{\textwidth}{@{}>{\centering\arraybackslash}p{0.195\textwidth}@{}>{\centering\arraybackslash}X@{}>{\centering\arraybackslash}p{0.195\textwidth}@{}}
-%
-% Khối trái: logo JSTT trong khung bo góc
-\raisebox{-0.5\height}{%
-\begin{tikzpicture}
-\node[draw=jsttblue, thick, rounded corners=4pt, inner sep=0pt, fill=white] {%
-\includegraphics[width=1.8cm]{images/jstt.jpeg}%
-};
-\end{tikzpicture}%
-}
-&
-%
-% Khối giữa: nền vàng nhạt, 3 dòng chữ
-\colorbox{jsttbg}{%
-\begin{minipage}{\dimexpr\linewidth-2\fboxsep\relax}
-\centering
-\vspace{0.35cm}
-{\fontsize{18}{22}\selectfont Tạp chí điện tử\par}
-\vspace{2pt}
-{\fontsize{18}{22}\selectfont Khoa học và Công nghệ Giao thông\par}
-\vspace{2pt}
-{\fontsize{12}{14}\selectfont Trang website: \href{https://jstt.vn/index.php/vn}{\color{blue}https://jstt.vn/index.php/vn}\par}
-\vspace{0.35cm}
+\begin{minipage}[c]{0.17\textwidth}
+  % Logo JSTT bên trái
+  \includegraphics[width=\linewidth, height=1.95cm, keepaspectratio]{images/Picture1.png}
 \end{minipage}%
+\hfill
+\begin{minipage}[c]{0.63\textwidth}
+  % Banner giữa
+  \colorbox{jsttbg}{%
+    \begin{minipage}[c][1.95cm][t]{\dimexpr\linewidth-2\fboxsep\relax}
+      \fontspec{Times New Roman}
+      \vspace{0.14cm}
+      {\centering
+        {\fontsize{15}{18}\selectfont Tạp chí điện tử}\\[3pt]
+        {\fontsize{15}{18}\selectfont Khoa học và Công nghệ Giao thông}\par
+      }
+      % Đẩy toàn bộ khoảng cách thừa lên giữa
+      \vfill
+      % Dạt phải và giữ lại 2.5pt an toàn để toàn bộ dấu câu nằm trong dải màu
+      \raggedleft
+      {\fontsize{12.5}{14}\selectfont Đại học Công nghệ Giao thông vận tải}\hspace{0.25cm}\par
+      \vspace{2.5pt}% Giữ khoảng thở vừa vặn cho các dấu nặng/móc phía dưới
+    \end{minipage}%
+  }
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.17\textwidth}
+  % Logo UTT bên phải
+  \raggedleft
+  \includegraphics[width=\linewidth, height=1.95cm, keepaspectratio]{images/Picture2.png}
+\end{minipage}
+
+\vspace{5pt}
+% Đường kẻ đơn phía dưới
+\noindent\rule{\textwidth}{1.3pt}\par
 }
-&
-%
-% Khối phải: logo UTT
-\raisebox{-0.5\height}{%
-\includegraphics[width=1.8cm]{images/utt.jpeg}%
-}
-\\
-\end{tabularx}\\[4pt]
-%
-% Dòng 3: Đường kẻ ngang
-\noindent\rule{\textwidth}{0.6pt}\par
-\vspace{4pt}
-%
-% Dòng thông tin JSTT
-\noindent{\fontsize{7}{8}\selectfont\itshape JSTT 2026, 6 (4), 11-25 \hfill Published online: 20/07/2026}\par
-\vspace{-2pt}
-\noindent\rule{\textwidth}{0.4pt}\par
+
+%---------------------------------------------------------------------
+% JSTT Header - English Version
+%---------------------------------------------------------------------
+\newcommand{\JSTTHeaderEN}{%
+\noindent
+% Đường kẻ ngang trên cùng
+\rule{\textwidth}{1.3pt}\par
+\vspace{5pt}
+
+\noindent
+\begin{minipage}[c]{0.17\textwidth}
+  % Logo JSTT bên trái
+  \includegraphics[width=\linewidth, height=1.95cm, keepaspectratio]{images/Picture1.png}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.63\textwidth}
+  % Banner giữa
+  \colorbox{jsttbg}{%
+    \begin{minipage}[c][1.95cm][t]{\dimexpr\linewidth-2\fboxsep\relax}
+      \fontspec{Times New Roman}
+      \vspace{0.45cm}
+      {\centering
+        {\fontsize{15}{18}\selectfont Journal of Science and Transport Technology}\par
+      }
+      % Đẩy toàn bộ khoảng cách thừa lên giữa
+      \vfill
+      % Dạt phải và giữ lại 2.5pt an toàn cho chân chữ
+      \raggedleft
+      {\fontsize{13}{15}\selectfont University of Transport Technology}\hspace{0.25cm}\par
+      \vspace{2.5pt}
+    \end{minipage}%
+  }
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.17\textwidth}
+  % Logo UTT bên phải
+  \raggedleft
+  \includegraphics[width=\linewidth, height=1.95cm, keepaspectratio]{images/Picture2.png}
+\end{minipage}
+
+\vspace{5pt}
+% Đường kẻ đơn phía dưới
+\noindent\rule{\textwidth}{1.3pt}\par
 }
 
 %---------------------------------------------------------------------
@@ -190,18 +233,24 @@
 % #2 = title + authors + abstract + keywords (right column)
 %---------------------------------------------------------------------
 \newcommand{\titlebox}[2]{%
+\vspace{\baselineskip} % Cách ra 1 dòng ở đầu trên bảng abstract
 \noindent
 \setlength{\fboxrule}{0.4pt}
 \begin{tabular}{|p{0.28\textwidth}|p{0.69\textwidth}|}
 \hline
 \begin{minipage}{\dimexpr 0.28\textwidth-2\tabcolsep\relax}
-  \fontsize{9}{11}\selectfont #1
+  \vspace{4pt}
+  #1
+  \vspace{4pt}
 \end{minipage} &
 \begin{minipage}{\dimexpr 0.69\textwidth-2\tabcolsep\relax}
-  \fontsize{10}{12}\selectfont #2
+  \vspace{4pt}
+  #2
+  \vspace{4pt}
 \end{minipage} \\
 \hline
-\end{tabular}\par\vspace{6pt}%
+\end{tabular}\par
+\vspace{\baselineskip} % Cách ra 1 dòng ở đầu dưới bảng abstract
 }
 
 %=======================================================================
@@ -209,74 +258,88 @@
 %=======================================================================
 \begin{document}
 \thispagestyle{firstpage}
-\JSTTHeader
-\vspace{6pt}
 
-% ========== TIẾNG VIỆT ==========
-\titlebox{%
-  \textbf{Thông tin bài viết}\\[2pt]
-  Dạng bài viết: Bài báo nghiên cứu\\[2pt]
-  DOI: \href{https://doi.org/10.58845/jstt.utt.2026.vn.6.4.11-25}{10.58845/jstt.utt.2026.vn.6.4.11-25}\\[2pt]
-  *Tác giả liên hệ:\\
-  Email: vinh74dctt22119@st.utt.edu.vn\\[2pt]
-  Ngày nộp bài: 01/03/2026\\[2pt]
-  Ngày nộp bài sửa: 20/05/2026\\[2pt]
-  Ngày chấp nhận: 10/06/2026
-}{%
-  {\fontsize{10}{12}\selectfont\bfseries\color{jsttblue} Hệ thống giám sát tài xế thông minh tích hợp
-  sáu module thị giác máy tính phát hiện hành vi thời gian thực}\\[4pt]
-  {\fontsize{8}{10}\selectfont Đào Văn Vinh$^{1}$, Nguyễn Thanh Xuan$^{1}$, Đào Phúc Dân$^{1,\ast}$}\\[2pt]
-  {\fontsize{7}{9}\selectfont\itshape
-  $^{1}$Khoa Công nghệ Thông tin, Trường Đại học Công nghệ Giao thông vận tải, Hà Nội, Việt Nam}\\[6pt]
-  \fontsize{8}{10}\selectfont
-  \textbf{Tóm tắt:} \sloppy Buồn ngủ, mất tập trung và vi phạm quy tắc lái xe là những nguyên nhân
-  hàng đầu gây thương vong giao thông tại Việt Nam. Bài báo đề xuất một hệ thống giám sát tài xế
-  thông minh dựa trên trí tuệ nhân tạo, tích hợp 6 module thị giác máy tính bao gồm: phát hiện
-  buồn ngủ, ngáp, sử dụng điện thoại, không thắt dây an toàn, tư thế đầu và vị trí tay lái. Hệ
-  thống sử dụng các mô hình YOLOv8, MediaPipe, Dlib và thuật toán Perspective-n-Point (PnP) để
-  phân tích hành vi tài xế theo thời gian thực. Hệ thống được triển khai theo kiến trúc ba tầng
-  gồm backend suy luận AI (Python/Flask), cơ sở dữ liệu MySQL và giao diện web. Kết quả thực nghiệm
-  cho thấy hệ thống đạt độ chính xác trung bình khoảng 92\%, tốc độ xử lý 20--30 FPS và độ trễ
-  đầu cuối 100--200~ms, đáp ứng yêu cầu giám sát thời gian thực và hỗ trợ nâng cao an toàn lái xe.\par
-  \textbf{Từ khóa:} Giám sát tài xế; YOLOv8; MediaPipe; phát hiện buồn ngủ; thị giác máy tính;
-  an toàn giao thông; AI biên
-}
-
-\vspace{-2pt}
+% ======================================================================
+% TRANG 1: HEADER VÀ ABSTRACT TIẾNG ANH
+% ======================================================================
+\JSTTHeaderEN
 
 % ========== ENGLISH ==========
 \titlebox{%
-  \fontsize{7}{9}\selectfont
-  \textbf{Article info}\\[2pt]
-  Type of article: Original research paper\\[2pt]
-  DOI: \href{https://doi.org/10.58845/jstt.utt.2026.vn.6.4.11-25}{10.58845/jstt.utt.2026.vn.6.4.11-25}\\[2pt]
-  *Corresponding author:\\
-  Email: vinh74dctt22119@st.utt.edu.vn\\[2pt]
-  Received: 01/03/2026\\[2pt]
-  Received in Revised Form: 20/05/2026\\[2pt]
-  Accepted: 10/06/2026
+  \fontsize{8.5}{11}\selectfont
+  {\large\bfseries Article info}\\[6pt]
+  \textbf{Type of article:}\\[2pt]
+  Original research paper\\[6pt]
+  \textbf{Corresponding author:}\\[2pt]
+  E-mail address:\\[2pt]
+  vinh74dctt22119@st.utt.edu.vn\\[6pt]
+  \textbf{Received:}\\[3pt]
+  \textbf{Accepted:}\\[3pt]
+  \textbf{Published:}
 }{%
-  {\fontsize{10}{12}\selectfont\bfseries\color{jsttblue} An AI-Powered Driver Monitoring System
-  Integrating Six Computer Vision Modules for Real-Time Behavior Detection}\\[4pt]
-  {\fontsize{8}{10}\selectfont Dao Van Vinh$^{1}$, Nguyen Thanh Xuan$^{1}$, Dao Phuc Dan$^{1}$}\\[2pt]
-  {\fontsize{7}{9}\selectfont\itshape
-  $^{1}$Faculty of Information Technology, University of Transport Technology, Hanoi, Vietnam}\\[6pt]
-  \fontsize{8}{10}\selectfont
+  {\fontsize{11}{13}\selectfont\bfseries\color{jsttblue} An AI-Powered Driver Monitoring System
+  Integrating Six Computer Vision Modules for Real-Time Behavior Detection}\\[5pt]
+  {\fontsize{9}{11}\selectfont Dao Van Vinh$^{1}$, Nguyen Thanh Xuan$^{1}$, Dao Phuc Dan$^{1}$}\\[3pt]
+  {\fontsize{8}{10}\selectfont\itshape
+  $^{1}$Faculty of Information Technology, University of Transport Technology, Hanoi, Vietnam}\\[8pt]
+  \fontsize{10}{12}\selectfont
   \textbf{Abstract:} \sloppy Drowsiness, inattention, and driving rule violations are leading causes
   of traffic casualties worldwide. Existing driver monitoring solutions are either intrusive
   (physiological sensors) or limited to individual tasks, and no low-cost system integrates
   comprehensive behavioral detection across multiple vision modules. This paper proposes an AI-based
   intelligent driver monitoring system that integrates six computer vision modules: drowsiness,
   yawning, mobile phone usage, seatbelt status, head posture, and steering wheel grip. The system
-  employs YOLOv8, MediaPipe, Dlib, and the Perspective-n-Point algorithm on a three-tier architecture
-  (Python/Flask backend, MySQL database, web interface). Experimental results demonstrate an average
+  employs YOLOv8, MediaPipe, Dlib, and the Perspective-n-Point (PnP) method on a traditional
+  three-tier architecture (presentation layer, application layer, data layer). The Flask-based
+  application layer integrates a specialized AI inference module for real-time video processing. Experimental results demonstrate an average
   accuracy of 92\%, 20--30 FPS on GPU, and 100--200~ms latency, offering a cost-effective real-time
   monitoring solution for enhanced driving safety.\par
-  \textbf{Keywords:} Driver monitoring; YOLOv8; MediaPipe; drowsiness detection; computer vision;
+  \vspace{\baselineskip} % Cách ra đúng 1 dòng
+  \textbf{Keywords:} Driver monitoring; YOLOv8; MediaPipe; Dlib; computer vision;
   traffic safety; edge AI
 }
 
-\vspace{6pt}
+\clearpage
+
+% ======================================================================
+% TRANG 2 TRỞ ĐI: HEADER VÀ ABSTRACT TIẾNG VIỆT + NỘI DUNG CHÍNH
+% ======================================================================
+\JSTTHeader
+
+% ========== TIẾNG VIỆT ==========
+\titlebox{%
+  \fontsize{8.5}{11}\selectfont
+  {\large\bfseries Thông tin bài viết}\\[6pt]
+  \textbf{Dạng bài viết:}\\[2pt]
+  Bài báo nghiên cứu\\[6pt]
+  \textbf{Tác giả liên hệ:}\\[2pt]
+  Địa chỉ E-mail:\\[2pt]
+  vinh74dctt22119@st.utt.edu.vn\\[6pt]
+  \textbf{Ngày nộp bài:} 00/00/2026\\[3pt]
+  \textbf{Ngày chấp nhận:} 00/00/2026\\[3pt]
+  \textbf{Ngày đăng bài:} 00/00/2026
+}{%
+  {\fontsize{11}{13}\selectfont\bfseries\color{jsttblue} Hệ thống giám sát tài xế thông minh tích hợp
+  sáu module thị giác máy tính phát hiện hành vi thời gian thực}\\[5pt]
+  {\fontsize{9}{11}\selectfont Đào Văn Vinh$^{1}$, Nguyễn Thanh Xuan$^{1}$, Đào Phúc Dân$^{1,\ast}$}\\[3pt]
+  {\fontsize{8}{10}\selectfont\itshape
+  $^{1}$Khoa Công nghệ Thông tin, Trường Đại học Công nghệ Giao thông vận tải, Hà Nội, Việt Nam}\\[8pt]
+  \fontsize{10}{12}\selectfont
+  \textbf{Tóm tắt:} \sloppy Buồn ngủ, mất tập trung và vi phạm quy tắc lái xe là những nguyên nhân
+  hàng đầu gây thương vong giao thông tại Việt Nam. Bài báo đề xuất một hệ thống giám sát tài xế
+  thông minh dựa trên trí tuệ nhân tạo, tích hợp 6 module thị giác máy tính bao gồm: phát hiện
+  buồn ngủ, ngáp, sử dụng điện thoại, không thắt dây an toàn, tư thế đầu và vị trí tay lái. Hệ
+  thống sử dụng các mô hình YOLOv8, MediaPipe, Dlib và phương pháp Perspective-n-Point (PnP) để
+  phân tích hành vi tài xế theo thời gian thực. Hệ thống được tổ chức theo kiến trúc ba tầng
+  truyền thống gồm tầng giao diện, tầng ứng dụng và tầng dữ liệu, trong đó tầng ứng dụng
+  (Flask) tích hợp một module AI suy luận chuyên biệt để xử lý video thời gian thực. Kết quả thực nghiệm
+  cho thấy hệ thống đạt độ chính xác trung bình khoảng 92\%, tốc độ xử lý 20--30 FPS và độ trễ
+  đầu cuối 100--200~ms, đáp ứng yêu cầu giám sát thời gian thực và hỗ trợ nâng cao an toàn lái xe.\par
+  \vspace{\baselineskip} % Cách ra đúng 1 dòng
+  \textbf{Từ khóa:} Giám sát tài xế; YOLOv8; MediaPipe; Dlib; thị giác máy tính;
+  an toàn giao thông; AI biên
+}
+
 \begin{multicols}{2}
 
 %=======================================================================
@@ -291,7 +354,7 @@ Bên cạnh đó, nhiều nghiên cứu đã chứng minh rằng trạng thái s
 
 Driver Monitoring System (DMS) là hướng nghiên cứu trọng tâm trong Intelligent Transportation Systems (ITS). Các phương pháp dùng cảm biến sinh lý (EEG, ECG) đạt độ chính xác cao nhưng bất tiện do yêu cầu đeo thiết bị \cite{ji2002}. Thị giác máy tính và học sâu đã mở ra giải pháp không xâm lấn dùng camera thông thường \cite{voulodimos2018, lecun2015}. Các nghiên cứu gần đây áp dụng EAR \cite{soukupova2016}, head pose estimation \cite{lawson2020, malek2021}, YOLO \cite{redmon2016, jocher2023} để phát hiện buồn ngủ, mất tập trung, điện thoại và dây an toàn. Tuy nhiên, phần lớn chỉ tập trung vào một vài nhiệm vụ riêng lẻ, chưa có hệ thống tích hợp nhiều module giám sát tài xế trên cùng một pipeline thời gian thực.
 
-Bài báo này đề xuất hệ thống giám sát tài xế thông minh tích hợp 6 module thị giác máy tính trên kiến trúc ba tầng (AI suy luận, cơ sở dữ liệu, giao diện web), kết hợp chatbot AI tư vấn luật giao thông.
+Bài báo này đề xuất hệ thống giám sát tài xế thông minh tích hợp 6 module thị giác máy tính theo kiến trúc ba tầng truyền thống (tầng giao diện, tầng ứng dụng, tầng dữ liệu), trong đó tầng ứng dụng tích hợp một module AI suy luận chuyên biệt và kết hợp chatbot AI tư vấn luật giao thông.
 
 Các đóng góp chính:
 \begin{itemize}[leftmargin=*,nosep]
@@ -306,7 +369,7 @@ Có nhiều hành vi vi phạm của người lái xe có thể dẫn đến tai
 
 Phát hiện buồn ngủ là hướng nghiên cứu được quan tâm sớm nhất, với phương pháp kinh điển là sử dụng chỉ số PERCLOS và Eye Aspect Ratio (EAR). Soukupova và Cech \cite{soukupova2016} đã giới thiệu EAR được tính từ sáu điểm mốc quanh mắt sử dụng bộ dự đoán khuôn mặt 68 điểm của dlib \cite{king2009}. Khi EAR giảm dưới ngưỡng trong thời gian liên tục, hệ thống xác định tài xế đang buồn ngủ. Các nghiên cứu khác \cite{ji2002, ngxande2017} sử dụng kết hợp nhiều chỉ số sinh lý để nâng cao độ chính xác.
 
-Tư thế đầu không đúng quy cách cũng là một dấu hiệu cảnh báo mất tập trung quan trọng. Lawson và cộng sự \cite{lawson2020} sử dụng thuật toán Perspective-n-Point (PnP) với mô hình khuôn mặt 3D để ước lượng ba góc Euler. Malek và cộng sự \cite{malek2021} phân loại tư thế đầu dựa trên landmark cho bài toán phục hồi chức năng. Phát hiện tư thế đầu bất thường (yaw $>40^\circ$ hoặc pitch $>35^\circ$) được sử dụng làm tín hiệu cảnh báo mất tập trung.
+Tư thế đầu không đúng quy cách cũng là một dấu hiệu cảnh báo mất tập trung quan trọng. Lawson và cộng sự \cite{lawson2020} sử dụng phương pháp Perspective-n-Point (PnP) với mô hình khuôn mặt 3D để ước lượng ba góc Euler. Malek và cộng sự \cite{malek2021} phân loại tư thế đầu dựa trên landmark cho bài toán phục hồi chức năng. Phát hiện tư thế đầu bất thường (yaw $>40^\circ$ hoặc pitch $>35^\circ$) được sử dụng làm tín hiệu cảnh báo mất tập trung.
 
 Phát hiện vật thể lạ trong cabin (điện thoại, dây an toàn, tay lái) là bài toán được giải quyết chủ yếu bằng các mô hình phát hiện vật thể. Họ YOLO \cite{redmon2016} đã chứng tỏ hiệu quả vượt trội trong phát hiện vật thể thời gian thực. Các phiên bản YOLOv8 \cite{jocher2023} với kiến trúc CSPDarknet, PANet và head detection anchor-free cho phép đạt độ chính xác cao với tốc độ nhanh. Voulodimos và cộng sự \cite{voulodimos2018} cung cấp tổng quan về học sâu trong thị giác máy tính. Shorten và Khoshgoftaar \cite{shorten2019} khảo sát các kỹ thuật tăng cường dữ liệu ảnh cho học sâu.
 
@@ -316,13 +379,17 @@ Phát hiện vật thể lạ trong cabin (điện thoại, dây an toàn, tay l
 
 \subsection{Kiến trúc tổng thể}
 
-Hệ thống được thiết kế theo kiến trúc ba tầng với cơ chế tải mô hình lười biếng (lazy loading) và đồng bộ hóa đa luồng:
+Hệ thống được tổ chức theo kiến trúc ba tầng truyền thống (three-tier architecture), gồm tầng giao diện (Presentation Layer), tầng ứng dụng/xử lý nghiệp vụ (Application Layer) và tầng dữ liệu (Data Layer):
 
 \begin{itemize}[leftmargin=*,nosep]
-  \item \textbf{Tầng AI suy luận (Python/OpenCV):} Xử lý video real-time, phát hiện đa module.
-  \item \textbf{Tầng backend (Flask + MySQL):} REST API, WebSocket, MQTT, chatbot AI.
-  \item \textbf{Tầng giao diện web:} Dashboard React, video stream, thống kê cảnh báo.
+  \item \textbf{Tầng giao diện (Presentation Layer, React):} Dashboard giám sát, hiển thị video stream, thống kê cảnh báo và lịch sử vi phạm.
+  \item \textbf{Tầng ứng dụng/xử lý nghiệp vụ (Application Layer, Flask):} Cung cấp REST API, WebSocket thời gian thực, MQTT cho kết nối IoT và chatbot AI; tiếp nhận kết quả suy luận, tổng hợp cảnh báo và cung cấp dữ liệu cho tầng giao diện.
+  \item \textbf{Tầng dữ liệu (Data Layer, MySQL):} Lưu trữ thông tin người dùng, dữ liệu giám sát, kết quả phát hiện và lịch sử cảnh báo.
 \end{itemize}
+
+Ngoài ba tầng trên, hệ thống tích hợp một module AI suy luận chuyên biệt thuộc tầng ứng dụng (Python/OpenCV, YOLOv8, MediaPipe, Dlib, PnP) để xử lý video thời gian thực và phát hiện đa module. Trong cài đặt, module này nằm trong tiến trình backend ({\tt backend/app/ai/}) và được khởi tạo cùng ứng dụng Flask.
+
+Về kỹ thuật triển khai, hệ thống áp dụng tải mô hình lười biếng (lazy loading) qua hàm {\tt \_load\_once()} với khóa {\tt model\_lock} theo mẫu double-checked locking, giúp mô hình chỉ khởi tạo một lần tại lần gọi đầu tiên; đồng thời sử dụng đồng bộ hóa đa luồng ({\tt threading.Lock}) cho hàng đợi cảnh báo và pipeline xử lý video.
 
 \subsection{Phát hiện nhắm mắt và buồn ngủ}
 
@@ -348,33 +415,49 @@ Ngưỡng phát hiện: $MAR > 25$ pixel trong 15 khung hình liên tiếp (~0,7
 
 \subsection{Ước lượng tư thế đầu}
 
-Sử dụng thuật toán solvePnP của OpenCV với mô hình khuôn mặt 3D và sáu điểm mốc (mũi, cằm, khóe mắt, khóe miệng). Phương trình chiếu:
+Hệ thống giải quyết bài toán ước lượng tư thế đầu thông qua phương pháp Perspective-n-Point (PnP), được hiện thực hóa bằng hàm \texttt{cv2.solvePnP} trong thư viện OpenCV với mô hình khuôn mặt 3D chuẩn nhân trắc học và sáu điểm mốc đặc trưng (đỉnh mũi, cằm, khóe mắt ngoài, khóe miệng). Phương trình chiếu phối cảnh:
 
 \begin{equation}
-s \cdot \begin{bmatrix} u \\ v \\ 1 \end{bmatrix} = 
+s \cdot \begin{bmatrix} u \\ v \\ 1 \end{bmatrix} =
 K \cdot [R \;|\; t] \cdot \begin{bmatrix} X \\ Y \\ Z \\ 1 \end{bmatrix}
 \label{eq:pnp}
 \end{equation}
 
-Kết quả trả về ba góc Euler. Ngưỡng cảnh báo: $|yaw| > 40^\circ$ hoặc $pitch > 35^\circ$.
+Từ ma trận xoay $\mathbf{R}$, hệ thống trích xuất ba góc Euler (Yaw, Pitch, Roll). Do hành vi mất tập trung chủ yếu thể hiện qua việc quay mặt sang hai bên hoặc cúi/ngửa đầu, ngưỡng cảnh báo được kích hoạt khi: $|\text{yaw}| > 40^\circ$ hoặc $\text{pitch} > 35^\circ$.
+
+\subsection{Theo dõi tay lái}
+
+Module sử dụng MediaPipe Hands \cite{lugaresi2019} (21 landmarks, detection confidence 0,5) và MediaPipe Pose (33 landmarks) qua lớp {\tt HandAndArmTracking}. Bộ phân loại nắm tay (fist classifier) kiểm tra 4 ngón (trỏ, giữa, áp út, út) dựa trên vị trí đầu ngón so với khớp ngón:
+
+\begin{equation}
+FistScore = \sum_{k \in \{8,12,16,20\}} [\,landmark_k.y > landmark_{k-2}.y\,]
+\label{eq:fist}
+\end{equation}
+
+Các chỉ số: 8/12/16/20 (đầu ngón), 6/10/14/18 (khớp ngón). Ngón cái (4/3) được loại trừ. Nắm vô lăng được xác định khi $FistScore \geq 3$. Cảnh báo kích hoạt nếu không phát hiện nắm trong 3 giây liên tục, khoảng cách tối thiểu giữa các cảnh báo 5 giây.
 
 \subsection{Phát hiện sử dụng điện thoại}
 
 Mô hình YOLOv8n \cite{jocher2023} được fine-tuning trên 8.500 ảnh cabin kết hợp pretrained COCO (80 lớp) với freezing layers. Kết quả huấn luyện (Bảng~\ref{tab:yolo_training}) đạt mAP@50 = 0,975 và mAP@50--95 = 0,748 sau 100 epoch. Hình~\ref{fig:training_curves} cho thấy các chỉ số hội tụ ổn định từ epoch 50. Ma trận nhầm lẫn (Hình~\ref{fig:confusion_matrix}) xác nhận độ chính xác phân loại cao giữa lớp ``cell phone'' và nền. Hệ thống xác định hành vi sử dụng điện thoại khi độ tin cậy dự đoán vượt ngưỡng 0,5.
 
-\begin{figure}[H]
+\vspace{6pt}
+\noindent
+\begin{minipage}{\columnwidth}
 \centering
-\includegraphics[width=\columnwidth]{phone_results.png}
-\caption{Đường cong huấn luyện mô hình phát hiện điện thoại}
+\includegraphics[width=0.92\columnwidth]{phone_results.png}
+\captionof{figure}{Đường cong huấn luyện mô hình phát hiện điện thoại}
 \label{fig:training_curves}
-\end{figure}
+\end{minipage}
 
-\begin{figure}[H]
+\vspace{6pt}
+\noindent
+\begin{minipage}{\columnwidth}
 \centering
-\includegraphics[width=\columnwidth]{phone_confusion.png}
-\caption{Ma trận nhầm lẫn của mô hình phát hiện điện thoại}
+\includegraphics[width=0.82\columnwidth]{phone_confusion.png}
+\captionof{figure}{Ma trận nhầm lẫn của mô hình phát hiện điện thoại}
 \label{fig:confusion_matrix}
-\end{figure}
+\end{minipage}
+\vspace{6pt}
 
 \subsection{Phát hiện dây an toàn}
 
@@ -382,8 +465,8 @@ Module sử dụng YOLOv8 được huấn luyện tùy chỉnh (trọng số {\t
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\columnwidth]{images/sea_thuc_te.png}
-\caption{Kết quả phát hiện dây an toàn trên ảnh thực tế}
+\includegraphics[width=\columnwidth]{images/dan.png}
+\caption{Kết quả nhận diện tài xế trong thực nghiệm}
 \label{fig:detection_examples}
 \end{figure}
 
@@ -405,20 +488,9 @@ Seatbelt-YOLOv8 & Custom In-Cabin & 1.200 & 0,753 & 0,354 \\
 \label{tab:yolo_training}
 \end{table}
 
-\subsection{Theo dõi tay lái}
-
-Module sử dụng MediaPipe Hands \cite{lugaresi2019} (21 landmarks, detection confidence 0,5) và MediaPipe Pose (33 landmarks) qua lớp {\tt HandAndArmTracking}. Bộ phân loại nắm tay (fist classifier) kiểm tra 4 ngón (trỏ, giữa, áp út, út) dựa trên vị trí đầu ngón so với khớp ngón:
-
-\begin{equation}
-FistScore = \sum_{k \in \{8,12,16,20\}} [\,landmark_k.y > landmark_{k-2}.y\,]
-\label{eq:fist}
-\end{equation}
-
-Các chỉ số: 8/12/16/20 (đầu ngón), 6/10/14/18 (khớp ngón). Ngón cái (4/3) được loại trừ. Nắm vô lăng được xác định khi $FistScore \geq 3$. Cảnh báo kích hoạt nếu không phát hiện nắm trong 3 giây liên tục, khoảng cách tối thiểu giữa các cảnh báo 5 giây.
-
 \subsection{Hệ thống giao tiếp hai chiều AI--Web}
 
-Hệ thống được thiết kế theo kiến trúc ba tầng: (1) tầng AI suy luận (Python/OpenCV) với cơ chế tải mô hình lười biếng an toàn đa luồng; (2) tầng backend Flask API cung cấp REST API, WebSocket thời gian thực và MQTT cho kết nối IoT; (3) tầng giao diện web dashboard giám sát, hiển thị video stream, thống kê cảnh báo và lịch sử vi phạm. Cơ chế two-way communication cho phép hệ thống gửi cảnh báo, video stream đến web và web gửi lệnh bật/tắt module, điều chỉnh ngưỡng đến hệ thống.
+Luồng giao tiếp hai chiều (two-way communication) được tổ chức giữa ba tầng chuẩn: module AI suy luận (thuộc tầng ứng dụng) xử lý video với cơ chế tải mô hình lười biếng an toàn đa luồng; backend Flask ở tầng ứng dụng cung cấp REST API, WebSocket thời gian thực và MQTT cho kết nối IoT; dashboard web ở tầng giao diện thực hiện giám sát, hiển thị video stream, thống kê cảnh báo và lịch sử vi phạm. Cơ chế two-way communication cho phép hệ thống gửi cảnh báo, video stream đến web và web gửi lệnh bật/tắt module, điều chỉnh ngưỡng đến hệ thống.
 
 Pipeline xử lý AI hoạt động tuần tự qua các module phát hiện. Mỗi module có thể bật/tắt độc lập. Cơ chế tổng hợp cảnh báo đa module theo mức ưu tiên với thời gian cooldown riêng. Cảnh báo được truyền qua ba kênh: âm thanh (pygame), hiển thị trên video stream, và thời gian thực qua WebSocket/MQTT.
 
@@ -483,11 +555,12 @@ Tay lái & warning & tay\_lai\_xe.wav & WebSocket \\
 
 Bảng~\ref{tab:inference} trình bày thời gian suy luận của từng mô-đun trên CPU với độ phân giải 640$\times$480. Pipeline xử lý tuần tự đạt tốc độ 2,16 FPS (462,37 ms/frame), trong đó các mô hình YOLOv8 chiếm phần lớn thời gian xử lý.
 
-Độ chính xác của từng module chịu ảnh hưởng trực tiếp từ ngưỡng phát hiện. dlib đạt 95,0\% nhờ HOG+SVM phát hiện khuôn mặt chính diện ổn định, nhưng giảm khi góc nghiêng vượt $30^\circ$. YOLOv8n phát hiện điện thoại đạt precision 99,8\% ở ngưỡng conf $>0,5$ -- rất cao nhờ backbone CSPDarknet, nhưng tỷ lệ phát hiện thực tế chỉ 55\% do khác biệt góc camera và điều kiện ánh sáng so với tập COCO. YOLOv8 phát hiện dây an toàn đạt 80,7\% với conf $>0,5$, thấp hơn do tập huấn luyện chỉ 1.200 ảnh. MediaPipe đạt 90,5\% nhờ mô hình TFLite nhẹ hoạt động ổn định trong cabin. Độ chính xác trung bình toàn hệ thống 89,9\% phản ánh sự cân bằng giữa độ nhạy và độ đặc hiệu ở các ngưỡng đã chọn. Về thời gian, hai mô hình YOLOv8 chiếm $\sim$71\% tổng thời gian xử lý (327~ms), cho thấy đây là nút thắt cổ chai cần tối ưu.
-
-\begin{table}[H]
+\vspace{6pt}
+\noindent
+\begin{minipage}{\columnwidth}
 \centering
-\caption{Hiệu năng suy luận của các mô-đun trong hệ thống}
+\captionof{table}{Hiệu năng suy luận của các mô-đun trong hệ thống}
+\label{tab:inference}
 \fontsize{7}{8.5}\selectfont
 \setlength{\tabcolsep}{2.5pt}
 \resizebox{\columnwidth}{!}{%
@@ -503,8 +576,10 @@ Toàn bộ hệ thống & 462,37 & 2,16 & 89,9 \\
 \bottomrule
 \end{tabular}
 }
-\label{tab:inference}
-\end{table}
+\end{minipage}
+\vspace{6pt}
+
+Độ chính xác của từng module chịu ảnh hưởng trực tiếp từ ngưỡng phát hiện. dlib đạt 95,0\% nhờ HOG+SVM phát hiện khuôn mặt chính diện ổn định, nhưng giảm khi góc nghiêng vượt $30^\circ$. YOLOv8n phát hiện điện thoại đạt precision 99,8\% ở ngưỡng conf $>0,5$ -- rất cao nhờ backbone CSPDarknet, nhưng tỷ lệ phát hiện thực tế chỉ 55\% do khác biệt góc camera và điều kiện ánh sáng so với tập COCO. YOLOv8 phát hiện dây an toàn đạt 80,7\% với conf $>0,5$, thấp hơn do tập huấn luyện chỉ 1.200 ảnh. MediaPipe đạt 90,5\% nhờ mô hình TFLite nhẹ hoạt động ổn định trong cabin. Độ chính xác trung bình toàn hệ thống 89,9\% phản ánh sự cân bằng giữa độ nhạy và độ đặc hiệu ở các ngưỡng đã chọn. Về thời gian, hai mô hình YOLOv8 chiếm $\sim$71\% tổng thời gian xử lý (327~ms), cho thấy đây là nút thắt cổ chai cần tối ưu.
 
 Trên GPU, hệ thống đạt tốc độ 20--30 FPS với độ trễ 100--200 ms, trong khi trên CPU chỉ đạt 2--5 FPS với độ trễ 200--500 ms (Bảng~\ref{tab:comparison}). GPU nhanh hơn 6--10 lần, khẳng định vai trò thiết yếu của tăng tốc phần cứng trong các hệ thống DMS đa module.
 
@@ -539,24 +614,25 @@ Kết quả thực nghiệm cho thấy hệ thống đáp ứng tốt các mục
 
 \section{Kết luận và hướng phát triển}
 
-Bài báo đã trình bày một hệ thống giám sát tài xế thông minh ứng dụng AI với kiến trúc đa module tích hợp sáu thành phần phát hiện hành vi tài xế: buồn ngủ (dlib EAR), ngáp (facial landmarks), tư thế đầu (PnP), điện thoại (YOLOv8n), dây an toàn (YOLOv8 custom) và tay lái (MediaPipe). Hệ thống được triển khai theo kiến trúc ba tầng với cơ chế tải mô hình lười biếng an toàn đa luồng, hàng đợi cảnh báo và cảnh báo đa kênh (âm thanh, WebSocket, MQTT).
+Bài báo đã trình bày một hệ thống giám sát tài xế thông minh ứng dụng AI với kiến trúc đa module tích hợp sáu thành phần phát hiện hành vi tài xế: buồn ngủ (dlib EAR), ngáp (facial landmarks), tư thế đầu (PnP), điện thoại (YOLOv8n), dây an toàn (YOLOv8 custom) và tay lái (MediaPipe). Hệ thống được tổ chức theo kiến trúc ba tầng truyền thống (giao diện--ứng dụng--dữ liệu), trong đó tầng ứng dụng tích hợp module AI suy luận chuyên biệt với cơ chế tải mô hình lười biếng an toàn đa luồng, hàng đợi cảnh báo và cảnh báo đa kênh (âm thanh, WebSocket, MQTT).
 
 Kết quả thực nghiệm trên GPU (RTX 3050 Ti) cho thấy hệ thống đáp ứng yêu cầu giám sát thời gian thực với tốc độ xử lý 20--30 FPS, độ trễ đầu cuối 100--200 ms.
 
 Hướng phát triển trong tương lai:
 \begin{itemize}[leftmargin=*,nosep]
-  \item \textbf{Triển khai Edge AI:} Chuyển pipeline lên NVIDIA Jetson Nano với TensorRT để tối ưu inference, giảm chi phí phần cứng.
-  \item \textbf{Mô hình tiên tiến:} Nâng cấp lên YOLOv10/v11, áp dụng Transformer cho phân tích chuỗi hành vi phức tạp \cite{nimma2025}.
-  \item \textbf{Mở rộng dữ liệu:} Thu thập thêm dữ liệu đa dạng về điều kiện ánh sáng, góc nhìn và đối tượng người lái.
-  \item \textbf{Tối ưu pipeline:} Chuyển sang xử lý đa luồng và pipeline bất đồng bộ.
+  \item Triển khai Edge AI: Chuyển pipeline lên NVIDIA Jetson Nano với TensorRT để tối ưu inference, giảm chi phí phần cứng.
+  \item Mô hình tiên tiến: Nâng cấp lên YOLOv10/v11, áp dụng Transformer cho phân tích chuỗi hành vi phức tạp \cite{nimma2025}.
+  \item Mở rộng dữ liệu: Thu thập thêm dữ liệu đa dạng về điều kiện ánh sáng, góc nhìn và đối tượng người lái.
+  \item Tối ưu pipeline: Chuyển sang xử lý đa luồng và pipeline bất đồng bộ.
 \end{itemize}
 
 \subsection*{Lời cảm ơn}
-Nghiên cứu này được tài trợ bởi Trường Đại học Công nghệ Giao thông vận tải (UTT), mã số đề tài: UTT-KHCN-2025-01. Nhóm tác giả chân thành cảm ơn các cộng tác viên đã hỗ trợ thu thập dữ liệu và đánh giá thử nghiệm hệ thống.
+Nghiên cứu này được tài trợ bởi Trường Đại học Công nghệ Giao thông vận tải (UTT), mã số đề tài: ĐTSV2526-280. Nhóm tác giả chân thành cảm ơn các cộng tác viên đã hỗ trợ thu thập dữ liệu và đánh giá thử nghiệm hệ thống.
 
 \begin{thebibliography}{99}
 \fontsize{9}{11}\selectfont
 \raggedright
+\color{jsttcite}
 
 \bibitem{hien2026} Hiến, Đ. (2026). \textit{Báo cáo ATGT Quốc gia giai đoạn 2024--2025}. Ủy ban An toàn giao thông Quốc gia.
 
@@ -592,7 +668,7 @@ Nghiên cứu này được tài trợ bởi Trường Đại học Công nghệ
 
 \bibitem{veres2019} Veres, M., \& Moussa, M. (2019). Deep learning for intelligent transportation systems: A survey. \textit{IEEE Transactions on Intelligent Transportation Systems}, 21(11), 4602--4620.
 
-\bibitem{zhou2025} Zhou, K. C., et al. (2025). Human pose prediction based on LSTM and MediaPipe. \textit{Tạp chí Khoa học và Công nghệ Kỹ thuật}.
+\bibitem{zhou2025} Zhou, K. C., et al. (2025). Human pose prediction based on LSTM và MediaPipe. \textit{Tạp chí Khoa học và Công nghệ Kỹ thuật}.
 
 \bibitem{baogiaothong2025} Báo Giao thông. (2025). Thống kê tai nạn giao thông tại Việt Nam. \textit{Báo Giao thông}.
 
