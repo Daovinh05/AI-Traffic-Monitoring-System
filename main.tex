@@ -54,6 +54,7 @@
 \usepackage{setspace}
 \usepackage{calc}
 \usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,backgrounds}
 
 %---------------------------------------------------------------------
 % Colors
@@ -291,8 +292,63 @@ Hệ thống được tổ chức theo kiến trúc ba tầng truyền thống (
 \end{itemize}
 
 \begin{sloppypar}
-Module AI suy luận (\mbox{Python/OpenCV}, YOLOv8, \mbox{MediaPipe}, Dlib, PnP) chỉ là một khối nhỏ thuộc tầng ứng dụng, chuyên xử lý video thời gian thực và phát hiện đa module. Trong cài đặt, module này nằm trong tiến trình \mbox{backend} ({\tt backend/app/ai/}) và được khởi tạo cùng ứng dụng Flask qua \mbox{factory} {\tt create\_app}.
+Module AI suy luận (\mbox{Python/OpenCV}, YOLOv8, \mbox{MediaPipe}, Dlib, PnP) chỉ là một khối nhỏ thuộc tầng ứng dụng, chuyên xử lý video thời gian thực và phát hiện đa module (Hình~\ref{fig:architecture}). Trong cài đặt, module này nằm trong tiến trình \mbox{backend} ({\tt backend/app/ai/}) và được khởi tạo cùng ứng dụng Flask qua \mbox{factory} {\tt create\_app}.
 \end{sloppypar}
+
+\vspace{4pt}
+\noindent
+\begin{minipage}{\columnwidth}
+\centering
+\resizebox{0.92\columnwidth}{!}{%
+\begin{tikzpicture}[
+  font=\fontsize{7}{8}\selectfont,
+  node distance=3mm,
+  big/.style={draw, rounded corners=3pt, align=center, inner sep=4pt, minimum width=7.6cm, text width=7.2cm, line width=0.6pt},
+  small/.style={draw, rounded corners=2pt, align=center, inner sep=3pt, minimum width=2.4cm, text width=2.2cm, minimum height=9mm, line width=0.5pt},
+  arr/.style={-Stealth, line width=0.6pt},
+  dbl/.style={Stealth-Stealth, line width=0.6pt}
+]
+% --- Nguon video ---
+\node[big, fill=gray!12] (cam) {\textbf{Camera cabin} \\ webcam 640$\times$480 @ 20 FPS};
+
+% --- Tieu de AI (can giua) ---
+\node[font=\bfseries, align=center, below=6mm of cam] (aititle) {Tầng ứng dụng --- Pipeline AI (Python/OpenCV)};
+
+% --- 6 module AI (luoi 3x2, can giua theo cot giua) ---
+\node[small, fill=orange!15, below=of aititle] (m2) {Ngáp \\ MAR};
+\node[small, fill=orange!15, left=2mm of m2] (m1) {Nhắm mắt \\ dlib EAR};
+\node[small, fill=orange!15, right=2mm of m2] (m3) {Tư thế đầu \\ PnP};
+\node[small, fill=orange!15, below=of m2] (m5) {Dây an toàn \\ YOLOv8};
+\node[small, fill=orange!15, left=2mm of m5] (m4) {Điện thoại \\ YOLOv8n};
+\node[small, fill=orange!15, right=2mm of m5] (m6) {Tay lái \\ MediaPipe};
+\begin{pgfonlayer}{background}
+\node[draw, rounded corners=4pt, line width=0.6pt, fill=orange!5, fit=(aititle)(m1)(m2)(m3)(m4)(m5)(m6), inner sep=4pt] (ai) {};
+\end{pgfonlayer}
+
+% --- Flask backend ---
+\node[big, fill=blue!10, below=6mm of ai] (flask) {\textbf{Flask backend} (\texttt{create\_app}) \\ REST API $|$ SSE/polling $|$ MQTT $|$ Alert queue + cooldown};
+
+% --- Tang giao dien ---
+\node[big, fill=green!15, below=6mm of flask] (pres) {\textbf{Tầng giao diện} --- Dashboard \\ video stream, thống kê, lịch sử};
+
+% --- Tang du lieu ---
+\node[big, fill=purple!10, below=of pres] (data) {\textbf{Tầng dữ liệu} --- MySQL \\ user, phương tiện, video, cảnh báo};
+
+% --- Canh bao am thanh + ESP32 ---
+\node[big, fill=red!8, below=of data] (spk) {Cảnh báo âm thanh (pygame .wav) \\ gửi tín hiệu sang ESP32 (MQTT/UART)};
+
+% --- Mui ten doc, gon trong khung, moi khoi cach nhau 3mm ---
+\draw[arr] (cam) -- node[right, font=\fontsize{6}{7}\selectfont]{frames} (ai);
+\draw[arr] (ai) -- node[right, font=\fontsize{6}{7}\selectfont]{kết quả} (flask);
+\draw[dbl] (flask) -- node[right, font=\fontsize{6}{7}\selectfont]{stream/lệnh} (pres);
+\draw[dbl] (flask.east) -- ++(2mm,0) |- node[near end, right, font=\fontsize{6}{7}\selectfont]{SQL} (data.east);
+\draw[arr] (flask.west) -- ++(-2mm,0) |- node[near end, left, font=\fontsize{6}{7}\selectfont]{MQTT} (spk.west);
+\end{tikzpicture}%
+}
+\captionof{figure}{Sơ đồ kiến trúc ba tầng và pipeline AI với giao tiếp hai chiều}
+\label{fig:architecture}
+\end{minipage}
+\vspace{4pt}
 
 \begin{sloppypar}
 Về kỹ thuật triển khai, hệ thống áp dụng tải mô hình lười biếng (lazy loading) qua hàm {\tt \_load\_once()} với khóa {\tt model\_lock} theo mẫu \mbox{double-checked} locking, giúp mô hình chỉ khởi tạo một lần tại lần gọi đầu tiên; đồng thời sử dụng đồng bộ hóa đa luồng ({\tt threading.Lock}) cho hàng đợi cảnh báo và \mbox{pipeline} xử lý video.
