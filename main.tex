@@ -295,7 +295,7 @@
   89,9\% average module accuracy in CPU lab tests and $\sim$92\% end-to-end accuracy with 20--30 FPS on GPU, and 100--200~ms latency, offering a cost-effective real-time
   monitoring solution for enhanced driving safety.\par
   \vspace{\baselineskip} % Cách ra đúng 1 dòng
-  \textbf{Keywords:} Driver monitoring; YOLOv8; MediaPipe; Dlib; computer vision;
+  \textbf{Keywords:} drowsiness detection; driver distraction; YOLOv8; MediaPipe; Dlib;
   traffic safety; edge AI
 }
 
@@ -336,7 +336,7 @@
   cho thấy hệ thống đạt 89,9\% trung bình các module trong kiểm thử lab trên CPU và khoảng 92\% end-to-end trên GPU, tốc độ xử lý 20--30 FPS và độ trễ
   đầu cuối 100--200~ms, đáp ứng yêu cầu giám sát thời gian thực và hỗ trợ nâng cao an toàn lái xe.\par
   \vspace{\baselineskip} % Cách ra đúng 1 dòng
-  \textbf{Từ khóa:} Giám sát tài xế; YOLOv8; MediaPipe; Dlib; thị giác máy tính;
+  \textbf{Từ khóa:} Phát hiện buồn ngủ; phân tâm khi lái xe; YOLOv8; MediaPipe; Dlib;
   an toàn giao thông; AI biên
 }
 
@@ -405,7 +405,7 @@ Module sử dụng bộ phát hiện khuôn mặt dlib và bộ dự đoán đi�
 EAR = \frac{\|p_2 - p_6\| + \|p_3 - p_5\|}{2\|p_1 - p_4\|}
 \label{eq:ear}
 \end{equation}
-Ngưỡng phát hiện nhắm mắt: $EAR < 0.30$ trong thời gian tối thiểu 2 giây liên tục.
+Ngưỡng phát hiện nhắm mắt: $EAR < 0{,}30$ trong thời gian tối thiểu 2 giây liên tục.
 
 \subsection{Phát hiện ngáp}
 
@@ -504,7 +504,7 @@ Pipeline xử lý AI hoạt động tuần tự qua các module phát hiện. M�
 
 \subsection{Thiết lập thực nghiệm}
 
-Hệ thống được kiểm thử trên hai cấu hình: GPU (Intel Core i7-12700H, NVIDIA RTX 3050 Ti) và CPU (Intel Core i7-1165G7, Intel Iris Xe). Camera webcam độ phân giải 640$\times$480 ở 20 FPS, YOLOv8 chạy đầu vào 640$\times$640. Đánh giá gồm ba mức tách biệt: (1) chỉ số (i) mAP@50/mAP@50--95 trên tập huấn luyện Bảng~\ref{tab:yolo_training}: module điện thoại dùng 3.500 ảnh COCO kết hợp cabin, module dây an toàn dùng 1.200 ảnh cabin tùy chỉnh); (2) kiểm thử chức năng từng module trong phòng lab trên CPU với video cabin (độ chính xác phân loại, Bảng~\ref{tab:inference}); (3) kiểm thử toàn hệ thống end-to-end trên luồng webcam trực tiếp (độ chính xác cảnh báo và FPS/độ trễ, Bảng~\ref{tab:comparison}). Thời gian suy luận được đo bằng cơ chế timing instrumentation ghi log mỗi 100 frame.
+Hệ thống được kiểm thử trên hai cấu hình: GPU (Intel Core i7-12700H, NVIDIA RTX 3050 Ti) và CPU (Intel Core i7-1165G7, Intel Iris Xe). Camera webcam độ phân giải 640$\times$480 ở 20 FPS, YOLOv8 chạy đầu vào 640$\times$640. Đánh giá gồm ba mức tách biệt: (1) chỉ số (i) mAP@50/mAP@50--95 trên tập huấn luyện Bảng~\ref{tab:yolo_training}: module điện thoại dùng 3.500 ảnh COCO kết hợp cabin, module dây an toàn dùng 1.200 ảnh cabin tùy chỉnh); (2) kiểm thử chức năng từng module trong phòng lab trên CPU với video cabin (độ chính xác phân loại, Bảng~\ref{tab:inference}); (3) kiểm thử toàn hệ thống end-to-end trên luồng webcam trực tiếp (độ chính xác cảnh báo và FPS/độ trễ, Bảng~\ref{tab:comparison}). Dữ liệu cabin được thu thập tại Thư viện Trường Đại học Công nghệ Giao thông vận tải từ tháng 8/2025 đến tháng 2/2026; vận hành thử end-to-end được thực hiện trên cabin xe của cộng tác viên trong tháng 3/2026. Thời gian suy luận được đo bằng cơ chế timing instrumentation ghi log mỗi 100 frame.
 
 \subsection{Kết quả và đánh giá}
 
