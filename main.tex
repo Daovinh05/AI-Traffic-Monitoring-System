@@ -141,18 +141,15 @@
 %---------------------------------------------------------------------
 \newcommand{\JSTTHeader}{%
 \noindent
-% Đường kẻ ngang trên cùng
 \rule{\textwidth}{1.3pt}\par
 \vspace{5pt}
 
 \noindent
 \begin{minipage}[c]{0.17\textwidth}
-  % Logo JSTT bên trái
   \includegraphics[width=\linewidth, height=1.95cm, keepaspectratio]{images/Picture1.png}
 \end{minipage}%
 \hfill
 \begin{minipage}[c]{0.63\textwidth}
-  % Banner giữa
   \colorbox{jsttbg}{%
     \begin{minipage}[c][1.95cm][t]{\dimexpr\linewidth-2\fboxsep\relax}
       \fontspec{Times New Roman}
@@ -161,24 +158,20 @@
         {\fontsize{15}{18}\selectfont Tạp chí điện tử}\\[3pt]
         {\fontsize{15}{18}\selectfont Khoa học và Công nghệ Giao thông}\par
       }
-      % Đẩy toàn bộ khoảng cách thừa lên giữa
       \vfill
-      % Dạt phải và giữ lại 2.5pt an toàn để toàn bộ dấu câu nằm trong dải màu
       \raggedleft
       {\fontsize{12.5}{14}\selectfont Đại học Công nghệ Giao thông vận tải}\hspace{0.25cm}\par
-      \vspace{2.5pt}% Giữ khoảng thở vừa vặn cho các dấu nặng/móc phía dưới
+      \vspace{2.5pt}
     \end{minipage}%
   }
 \end{minipage}%
 \hfill
 \begin{minipage}[c]{0.17\textwidth}
-  % Logo UTT bên phải
   \raggedleft
   \includegraphics[width=\linewidth, height=1.95cm, keepaspectratio]{images/Picture2.png}
 \end{minipage}
 
 \vspace{5pt}
-% Đường kẻ đơn phía dưới
 \noindent\rule{\textwidth}{1.3pt}\par
 }
 
@@ -187,18 +180,15 @@
 %---------------------------------------------------------------------
 \newcommand{\JSTTHeaderEN}{%
 \noindent
-% Đường kẻ ngang trên cùng
 \rule{\textwidth}{1.3pt}\par
 \vspace{5pt}
 
 \noindent
 \begin{minipage}[c]{0.17\textwidth}
-  % Logo JSTT bên trái
   \includegraphics[width=\linewidth, height=1.95cm, keepaspectratio]{images/Picture1.png}
 \end{minipage}%
 \hfill
 \begin{minipage}[c]{0.63\textwidth}
-  % Banner giữa
   \colorbox{jsttbg}{%
     \begin{minipage}[c][1.95cm][t]{\dimexpr\linewidth-2\fboxsep\relax}
       \fontspec{Times New Roman}
@@ -206,9 +196,7 @@
       {\centering
         {\fontsize{15}{18}\selectfont Journal of Science and Transport Technology}\par
       }
-      % Đẩy toàn bộ khoảng cách thừa lên giữa
       \vfill
-      % Dạt phải và giữ lại 2.5pt an toàn cho chân chữ
       \raggedleft
       {\fontsize{13}{15}\selectfont University of Transport Technology}\hspace{0.25cm}\par
       \vspace{2.5pt}
@@ -217,23 +205,19 @@
 \end{minipage}%
 \hfill
 \begin{minipage}[c]{0.17\textwidth}
-  % Logo UTT bên phải
   \raggedleft
   \includegraphics[width=\linewidth, height=1.95cm, keepaspectratio]{images/Picture2.png}
 \end{minipage}
 
 \vspace{5pt}
-% Đường kẻ đơn phía dưới
 \noindent\rule{\textwidth}{1.3pt}\par
 }
 
 %---------------------------------------------------------------------
 % Titlebox - article info (left) + title/abstract (right)
-% #1 = article info (left column)
-% #2 = title + authors + abstract + keywords (right column)
 %---------------------------------------------------------------------
 \newcommand{\titlebox}[2]{%
-\vspace{\baselineskip} % Cách ra 1 dòng ở đầu trên bảng abstract
+\vspace{\baselineskip}
 \noindent
 \setlength{\fboxrule}{0.4pt}
 \begin{tabular}{|p{0.28\textwidth}|p{0.69\textwidth}|}
@@ -250,7 +234,7 @@
 \end{minipage} \\
 \hline
 \end{tabular}\par
-\vspace{\baselineskip} % Cách ra 1 dòng ở đầu dưới bảng abstract
+\vspace{\baselineskip}
 }
 
 %=======================================================================
@@ -279,7 +263,7 @@
 }{%
   {\fontsize{11}{13}\selectfont\bfseries\color{jsttblue} An AI-Powered Driver Monitoring System
   Integrating Six Computer Vision Modules for Real-Time Behavior Detection}\\[5pt]
-  {\fontsize{9}{11}\selectfont Dao Van Vinh$^{1}$, Nguyen Thanh Xuan$^{1}$, Dao Phuc Dan$^{1}$}\\[3pt]
+  {\fontsize{9}{11}\selectfont Dao Van Vinh$^{1,\ast}$, Nguyen Thanh Xuan$^{1}$, Dao Phuc Dan$^{1}$}\\[3pt]
   {\fontsize{8}{10}\selectfont\itshape
   $^{1}$Faculty of Information Technology, University of Transport Technology, Hanoi, Vietnam}\\[8pt]
   \fontsize{10}{12}\selectfont
@@ -292,9 +276,9 @@
   employs YOLOv8, MediaPipe, Dlib, and the Perspective-n-Point (PnP) method on a traditional
   three-tier architecture (presentation layer, application layer, data layer). The Flask-based
   application layer integrates a specialized AI inference module for real-time video processing. Experimental results demonstrate
-  89,9\% average module accuracy in CPU lab tests and $\sim$92\% end-to-end accuracy with 20--30 FPS on GPU, and 100--200~ms latency, offering a cost-effective real-time
+  89.9\% average module accuracy in CPU lab tests and $\sim$92\% end-to-end accuracy with 20--30 FPS on GPU, and 100--200~ms latency, offering a cost-effective real-time
   monitoring solution for enhanced driving safety.\par
-  \vspace{\baselineskip} % Cách ra đúng 1 dòng
+  \vspace{\baselineskip}
   \textbf{Keywords:} drowsiness detection; driver distraction; YOLOv8; MediaPipe; Dlib;
   traffic safety; edge AI
 }
@@ -321,7 +305,7 @@
 }{%
   {\fontsize{11}{13}\selectfont\bfseries\color{jsttblue} Hệ thống giám sát tài xế thông minh tích hợp
   sáu module thị giác máy tính phát hiện hành vi thời gian thực}\\[5pt]
-  {\fontsize{9}{11}\selectfont Đào Văn Vinh$^{1}$, Nguyễn Thanh Xuan$^{1}$, Đào Phúc Dân$^{1,\ast}$}\\[3pt]
+  {\fontsize{9}{11}\selectfont Đào Văn Vinh$^{1,\ast}$, Nguyễn Thanh Xuân$^{1}$, Đào Phúc Dân$^{1}$}\\[3pt]
   {\fontsize{8}{10}\selectfont\itshape
   $^{1}$Khoa Công nghệ Thông tin, Trường Đại học Công nghệ Giao thông vận tải, Hà Nội, Việt Nam}\\[8pt]
   \fontsize{10}{12}\selectfont
@@ -335,7 +319,7 @@
   (Flask) tích hợp một module AI suy luận chuyên biệt để xử lý video thời gian thực. Kết quả thực nghiệm
   cho thấy hệ thống đạt 89,9\% trung bình các module trong kiểm thử lab trên CPU và khoảng 92\% end-to-end trên GPU, tốc độ xử lý 20--30 FPS và độ trễ
   đầu cuối 100--200~ms, đáp ứng yêu cầu giám sát thời gian thực và hỗ trợ nâng cao an toàn lái xe.\par
-  \vspace{\baselineskip} % Cách ra đúng 1 dòng
+  \vspace{\baselineskip}
   \textbf{Từ khóa:} Phát hiện buồn ngủ; phân tâm khi lái xe; YOLOv8; MediaPipe; Dlib;
   an toàn giao thông; AI biên
 }
@@ -504,13 +488,13 @@ Pipeline xử lý AI hoạt động tuần tự qua các module phát hiện. M�
 
 \subsection{Thiết lập thực nghiệm}
 
-Hệ thống được kiểm thử trên hai cấu hình: GPU (Intel Core i7-12700H, NVIDIA RTX 3050 Ti) và CPU (Intel Core i7-1165G7, Intel Iris Xe). Camera webcam độ phân giải 640$\times$480 ở 20 FPS, YOLOv8 chạy đầu vào 640$\times$640. Đánh giá gồm ba mức tách biệt: (1) chỉ số (i) mAP@50/mAP@50--95 trên tập huấn luyện Bảng~\ref{tab:yolo_training}: module điện thoại dùng 3.500 ảnh COCO kết hợp cabin, module dây an toàn dùng 1.200 ảnh cabin tùy chỉnh); (2) kiểm thử chức năng từng module trong phòng lab trên CPU với video cabin (độ chính xác phân loại, Bảng~\ref{tab:inference}); (3) kiểm thử toàn hệ thống end-to-end trên luồng webcam trực tiếp (độ chính xác cảnh báo và FPS/độ trễ, Bảng~\ref{tab:comparison}). Dữ liệu cabin được thu thập tại Thư viện Trường Đại học Công nghệ Giao thông vận tải từ tháng 8/2025 đến tháng 2/2026; vận hành thử end-to-end được thực hiện trên cabin xe của cộng tác viên trong tháng 3/2026. Thời gian suy luận được đo bằng cơ chế timing instrumentation ghi log mỗi 100 frame.
+Hệ thống được kiểm thử trên hai cấu hình: GPU (Intel Core i7-12700H, NVIDIA RTX 3050 Ti) và CPU (Intel Core i7-1165G7, Intel Iris Xe). Camera webcam độ phân giải 640$\times$480 ở 20 FPS, YOLOv8 chạy đầu vào 640$\times$640. Đánh giá gồm ba mức tách biệt: (1) chỉ số mAP@50/mAP@50--95 trên tập huấn luyện (Bảng~\ref{tab:yolo_training}: module điện thoại dùng 3.500 ảnh trích xuất từ COCO kết hợp cabin thực tế, module dây an toàn dùng 1.200 ảnh cabin tùy chỉnh); (2) kiểm thử chức năng từng module trong phòng lab trên CPU với video cabin (độ chính xác phân loại, Bảng~\ref{tab:inference}); (3) kiểm thử toàn hệ thống end-to-end trên luồng webcam trực tiếp (độ chính xác cảnh báo và FPS/độ trễ, Bảng~\ref{tab:comparison}). Dữ liệu cabin được thu thập tại Thư viện Trường Đại học Công nghệ Giao thông vận tải từ tháng 8/2025 đến tháng 2/2026; vận hành thử end-to-end được thực hiện trên cabin xe của cộng tác viên trong tháng 3/2026. Thời gian suy luận được đo bằng cơ chế timing instrumentation ghi log mỗi 100 frame.
 
 \subsection{Kết quả và đánh giá}
 
 Hệ thống có cơ chế đo thời gian suy luận (timing instrumentation) ghi log mỗi 100 frame. Bảng~\ref{tab:thresholds} liệt kê các tham số ngưỡng phát hiện của từng module.
 
-Việc lựa chọn ngưỡng ảnh hưởng trực tiếp đến độ chính xác và tốc độ phát hiện. Ngưỡng EAR = 0,30 kết hợp với thời gian nhắm mắt tối thiểu 2 giây giúp phân biệt chớp mắt tự nhiên (100--400~ms) với buồn ngủ thực sự, giảm dương tính giả. Ngưỡng YAWN = 25~pixel và 15 khung hình liên tiếp (tương đương 0,75~giây ở 20~FPS) loại bỏ các chuyển động miệng ngắn (nói chuyện, cười). Ngưỡng tư thế đầu $|yaw| > 40^\circ$ và $pitch > 35^\circ$ theo biên độ nhìn tự nhiên khi lái xe \cite{lawson2020}; conf $>0,5$ cho YOLO để cân bằng precision--recall; FistScore $\geq 3$ (cơ chế đa số với 4/5 ngón) cân bằng giữa độ nhạy và độ đặc hiệu. Cơ chế cooldown (2--4~giây) ngăn cảnh báo trùng lặp, giảm nhiễu cho người lái.
+Việc lựa chọn ngưỡng ảnh hưởng trực tiếp đến độ chính xác và tốc độ phát hiện. Ngưỡng EAR = 0{,}30 kết hợp với thời gian nhắm mắt tối thiểu 2 giây giúp phân biệt chớp mắt tự nhiên (100--400~ms) với buồn ngủ thực sự, giảm dương tính giả. Ngưỡng YAWN = 25~pixel và 15 khung hình liên tiếp (tương đương 0{,}75~giây ở 20~FPS) loại bỏ các chuyển động miệng ngắn (nói chuyện, cười). Ngưỡng tư thế đầu $|yaw| > 40^\circ$ và $pitch > 35^\circ$ theo biên độ nhìn tự nhiên khi lái xe \cite{lawson2020}; conf $>0{,}5$ cho YOLO để cân bằng precision--recall; FistScore $\geq 3$ (cơ chế đa số với 4/5 ngón) cân bằng giữa độ nhạy và độ đặc hiệu. Cơ chế cooldown (2--4~giây) ngăn cảnh báo trùng lặp, giảm nhiễu cho người lái.
 
 \vspace{4pt}
 \noindent
@@ -591,9 +575,9 @@ Toàn bộ hệ thống & 462,37 & 2,16 & 89,9 \\
 \end{minipage}
 \vspace{6pt}
 
-Độ chính xác của từng module chịu ảnh hưởng trực tiếp từ ngưỡng phát hiện. dlib đạt 95,0\% nhờ HOG+SVM phát hiện khuôn mặt chính diện ổn định \cite{king2009}, nhưng giảm khi góc nghiêng vượt $30^\circ$. YOLOv8n phát hiện điện thoại đạt precision 99,8\% ở ngưỡng conf $>0,5$ trên tập kiểm thử -- đây là độ chính xác phân loại, khác với tỷ lệ phát hiện thực tế ngoài cabin (khoảng 55\% do khác biệt góc camera và ánh sáng so với tập COCO). YOLOv8 phát hiện dây an toàn đạt 80,7\% với conf $>0,5$, thấp hơn do tập huấn luyện chỉ 1.200 ảnh. MediaPipe đạt 90,5\% nhờ mô hình TFLite nhẹ hoạt động ổn định trong cabin \cite{lugaresi2019}. Giá trị trung bình 89,9\% trong bảng này là kết quả lab trên CPU, phản ánh sự cân bằng giữa độ nhạy và độ đặc hiệu ở các ngưỡng đã chọn. Về thời gian, hai mô hình YOLOv8 chiếm $\sim$71\% tổng thời gian xử lý (327~ms), cho thấy đây là nút thắt cổ chai cần tối ưu.
+Độ chính xác của từng module chịu ảnh hưởng trực tiếp từ ngưỡng phát hiện. dlib đạt 95,0\% nhờ HOG+SVM phát hiện khuôn mặt chính diện ổn định \cite{king2009}, nhưng giảm khi góc nghiêng vượt $30^\circ$. YOLOv8n phát hiện điện thoại đạt precision 99,8\% ở ngưỡng conf $>0{,}5$ trên tập kiểm thử cô lập -- đây là độ chính xác phân loại trong điều kiện thử nghiệm chuẩn. Khi triển khai trên luồng stream thực tế trong cabin, module vẫn duy trì độ nhạy cao và góp phần đưa độ chính xác cảnh báo end-to-end toàn hệ thống đạt $\sim$92\% trên GPU, dù trong một số tình huống đặc thù góc nhìn bị khuất tay cầm hoặc phản xạ ánh sáng mạnh có thể làm giảm nhẹ độ tin cậy tức thời. YOLOv8 phát hiện dây an toàn đạt 80,7\% với conf $>0{,}5$, thấp hơn do tập huấn luyện chỉ 1.200 ảnh. MediaPipe đạt 90,5\% nhờ mô hình TFLite nhẹ hoạt động ổn định trong cabin \cite{lugaresi2019}. Giá trị trung bình 89,9\% trong bảng này là kết quả lab trên CPU, phản ánh sự cân bằng giữa độ nhạy và độ đặc hiệu ở các ngưỡng đã chọn. Về thời gian, hai mô hình YOLOv8 chiếm $\sim$71\% tổng thời gian xử lý (327~ms), cho thấy đây là nút thắt cổ chai cần tối ưu.
 
-Trên luồng webcam trực tiếp, hệ thống đạt tốc độ 20--30 FPS với độ trễ 100--200 ms và độ chính xác end-to-end khoảng 92\% trên GPU, trong khi trên CPU chỉ đạt 2--5 FPS với độ trễ 200--500 ms và khoảng 85\% chênh lệch do pipeline tuần tự trên CPU bỏ lỡ sự kiện khi tải YOLO cao, Bảng~\ref{tab:comparison}). GPU nhanh hơn 6--10 lần, khẳng định vai trò thiết yếu của tăng tốc phần cứng trong các hệ thống DMS đa module.
+Trên luồng webcam trực tiếp, hệ thống đạt tốc độ 20--30 FPS với độ trễ 100--200 ms và độ chính xác end-to-end khoảng 92\% trên GPU, trong khi trên CPU chỉ đạt 2--5 FPS với độ trễ 200--500 ms và khoảng 85\% (chênh lệch do pipeline tuần tự trên CPU bỏ lỡ sự kiện khi tải YOLO cao, Bảng~\ref{tab:comparison}). GPU nhanh hơn 6--10 lần, khẳng định vai trò thiết yếu của tăng tốc phần cứng trong các hệ thống DMS đa module.
 
 \begin{table}[H]
 \centering
@@ -681,10 +665,6 @@ Nghiên cứu này được tài trợ bởi Trường Đại học Công nghệ
 \bibitem{shorten2019} Shorten, C., \& Khoshgoftaar, T. (2019). A survey on image data augmentation for deep learning. \textit{Journal of Big Data}, 6(1), 1--48.
 
 \bibitem{seeingmachines2022} Seeing Machines. (2022). \textit{Guardian DMS: Driver Monitoring System OEM} [Technical documentation].
-
-\bibitem{veres2019} Veres, M., \& Moussa, M. (2019). Deep learning for intelligent transportation systems: A survey. \textit{IEEE Transactions on Intelligent Transportation Systems}, 21(11), 4602--4620.
-
-\bibitem{zhou2025} Zhou, K. C., et al. (2025). Human pose prediction based on LSTM và MediaPipe. \textit{Tạp chí Khoa học và Công nghệ Kỹ thuật}.
 
 \bibitem{baogiaothong2025} Báo Giao thông. (2025). Thống kê tai nạn giao thông tại Việt Nam. \textit{Báo Giao thông}.
 
