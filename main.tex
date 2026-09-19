@@ -348,19 +348,19 @@
 
 \section{Giới thiệu}
 
-Tai nạn giao thông đường bộ vẫn là một trong những nguyên nhân hàng đầu gây tử vong và thiệt hại kinh tế trên toàn thế giới. Theo Tổ chức Y tế Thế giới (WHO), mỗi năm có khoảng 1,19 triệu người tử vong và hàng chục triệu người bị thương do tai nạn giao thông đường bộ, trong đó lỗi của người điều khiển phương tiện vẫn là nguyên nhân chủ yếu. Tại Việt Nam, theo báo cáo của Ủy ban An toàn giao thông Quốc gia, giai đoạn 2024--2025 cả nước ghi nhận hơn 6.000 trường hợp tử vong mỗi năm, trong đó tình trạng buồn ngủ, mất tập trung và sử dụng điện thoại khi lái xe là các yếu tố nguy cơ quan trọng dẫn đến nhiều vụ tai nạn nghiêm trọng \cite{hien2026, baogiaothong2025}.
+Tai nạn giao thông đường bộ vẫn là một trong những nguyên nhân hàng đầu gây tử vong và thiệt hại kinh tế trên toàn thế giới. Theo Tổ chức Y tế Thế giới (WHO), mỗi năm có khoảng 1,19 triệu người tử vong và hàng chục triệu người bị thương do tai nạn giao thông đường bộ \cite{who2023}, trong đó lỗi của người điều khiển phương tiện vẫn là nguyên nhân chủ yếu. Tại Việt Nam, theo báo cáo của Ủy ban An toàn giao thông Quốc gia, giai đoạn 2024--2025 cả nước ghi nhận hơn 6.000 trường hợp tử vong mỗi năm, trong đó tình trạng buồn ngủ, mất tập trung và sử dụng điện thoại khi lái xe là các yếu tố nguy cơ quan trọng dẫn đến nhiều vụ tai nạn nghiêm trọng \cite{hien2026, baogiaothong2025}.
 
 Bên cạnh đó, nhiều nghiên cứu đã chứng minh rằng trạng thái sinh lý và hành vi của người lái ảnh hưởng trực tiếp đến khả năng điều khiển phương tiện. Hiệp hội An toàn giao thông Hoa Kỳ (AAA Foundation for Traffic Safety) cho thấy người lái ngủ dưới 5 giờ trong vòng 24 giờ có nguy cơ gây tai nạn cao gấp 4,5 lần so với người ngủ đủ 7 giờ trở lên \cite{aaa2018}. Tương tự, Cục Quản lý An toàn Giao thông Đường cao tốc Quốc gia Hoa Kỳ (NHTSA) cũng chỉ ra rằng tình trạng buồn ngủ và mất tập trung là nguyên nhân của hàng chục nghìn vụ tai nạn mỗi năm. Những thống kê này cho thấy nhu cầu cấp thiết đối với các hệ thống hỗ trợ lái xe có khả năng phát hiện sớm các hành vi nguy hiểm và đưa ra cảnh báo kịp thời.
 
 Driver Monitoring System (DMS) là hướng nghiên cứu trọng tâm trong Intelligent Transportation Systems (ITS). Các phương pháp dùng cảm biến sinh lý (EEG, ECG) đạt độ chính xác cao nhưng bất tiện do yêu cầu đeo thiết bị \cite{ji2002}. Thị giác máy tính và học sâu đã mở ra giải pháp không xâm lấn dùng camera thông thường \cite{voulodimos2018, lecun2015}. Các nghiên cứu gần đây áp dụng EAR \cite{soukupova2016}, head pose estimation \cite{lawson2020, malek2021}, YOLO \cite{redmon2016, jocher2023} để phát hiện buồn ngủ, mất tập trung, điện thoại và dây an toàn. Tuy nhiên, phần lớn chỉ tập trung vào một vài nhiệm vụ riêng lẻ, chưa có hệ thống tích hợp nhiều module giám sát tài xế trên cùng một pipeline thời gian thực.
 
-Bài báo này đề xuất hệ thống giám sát tài xế thông minh tích hợp 6 module thị giác máy tính theo kiến trúc ba tầng truyền thống (tầng giao diện, tầng ứng dụng, tầng dữ liệu), trong đó tầng ứng dụng tích hợp một module AI suy luận chuyên biệt và kết hợp chatbot AI tư vấn luật giao thông.
+Bài báo này đề xuất hệ thống giám sát tài xế thông minh tích hợp 6 module thị giác máy tính theo kiến trúc ba tầng truyền thống (tầng giao diện, tầng ứng dụng, tầng dữ liệu), trong đó tầng ứng dụng tích hợp một module AI suy luận chuyên biệt.
 
 Các đóng góp chính:
 \begin{itemize}[leftmargin=*,nosep]
   \item Kiến trúc AI thống nhất tích hợp 6 module giám sát tài xế (buồn ngủ, ngáp, tư thế đầu, điện thoại, dây an toàn, tay lái) trên cùng pipeline thời gian thực.
   \item Kết hợp Dlib, MediaPipe, YOLOv8 và PnP với chi phí tính toán thấp, phù hợp thiết bị biên.
-  \item Cơ chế cảnh báo đa kênh (âm thanh, WebSocket, MQTT, chatbot RAG) hỗ trợ người lái thời gian thực.
+  \item Cơ chế cảnh báo đa kênh (âm thanh, HTTP polling/SSE, MQTT) hỗ trợ người lái thời gian thực.
 \end{itemize}
 
 \section{Các nghiên cứu liên quan}
@@ -379,21 +379,27 @@ Phát hiện vật thể lạ trong cabin (điện thoại, dây an toàn, tay l
 
 \subsection{Kiến trúc tổng thể}
 
-Hệ thống được tổ chức theo kiến trúc ba tầng truyền thống (three-tier architecture), gồm tầng giao diện (Presentation Layer), tầng ứng dụng/xử lý nghiệp vụ (Application Layer) và tầng dữ liệu (Data Layer):
+\begin{sloppypar}
+Hệ thống được tổ chức theo kiến trúc ba tầng truyền thống (\mbox{three-tier} architecture), gồm tầng giao diện (\mbox{Presentation} Layer), tầng ứng dụng/xử lý nghiệp vụ (\mbox{Application} Layer) và tầng dữ liệu (Data Layer):
+\end{sloppypar}
 
 \begin{itemize}[leftmargin=*,nosep]
-  \item \textbf{Tầng giao diện (Presentation Layer, React):} Dashboard giám sát, hiển thị video stream, thống kê cảnh báo và lịch sử vi phạm.
-  \item \textbf{Tầng ứng dụng/xử lý nghiệp vụ (Application Layer, Flask):} Cung cấp REST API, WebSocket thời gian thực, MQTT cho kết nối IoT và chatbot AI; tiếp nhận kết quả suy luận, tổng hợp cảnh báo và cung cấp dữ liệu cho tầng giao diện.
-  \item \textbf{Tầng dữ liệu (Data Layer, MySQL):} Lưu trữ thông tin người dùng, dữ liệu giám sát, kết quả phát hiện và lịch sử cảnh báo.
+  \item Tầng giao diện (\mbox{Presentation} Layer, Next.js + Flask template): \mbox{Dashboard} giám sát, hiển thị video \mbox{stream}, thống kê cảnh báo và lịch sử vi phạm.
+  \item Tầng ứng dụng/xử lý nghiệp vụ (\mbox{Application} Layer, Flask): Cung cấp REST API, SSE thời gian thực và HTTP \mbox{polling}, MQTT cho kết nối IoT; tiếp nhận kết quả suy luận, tổng hợp cảnh báo và cung cấp dữ liệu cho tầng giao diện.
+  \item Tầng dữ liệu (Data Layer, MySQL): Lưu trữ thông tin người dùng, phương tiện, tuyến đường, kết quả phát hiện, video ghi hình và lịch sử cảnh báo.
 \end{itemize}
 
-Ngoài ba tầng trên, hệ thống tích hợp một module AI suy luận chuyên biệt thuộc tầng ứng dụng (Python/OpenCV, YOLOv8, MediaPipe, Dlib, PnP) để xử lý video thời gian thực và phát hiện đa module. Trong cài đặt, module này nằm trong tiến trình backend ({\tt backend/app/ai/}) và được khởi tạo cùng ứng dụng Flask.
+\begin{sloppypar}
+Module AI suy luận (\mbox{Python/OpenCV}, YOLOv8, \mbox{MediaPipe}, Dlib, PnP) chỉ là một khối nhỏ thuộc tầng ứng dụng, chuyên xử lý video thời gian thực và phát hiện đa module. Trong cài đặt, module này nằm trong tiến trình \mbox{backend} ({\tt backend/app/ai/}) và được khởi tạo cùng ứng dụng Flask qua \mbox{factory} {\tt create\_app}.
+\end{sloppypar}
 
-Về kỹ thuật triển khai, hệ thống áp dụng tải mô hình lười biếng (lazy loading) qua hàm {\tt \_load\_once()} với khóa {\tt model\_lock} theo mẫu double-checked locking, giúp mô hình chỉ khởi tạo một lần tại lần gọi đầu tiên; đồng thời sử dụng đồng bộ hóa đa luồng ({\tt threading.Lock}) cho hàng đợi cảnh báo và pipeline xử lý video.
+\begin{sloppypar}
+Về kỹ thuật triển khai, hệ thống áp dụng tải mô hình lười biếng (lazy loading) qua hàm {\tt \_load\_once()} với khóa {\tt model\_lock} theo mẫu \mbox{double-checked} locking, giúp mô hình chỉ khởi tạo một lần tại lần gọi đầu tiên; đồng thời sử dụng đồng bộ hóa đa luồng ({\tt threading.Lock}) cho hàng đợi cảnh báo và \mbox{pipeline} xử lý video.
+\end{sloppypar}
 
 \subsection{Phát hiện nhắm mắt và buồn ngủ}
 
-Module sử dụng bộ phát hiện khuôn mặt dlib và bộ dự đoán điểm mốc 68 điểm \cite{king2009}. Chỉ số EAR được tính cho từng mắt từ 6 điểm mốc (index 36--41 cho mắt trái, 42--47 cho mắt phải):
+Module sử dụng bộ phát hiện khuôn mặt dlib và bộ dự đoán điểm mốc 68 điểm \cite{king2009}. Chỉ số EAR được tính cho từng mắt từ 6 điểm mốc theo phương pháp Soukupova và Cech \cite{soukupova2016} (index 36--41 cho mắt trái, 42--47 cho mắt phải):
 
 \begin{equation}
 EAR = \frac{\|p_2 - p_6\| + \|p_3 - p_5\|}{2\|p_1 - p_4\|}
@@ -403,7 +409,7 @@ Ngưỡng phát hiện nhắm mắt: $EAR < 0.30$ trong thời gian tối thiể
 
 \subsection{Phát hiện ngáp}
 
-Phát hiện ngáp dựa trên khoảng cách giữa môi trên và môi dưới từ các điểm mốc khuôn mặt:
+Phát hiện ngáp dựa trên khoảng cách giữa môi trên và môi dưới từ các điểm mốc miệng của bộ dự đoán 68 điểm \cite{king2009}, theo cùng ý tưởng đo khoảng cách landmark như EAR \cite{soukupova2016}. Ngáp được xem là chỉ báo buồn ngủ trong các tổng quan DMS \cite{ngxande2017}:
 
 \begin{equation}
 MAR = \frac{1}{|bottom|} \sum_{i \in bottom} y_i - \frac{1}{|top|} \sum_{j \in top} y_j
@@ -415,7 +421,7 @@ Ngưỡng phát hiện: $MAR > 25$ pixel trong 15 khung hình liên tiếp (~0,7
 
 \subsection{Ước lượng tư thế đầu}
 
-Hệ thống giải quyết bài toán ước lượng tư thế đầu thông qua phương pháp Perspective-n-Point (PnP), được hiện thực hóa bằng hàm \texttt{cv2.solvePnP} trong thư viện OpenCV với mô hình khuôn mặt 3D chuẩn nhân trắc học và sáu điểm mốc đặc trưng (đỉnh mũi, cằm, khóe mắt ngoài, khóe miệng). Phương trình chiếu phối cảnh:
+Hệ thống ước lượng tư thế đầu theo hướng PnP cho bài toán phát hiện mất tập trung \cite{lawson2020}, kế thừa hướng theo dõi tư thế khuôn mặt cho giám sát tỉnh táo \cite{ji2002}. Phương pháp được hiện thực bằng hàm \texttt{cv2.solvePnP} với mô hình khuôn mặt 3D chuẩn nhân trắc học và sáu điểm mốc 2D từ bộ dự đoán 68 điểm \cite{king2009} (đỉnh mũi, cằm, khóe mắt ngoài, khóe miệng). Phương trình chiếu phối cảnh:
 
 \begin{equation}
 s \cdot \begin{bmatrix} u \\ v \\ 1 \end{bmatrix} =
@@ -423,7 +429,7 @@ K \cdot [R \;|\; t] \cdot \begin{bmatrix} X \\ Y \\ Z \\ 1 \end{bmatrix}
 \label{eq:pnp}
 \end{equation}
 
-Từ ma trận xoay $\mathbf{R}$, hệ thống trích xuất ba góc Euler (Yaw, Pitch, Roll). Do hành vi mất tập trung chủ yếu thể hiện qua việc quay mặt sang hai bên hoặc cúi/ngửa đầu, ngưỡng cảnh báo được kích hoạt khi: $|\text{yaw}| > 40^\circ$ hoặc $\text{pitch} > 35^\circ$.
+Từ ma trận xoay $\mathbf{R}$, hệ thống trích xuất ba góc Euler (Yaw, Pitch, Roll). Do hành vi mất tập trung chủ yếu thể hiện qua việc quay mặt sang hai bên hoặc cúi/ngửa đầu, ngưỡng cảnh báo trong cài đặt này được kích hoạt khi: $|\text{yaw}| > 40^\circ$ hoặc $\text{pitch} > 35^\circ$.
 
 \subsection{Theo dõi tay lái}
 
@@ -438,30 +444,30 @@ Các chỉ số: 8/12/16/20 (đầu ngón), 6/10/14/18 (khớp ngón). Ngón cá
 
 \subsection{Phát hiện sử dụng điện thoại}
 
-Mô hình YOLOv8n \cite{jocher2023} được fine-tuning trên 8.500 ảnh cabin kết hợp pretrained COCO (80 lớp) với freezing layers. Kết quả huấn luyện (Bảng~\ref{tab:yolo_training}) đạt mAP@50 = 0,975 và mAP@50--95 = 0,748 sau 100 epoch. Hình~\ref{fig:training_curves} cho thấy các chỉ số hội tụ ổn định từ epoch 50. Ma trận nhầm lẫn (Hình~\ref{fig:confusion_matrix}) xác nhận độ chính xác phân loại cao giữa lớp ``cell phone'' và nền. Hệ thống xác định hành vi sử dụng điện thoại khi độ tin cậy dự đoán vượt ngưỡng 0,5.
+Mô hình YOLOv8n \cite{jocher2023} thuộc họ YOLO \cite{redmon2016} được fine-tuning trên 3.500 ảnh cabin kết hợp pretrained COCO (80 lớp) với freezing layers. Kết quả huấn luyện (Bảng~\ref{tab:yolo_training}) đạt mAP@50 = 0,975 và mAP@50--95 = 0,748 sau 100 epoch. Hình~\ref{fig:training_curves} cho thấy các chỉ số hội tụ ổn định từ epoch 50. Ma trận nhầm lẫn (Hình~\ref{fig:confusion_matrix}) xác nhận độ chính xác phân loại cao giữa lớp ``cell phone'' và nền. Hệ thống xác định hành vi sử dụng điện thoại khi độ tin cậy dự đoán vượt ngưỡng 0,5.
 
-\vspace{6pt}
+\vspace{4pt}
 \noindent
 \begin{minipage}{\columnwidth}
 \centering
-\includegraphics[width=0.92\columnwidth]{phone_results.png}
+\includegraphics[width=0.85\columnwidth]{phone_results.png}
 \captionof{figure}{Đường cong huấn luyện mô hình phát hiện điện thoại}
 \label{fig:training_curves}
 \end{minipage}
 
-\vspace{6pt}
+\vspace{4pt}
 \noindent
 \begin{minipage}{\columnwidth}
 \centering
-\includegraphics[width=0.82\columnwidth]{phone_confusion.png}
+\includegraphics[width=0.70\columnwidth]{phone_confusion.png}
 \captionof{figure}{Ma trận nhầm lẫn của mô hình phát hiện điện thoại}
 \label{fig:confusion_matrix}
 \end{minipage}
-\vspace{6pt}
+\vspace{4pt}
 
 \subsection{Phát hiện dây an toàn}
 
-Module sử dụng YOLOv8 được huấn luyện tùy chỉnh (trọng số {\tt day\_an\_toan.pt}) trên tập dữ liệu 1.200 ảnh thu thập từ nhiều góc nhìn trong cabin, áp dụng transfer learning với fine-tuning. Kết quả (Bảng~\ref{tab:yolo_training}) đạt mAP@50 = 0,753 và mAP@50--95 = 0,354 sau 50 epoch. Độ chính xác thấp hơn so với mô hình điện thoại do kích thước tập dữ liệu nhỏ hơn và sự đa dạng về tư thế, góc nhìn của dây an toàn.
+Module sử dụng YOLOv8 \cite{jocher2023} được huấn luyện tùy chỉnh (trọng số {\tt day\_an\_toan.pt}) trên tập dữ liệu 1.200 ảnh thu thập từ nhiều góc nhìn trong cabin, áp dụng transfer learning với fine-tuning. Kết quả (Bảng~\ref{tab:yolo_training}) đạt mAP@50 = 0,753 và mAP@50--95 = 0,354 sau 50 epoch. Độ chính xác thấp hơn so với mô hình điện thoại do kích thước tập dữ liệu nhỏ hơn và sự đa dạng về tư thế, góc nhìn của dây an toàn.
 
 \begin{figure}[H]
 \centering
@@ -480,7 +486,7 @@ Module sử dụng YOLOv8 được huấn luyện tùy chỉnh (trọng số {\t
 \toprule
 Mô hình & Dữ liệu & Số ảnh & mAP@50 & mAP@50--95 \\
 \midrule
-CellPhone-YOLOv8n & COCO + In-Cabin Real & 8.500 & 0,975 & 0,748 \\
+CellPhone-YOLOv8n & COCO + In-Cabin Real & 3.500 & 0,975 & 0,748 \\
 Seatbelt-YOLOv8 & Custom In-Cabin & 1.200 & 0,753 & 0,354 \\
 \bottomrule
 \end{tabular}
@@ -490,15 +496,15 @@ Seatbelt-YOLOv8 & Custom In-Cabin & 1.200 & 0,753 & 0,354 \\
 
 \subsection{Hệ thống giao tiếp hai chiều AI--Web}
 
-Luồng giao tiếp hai chiều (two-way communication) được tổ chức giữa ba tầng chuẩn: module AI suy luận (thuộc tầng ứng dụng) xử lý video với cơ chế tải mô hình lười biếng an toàn đa luồng; backend Flask ở tầng ứng dụng cung cấp REST API, WebSocket thời gian thực và MQTT cho kết nối IoT; dashboard web ở tầng giao diện thực hiện giám sát, hiển thị video stream, thống kê cảnh báo và lịch sử vi phạm. Cơ chế two-way communication cho phép hệ thống gửi cảnh báo, video stream đến web và web gửi lệnh bật/tắt module, điều chỉnh ngưỡng đến hệ thống.
+Luồng giao tiếp hai chiều (two-way communication) được tổ chức giữa ba tầng chuẩn: module AI suy luận (thuộc tầng ứng dụng) xử lý video với cơ chế tải mô hình lười biếng an toàn đa luồng; backend Flask ở tầng ứng dụng cung cấp REST API, HTTP polling/SSE và MQTT cho kết nối IoT; \mbox{dashboard} web ở tầng giao diện thực hiện giám sát, hiển thị video \mbox{stream}, thống kê cảnh báo và lịch sử vi phạm. Cơ chế two-way communication cho phép hệ thống gửi cảnh báo, video \mbox{stream} đến web và web gửi lệnh bật/tắt module, điều chỉnh ngưỡng đến hệ thống.
 
-Pipeline xử lý AI hoạt động tuần tự qua các module phát hiện. Mỗi module có thể bật/tắt độc lập. Cơ chế tổng hợp cảnh báo đa module theo mức ưu tiên với thời gian cooldown riêng. Cảnh báo được truyền qua ba kênh: âm thanh (pygame), hiển thị trên video stream, và thời gian thực qua WebSocket/MQTT.
+Pipeline xử lý AI hoạt động tuần tự qua các module phát hiện. Mỗi module có thể bật/tắt độc lập. Cơ chế tổng hợp cảnh báo đa module theo mức ưu tiên với thời gian cooldown riêng (Bảng~\ref{tab:priority}). Cảnh báo được truyền qua ba kênh: âm thanh (pygame), hiển thị trên video stream, và thời gian thực qua HTTP polling/SSE và MQTT.
 
 \section{Thực nghiệm và kết quả}
 
 \subsection{Thiết lập thực nghiệm}
 
-Hệ thống được kiểm thử trên hai cấu hình: GPU (Intel Core i7-12700H, NVIDIA RTX 3050 Ti) và CPU (Intel Core i7-1165G7, Intel Iris Xe). Camera webcam độ phân giải 640$\times$480 ở 20 FPS, YOLOv8 chạy đầu vào 640$\times$640. Đánh giá gồm ba mức tách biệt: (1) chỉ số (i) mAP@50/mAP@50--95 trên tập huấn luyện Bảng~\ref{tab:yolo_training}: module điện thoại dùng 8.500 ảnh COCO kết hợp cabin, module dây an toàn dùng 1.200 ảnh cabin tùy chỉnh); (2) kiểm thử chức năng từng module trong phòng lab trên CPU với video cabin (độ chính xác phân loại, Bảng~\ref{tab:inference}); (3) kiểm thử toàn hệ thống end-to-end trên luồng webcam trực tiếp (độ chính xác cảnh báo và FPS/độ trễ, Bảng~\ref{tab:comparison}). Thời gian suy luận được đo bằng cơ chế timing instrumentation ghi log mỗi 100 frame.
+Hệ thống được kiểm thử trên hai cấu hình: GPU (Intel Core i7-12700H, NVIDIA RTX 3050 Ti) và CPU (Intel Core i7-1165G7, Intel Iris Xe). Camera webcam độ phân giải 640$\times$480 ở 20 FPS, YOLOv8 chạy đầu vào 640$\times$640. Đánh giá gồm ba mức tách biệt: (1) chỉ số (i) mAP@50/mAP@50--95 trên tập huấn luyện Bảng~\ref{tab:yolo_training}: module điện thoại dùng 3.500 ảnh COCO kết hợp cabin, module dây an toàn dùng 1.200 ảnh cabin tùy chỉnh); (2) kiểm thử chức năng từng module trong phòng lab trên CPU với video cabin (độ chính xác phân loại, Bảng~\ref{tab:inference}); (3) kiểm thử toàn hệ thống end-to-end trên luồng webcam trực tiếp (độ chính xác cảnh báo và FPS/độ trễ, Bảng~\ref{tab:comparison}). Thời gian suy luận được đo bằng cơ chế timing instrumentation ghi log mỗi 100 frame.
 
 \subsection{Kết quả và đánh giá}
 
@@ -506,9 +512,12 @@ Hệ thống có cơ chế đo thời gian suy luận (timing instrumentation) g
 
 Việc lựa chọn ngưỡng ảnh hưởng trực tiếp đến độ chính xác và tốc độ phát hiện. Ngưỡng EAR = 0,30 kết hợp với thời gian nhắm mắt tối thiểu 2 giây giúp phân biệt chớp mắt tự nhiên (100--400~ms) với buồn ngủ thực sự, giảm dương tính giả. Ngưỡng YAWN = 25~pixel và 15 khung hình liên tiếp (tương đương 0,75~giây ở 20~FPS) loại bỏ các chuyển động miệng ngắn (nói chuyện, cười). Ngưỡng tư thế đầu $|yaw| > 40^\circ$ và $pitch > 35^\circ$ theo biên độ nhìn tự nhiên khi lái xe \cite{lawson2020}; conf $>0,5$ cho YOLO để cân bằng precision--recall; FistScore $\geq 3$ (cơ chế đa số với 4/5 ngón) cân bằng giữa độ nhạy và độ đặc hiệu. Cơ chế cooldown (2--4~giây) ngăn cảnh báo trùng lặp, giảm nhiễu cho người lái.
 
-\begin{table}[H]
+\vspace{4pt}
+\noindent
+\begin{minipage}{\columnwidth}
 \centering
-\caption{Tham số ngưỡng phát hiện các module}
+\captionof{table}{Tham số ngưỡng phát hiện các module}
+\label{tab:thresholds}
 \fontsize{7}{8.5}\selectfont
 \setlength{\tabcolsep}{2.5pt}
 \begin{tabular}{llr}
@@ -530,43 +539,46 @@ Cooldown & eye/yawn/head/phone & 2--3 giây \\
  & seatbelt/hand & 4 giây \\
 \bottomrule
 \end{tabular}
-\label{tab:thresholds}
-\end{table}
+\end{minipage}
 
-\begin{table}[H]
+\vspace{4pt}
+\noindent
+\begin{minipage}{\columnwidth}
 \centering
-\caption{Mức ưu tiên và hành động xử lý cảnh báo}
+\captionof{table}{Mức ưu tiên và hành động xử lý cảnh báo}
+\label{tab:priority}
 \fontsize{7}{8.5}\selectfont
 \setlength{\tabcolsep}{2.5pt}
 \begin{tabular}{llcc}
 \toprule
 Module & Mức & Âm thanh & Kênh truyền \\
 \midrule
-Nhắm mắt & critical & nham\_mat.wav & WebSocket + MQTT \\
-Điện thoại & critical & not\_phone.wav & WebSocket + MQTT \\
-Dây an toàn & critical & seatbelt\_alert.wav & WebSocket + MQTT \\
-Ngáp & warning & ngap\_ngu.wav & WebSocket \\
-Mất tập trung & warning & dau\_quay.wav & WebSocket \\
-Tay lái & warning & tay\_lai\_xe.wav & WebSocket \\
+Nhắm mắt & critical & nham\_mat.wav & HTTP polling + MQTT \\
+Điện thoại & critical & not\_phone.wav & HTTP polling + MQTT \\
+Dây an toàn & critical & seatbelt\_alert.wav & HTTP polling + MQTT \\
+Ngáp & warning & ngap\_ngu.wav & HTTP polling \\
+Mất tập trung & warning & dau\_quay.wav & HTTP polling \\
+Tay lái & warning & tay\_lai\_xe.wav & HTTP polling \\
 \bottomrule
 \end{tabular}
-\label{tab:priority}
-\end{table}
+\end{minipage}
 
+\vspace{4pt}
+\noindent
 Bảng~\ref{tab:inference} trình bày thời gian suy luận và độ chính xác phân loại của từng module trong kiểm thử lab trên CPU với độ phân giải 640$\times$480. Pipeline xử lý tuần tự trên CPU đạt 2,16 FPS (462,37 ms/frame), trong đó các mô hình YOLOv8 chiếm phần lớn thời gian xử lý.
 
-\vspace{6pt}
+\vspace{4pt}
 \noindent
 \begin{minipage}{\columnwidth}
 \centering
-\captionof{table}{Hiệu năng suy luận và độ chính xác phân loại của các mô-đun trong kiểm thử lab trên CPU.}
+\captionof{table}{Kết quả kiểm thử chức năng từng module trong phòng lab trên CPU.}
 \label{tab:inference}
 \fontsize{7}{8.5}\selectfont
 \setlength{\tabcolsep}{2.5pt}
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{lrrr}
 \toprule
-Mô-đun & Thời gian (ms) & FPS & Độ chính xác phân loại lab (\%) \\
+Module & Thời gian (ms) & FPS & Độ chính xác phân loại lab (\%) \\
 \midrule
 Phát hiện khuôn mặt và điểm mốc (dlib) & 51,96 & 19,24 & 95,0 \\
 Phát hiện điện thoại (YOLOv8n-custom) & 173,23 & 5,77 & 99,8 \\
@@ -579,13 +591,13 @@ Toàn bộ hệ thống & 462,37 & 2,16 & 89,9 \\
 \end{minipage}
 \vspace{6pt}
 
-Độ chính xác của từng module chịu ảnh hưởng trực tiếp từ ngưỡng phát hiện. dlib đạt 95,0\% nhờ HOG+SVM phát hiện khuôn mặt chính diện ổn định, nhưng giảm khi góc nghiêng vượt $30^\circ$. YOLOv8n phát hiện điện thoại đạt precision 99,8\% ở ngưỡng conf $>0,5$ trên tập kiểm thử -- đây là độ chính xác phân loại, khác với tỷ lệ phát hiện thực tế ngoài cabin (khoảng 55\% do khác biệt góc camera và ánh sáng so với tập COCO). YOLOv8 phát hiện dây an toàn đạt 80,7\% với conf $>0,5$, thấp hơn do tập huấn luyện chỉ 1.200 ảnh. MediaPipe đạt 90,5\% nhờ mô hình TFLite nhẹ hoạt động ổn định trong cabin. Giá trị trung bình 89,9\% trong bảng này là kết quả lab trên CPU, phản ánh sự cân bằng giữa độ nhạy và độ đặc hiệu ở các ngưỡng đã chọn. Về thời gian, hai mô hình YOLOv8 chiếm $\sim$71\% tổng thời gian xử lý (327~ms), cho thấy đây là nút thắt cổ chai cần tối ưu.
+Độ chính xác của từng module chịu ảnh hưởng trực tiếp từ ngưỡng phát hiện. dlib đạt 95,0\% nhờ HOG+SVM phát hiện khuôn mặt chính diện ổn định \cite{king2009}, nhưng giảm khi góc nghiêng vượt $30^\circ$. YOLOv8n phát hiện điện thoại đạt precision 99,8\% ở ngưỡng conf $>0,5$ trên tập kiểm thử -- đây là độ chính xác phân loại, khác với tỷ lệ phát hiện thực tế ngoài cabin (khoảng 55\% do khác biệt góc camera và ánh sáng so với tập COCO). YOLOv8 phát hiện dây an toàn đạt 80,7\% với conf $>0,5$, thấp hơn do tập huấn luyện chỉ 1.200 ảnh. MediaPipe đạt 90,5\% nhờ mô hình TFLite nhẹ hoạt động ổn định trong cabin \cite{lugaresi2019}. Giá trị trung bình 89,9\% trong bảng này là kết quả lab trên CPU, phản ánh sự cân bằng giữa độ nhạy và độ đặc hiệu ở các ngưỡng đã chọn. Về thời gian, hai mô hình YOLOv8 chiếm $\sim$71\% tổng thời gian xử lý (327~ms), cho thấy đây là nút thắt cổ chai cần tối ưu.
 
 Trên luồng webcam trực tiếp, hệ thống đạt tốc độ 20--30 FPS với độ trễ 100--200 ms và độ chính xác end-to-end khoảng 92\% trên GPU, trong khi trên CPU chỉ đạt 2--5 FPS với độ trễ 200--500 ms và khoảng 85\% chênh lệch do pipeline tuần tự trên CPU bỏ lỡ sự kiện khi tải YOLO cao, Bảng~\ref{tab:comparison}). GPU nhanh hơn 6--10 lần, khẳng định vai trò thiết yếu của tăng tốc phần cứng trong các hệ thống DMS đa module.
 
 \begin{table}[H]
 \centering
-\caption{So sánh hiệu năng end-to-end trên luồng webcam trực tiếp (CPU vs GPU)}
+\caption{Kết quả vận hành thử hệ thống hoàn chỉnh trên webcam trực tiếp sau khi tích hợp toàn bộ}
 \fontsize{7}{8.5}\selectfont
 \setlength{\tabcolsep}{2.5pt}
 \begin{tabular}{lrrr}
@@ -601,7 +613,9 @@ GPU (i7-12700H, RTX 3050 Ti) & 20--30 & 100--200 & $\sim$92\% \\
 
 \section{Thảo luận}
 
-Do trọng tâm của bài báo, chúng tôi tập trung thảo luận về camera như cảm biến chính để giám sát hành vi người lái. Giám sát người lái giải quyết việc phát hiện sớm các trường hợp mất tập trung hoặc có nguy cơ mất tập trung khỏi nhiệm vụ lái xe. Hai nguyên nhân chính là mệt mỏi (yếu tố không tự nguyện) và phân tâm (thường do cố ý). Cả hai đều yêu cầu khả năng thu thập và định vị đầu, khuôn mặt và mắt của người lái trong điều kiện khó khăn như chuyển động xe và ánh sáng thay đổi liên tục, dẫn đến bóng đổ hoặc phơi sáng quá mức \cite{voulodimos2018, lecun2015}.
+\begin{sloppypar}
+Kết quả cho thấy thách thức chính không nằm ở từng thuật toán riêng lẻ mà ở tích hợp đa module trên cùng pipeline thời gian thực. Hai mô hình YOLOv8 chiếm $\sim$71\% thời gian xử lý (327~ms trên CPU), khiến pipeline tuần tự chỉ đạt 2--5 FPS và bỏ lỡ sự kiện; trên GPU hệ thống đạt 20--30 FPS, khẳng định tăng tốc phần cứng là điều kiện bắt buộc với DMS đa module. Chênh lệch độ chính xác giữa điện thoại (99,8\%) và dây an toàn (80,7\%) phản ánh trực tiếp quy mô và đa dạng dữ liệu (3.500 ảnh COCO kết hợp cabin so với 1.200 ảnh cabin), cùng biến động ánh sáng và góc nhìn trong cabin \cite{voulodimos2018, lecun2015}. Các ngưỡng EAR, MAR, yaw/pitch, conf và FistScore cùng cơ chế cooldown thực chất là điểm cân bằng giữa độ nhạy và độ đặc hiệu: siết ngưỡng giảm báo giả nhưng tăng bỏ sót ngoài cabin thực tế.
+\end{sloppypar}
 
 Kết quả thực nghiệm cho thấy hệ thống đáp ứng tốt các mục tiêu về chức năng và hiệu năng. Hệ thống đạt tốc độ xử lý 20--30 FPS trên GPU, đáp ứng yêu cầu giám sát thời gian thực. Tuy nhiên, một số hạn chế cần được cải thiện:
 
@@ -609,12 +623,12 @@ Kết quả thực nghiệm cho thấy hệ thống đáp ứng tốt các mục
   \item Hiệu năng trên CPU còn thấp (2--5 FPS) do pipeline tuần tự chưa tận dụng đa luồng.
   \item Độ chính xác phát hiện dây an toàn (80,7\%) cần cải thiện thông qua mở rộng tập dữ liệu.
   \item Chưa có đánh giá trên bộ dữ liệu chuẩn công khai như Drive\&Act.
-  \item Giao diện web dùng polling thay vì WebSocket gây độ trễ hiển thị cảnh báo.
+  \item Giao diện web hiện cập nhật trạng thái theo cơ chế polling định kỳ; có thể chuyển sang WebSocket để tăng tính thời gian thực.
 \end{itemize}
 
 \section{Kết luận và hướng phát triển}
 
-Bài báo đã trình bày một hệ thống giám sát tài xế thông minh ứng dụng AI với kiến trúc đa module tích hợp sáu thành phần phát hiện hành vi tài xế: buồn ngủ (dlib EAR), ngáp (facial landmarks), tư thế đầu (PnP), điện thoại (YOLOv8n), dây an toàn (YOLOv8 custom) và tay lái (MediaPipe). Hệ thống được tổ chức theo kiến trúc ba tầng truyền thống (giao diện--ứng dụng--dữ liệu), trong đó tầng ứng dụng tích hợp module AI suy luận chuyên biệt với cơ chế tải mô hình lười biếng an toàn đa luồng, hàng đợi cảnh báo và cảnh báo đa kênh (âm thanh, WebSocket, MQTT).
+Bài báo đã trình bày một hệ thống giám sát tài xế thông minh ứng dụng AI với kiến trúc đa module tích hợp sáu thành phần phát hiện hành vi tài xế: buồn ngủ (dlib EAR), ngáp (facial landmarks), tư thế đầu (PnP), điện thoại (YOLOv8n), dây an toàn (YOLOv8 custom) và tay lái (MediaPipe). Hệ thống được tổ chức theo kiến trúc ba tầng truyền thống (giao diện--ứng dụng--dữ liệu), trong đó tầng ứng dụng tích hợp module AI suy luận chuyên biệt với cơ chế tải mô hình lười biếng an toàn đa luồng, hàng đợi cảnh báo và cảnh báo đa kênh (âm thanh, HTTP polling/SSE, MQTT).
 
 Kết quả thực nghiệm trên GPU (RTX 3050 Ti) cho thấy hệ thống đáp ứng yêu cầu giám sát thời gian thực với tốc độ xử lý 20--30 FPS, độ trễ đầu cuối 100--200 ms.
 
@@ -633,6 +647,8 @@ Nghiên cứu này được tài trợ bởi Trường Đại học Công nghệ
 \fontsize{9}{11}\selectfont
 \raggedright
 \color{jsttcite}
+
+\bibitem{who2023} World Health Organization. (2023). \textit{Global status report on road safety 2023}. Geneva: WHO.
 
 \bibitem{hien2026} Hiến, Đ. (2026). \textit{Báo cáo ATGT Quốc gia giai đoạn 2024--2025}. Ủy ban An toàn giao thông Quốc gia.
 
@@ -671,8 +687,6 @@ Nghiên cứu này được tài trợ bởi Trường Đại học Công nghệ
 \bibitem{zhou2025} Zhou, K. C., et al. (2025). Human pose prediction based on LSTM và MediaPipe. \textit{Tạp chí Khoa học và Công nghệ Kỹ thuật}.
 
 \bibitem{baogiaothong2025} Báo Giao thông. (2025). Thống kê tai nạn giao thông tại Việt Nam. \textit{Báo Giao thông}.
-
-\bibitem{minhvt2020} Minh, V. T. (2020). Chatbot tư vấn luật giao thông sử dụng RAG và Groq API. \textit{Tạp chí Khoa học và Công nghệ Giao thông}.
 
 \end{thebibliography}
 
