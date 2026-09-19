@@ -1,6 +1,6 @@
 % !TEX program = xelatex
 % =====================================================================
-%  JSTT (Journal of Science and Transport Technology) - UTT
+%  KỶ YẾU NGHIÊN CỨU KHOA HỌC SINH VIÊN - UTT NĂM HỌC 2025-2026
 %  Single-file template for Overleaf
 %  Compile with XELATEX
 % =====================================================================
@@ -21,9 +21,17 @@
 }
 
 %---------------------------------------------------------------------
-% Geometry - A4 portrait
+% Geometry - A4 portrait (Đã triệt tiêu khoảng trống thừa trên đầu)
 %---------------------------------------------------------------------
-\usepackage[a4paper,top=2.6cm,bottom=2.2cm,left=1.8cm,right=1.8cm,columnsep=6mm]{geometry}
+\usepackage[a4paper,
+  top=1.2cm,
+  bottom=2.0cm,
+  left=1.8cm,
+  right=1.8cm,
+  headheight=10pt,
+  headsep=12pt,
+  columnsep=6mm
+]{geometry}
 
 %---------------------------------------------------------------------
 % Packages
@@ -50,9 +58,11 @@
 %---------------------------------------------------------------------
 % Colors
 %---------------------------------------------------------------------
+\definecolor{nckhbg}{HTML}{D9D2BE}     % Tông be sáng dịu, thanh nhã vừa vặn
+\definecolor{nckhtext}{HTML}{2B2721}   % Màu chữ nâu xám sẫm rõ nét
 \definecolor{jsttbg}{HTML}{DDD9C3}
 \definecolor{jsttblue}{HTML}{003366}
-\definecolor{jsttcite}{HTML}{0055A5} % Màu xanh chuẩn link & text tài liệu tham khảo
+\definecolor{jsttcite}{HTML}{0055A5}   % Màu xanh chuẩn link & text tài liệu tham khảo
 
 % Cấu hình Hyperref: Màu xanh link trích dẫn và liên kết web
 \usepackage[colorlinks=true,linkcolor=black,citecolor=jsttcite,urlcolor=jsttcite]{hyperref}
@@ -106,17 +116,14 @@
 \fancyhf{}
 \renewcommand{\headrulewidth}{0.6pt}
 \renewcommand{\footrulewidth}{0pt}
-\fancyhead[L]{\fontsize{7}{8}\selectfont\itshape JSTT vol 6(2026), 4, 11-25}
-\fancyhead[R]{\fontsize{7}{8}\selectfont\itshape V. D. Vinh et al.}
-\fancyfoot[L]{\fontsize{7}{8}\selectfont JSTT 2026, 6, 4, 11-25. \href{https://doi.org/10.58845/jstt.utt.2026.vn.6.4.11-25}{doi.org/10.58845/jstt.utt.2026.vn.6.4.11-25}}
-\fancyfoot[R]{\fontsize{7}{8}\selectfont \href{https://jstt.vn/index.php/vn}{jstt.vn}}
+\fancyhead[L]{\fontsize{7}{8}\selectfont\itshape KYYEUKHOAHOC vol 01(2026), XX-XX}
+\fancyhead[R]{\fontsize{7}{8}\selectfont\itshape D. V. Vinh et al.}
 \fancyfoot[C]{\fontsize{9}{10}\selectfont\thepage}
 
 \fancypagestyle{firstpage}{%
   \fancyhf{}
   \renewcommand{\headrulewidth}{0pt}
-  \fancyfoot[L]{\fontsize{7}{8}\selectfont JSTT 2026, 6, 4, 11-25. \href{https://doi.org/10.58845/jstt.utt.2026.vn.6.4.11-25}{doi.org/10.58845/jstt.utt.2026.vn.6.4.11-25}}
-  \fancyfoot[R]{\fontsize{7}{8}\selectfont \href{https://jstt.vn/index.php/vn}{jstt.vn}}
+  \renewcommand{\footrulewidth}{0pt}
   \fancyfoot[C]{\fontsize{9}{10}\selectfont\thepage}
 }
 
@@ -137,104 +144,41 @@
 }
 
 %---------------------------------------------------------------------
-% JSTT Header - Tiếng Việt
+% Header Kỷ yếu NCKH Sinh viên UTT
+% Căn chỉnh 2 dòng đầu cùng một cỡ chữ (13pt/16pt)
 %---------------------------------------------------------------------
-\newcommand{\JSTTHeader}{%
+\newcommand{\NCKHHeader}{%
 \noindent
 \rule{\textwidth}{1.3pt}\par
-\vspace{5pt}
+\vspace{4pt}
 
 \noindent
+% 1. Logo UTT bên trái
 \begin{minipage}[c]{0.17\textwidth}
-  \includegraphics[width=\linewidth, height=1.95cm, keepaspectratio]{images/Picture1.png}
+  \centering
+  \safeincludegraphics[width=\linewidth, height=1.95cm, keepaspectratio]{images/Picture12.png}
 \end{minipage}%
-\hfill
-\begin{minipage}[c]{0.63\textwidth}
-  \colorbox{jsttbg}{%
-    \begin{minipage}[c][1.95cm][t]{\dimexpr\linewidth-2\fboxsep\relax}
+\hspace{0.02\textwidth}%
+% 2. Dải màu nền đã chỉnh nhạt vừa phải
+\begin{minipage}[c]{0.67\textwidth}
+  \colorbox{nckhbg}{%
+    \begin{minipage}[c][1.95cm][c]{\dimexpr\linewidth-2\fboxsep\relax}
+      \centering
       \fontspec{Times New Roman}
-      \vspace{0.14cm}
-      {\centering
-        {\fontsize{15}{18}\selectfont Tạp chí điện tử}\\[3pt]
-        {\fontsize{15}{18}\selectfont Khoa học và Công nghệ Giao thông}\par
-      }
-      \vfill
-      \raggedleft
-      {\fontsize{12.5}{14}\selectfont Đại học Công nghệ Giao thông vận tải}\hspace{0.25cm}\par
-      \vspace{2.5pt}
+      \color{nckhtext}
+      {\fontsize{13}{16}\selectfont Kỷ yếu “Nghiên cứu khoa học Sinh viên”}\\[2.5pt]
+      {\fontsize{13}{16}\selectfont Năm học 2025-2026}\\[4.5pt]
+      {\fontsize{10.5}{13}\selectfont Trường Đại học Công nghệ Giao thông vận tải}
     \end{minipage}%
   }
 \end{minipage}%
-\hfill
-\begin{minipage}[c]{0.17\textwidth}
-  \raggedleft
-  \includegraphics[width=\linewidth, height=1.95cm, keepaspectratio]{images/Picture2.png}
+% 3. Khoảng trống phía bên phải chừa ra theo mẫu
+\begin{minipage}[c]{0.14\textwidth}
+  \hfill
 \end{minipage}
 
-\vspace{5pt}
+\vspace{4pt}
 \noindent\rule{\textwidth}{1.3pt}\par
-}
-
-%---------------------------------------------------------------------
-% JSTT Header - English Version
-%---------------------------------------------------------------------
-\newcommand{\JSTTHeaderEN}{%
-\noindent
-\rule{\textwidth}{1.3pt}\par
-\vspace{5pt}
-
-\noindent
-\begin{minipage}[c]{0.17\textwidth}
-  \includegraphics[width=\linewidth, height=1.95cm, keepaspectratio]{images/Picture1.png}
-\end{minipage}%
-\hfill
-\begin{minipage}[c]{0.63\textwidth}
-  \colorbox{jsttbg}{%
-    \begin{minipage}[c][1.95cm][t]{\dimexpr\linewidth-2\fboxsep\relax}
-      \fontspec{Times New Roman}
-      \vspace{0.45cm}
-      {\centering
-        {\fontsize{15}{18}\selectfont Journal of Science and Transport Technology}\par
-      }
-      \vfill
-      \raggedleft
-      {\fontsize{13}{15}\selectfont University of Transport Technology}\hspace{0.25cm}\par
-      \vspace{2.5pt}
-    \end{minipage}%
-  }
-\end{minipage}%
-\hfill
-\begin{minipage}[c]{0.17\textwidth}
-  \raggedleft
-  \includegraphics[width=\linewidth, height=1.95cm, keepaspectratio]{images/Picture2.png}
-\end{minipage}
-
-\vspace{5pt}
-\noindent\rule{\textwidth}{1.3pt}\par
-}
-
-%---------------------------------------------------------------------
-% Titlebox - article info (left) + title/abstract (right)
-%---------------------------------------------------------------------
-\newcommand{\titlebox}[2]{%
-\vspace{\baselineskip}
-\noindent
-\setlength{\fboxrule}{0.4pt}
-\begin{tabular}{|p{0.28\textwidth}|p{0.69\textwidth}|}
-\hline
-\begin{minipage}{\dimexpr 0.28\textwidth-2\tabcolsep\relax}
-  \vspace{4pt}
-  #1
-  \vspace{4pt}
-\end{minipage} &
-\begin{minipage}{\dimexpr 0.69\textwidth-2\tabcolsep\relax}
-  \vspace{4pt}
-  #2
-  \vspace{4pt}
-\end{minipage} \\
-\hline
-\end{tabular}\par
-\vspace{\baselineskip}
 }
 
 %=======================================================================
@@ -242,87 +186,60 @@
 %=======================================================================
 \begin{document}
 \thispagestyle{firstpage}
+\vspace*{-\dimexpr\headsep+\headheight+\topskip\relax}
 
 % ======================================================================
-% TRANG 1: HEADER VÀ ABSTRACT TIẾNG ANH
+% TRANG 1: HEADER VÀ KHUNG THÔNG TIN ĐẦU BÀI BÁO (THEO MẪU MỚI)
 % ======================================================================
-\JSTTHeaderEN
+\NCKHHeader
 
-% ========== ENGLISH ==========
-\titlebox{%
-  \fontsize{8.5}{11}\selectfont
-  {\large\bfseries Article info}\\[6pt]
-  \textbf{Type of article:}\\[2pt]
-  Original research paper\\[6pt]
-  \textbf{Corresponding author:}\\[2pt]
-  E-mail address:\\[2pt]
-  vinh74dctt22119@st.utt.edu.vn\\[6pt]
-  \textbf{Received:}\\[3pt]
-  \textbf{Accepted:}\\[3pt]
-  \textbf{Published:}
-}{%
-  {\fontsize{11}{13}\selectfont\bfseries\color{jsttblue} An AI-Powered Driver Monitoring System
-  Integrating Six Computer Vision Modules for Real-Time Behavior Detection}\\[5pt]
-  {\fontsize{9}{11}\selectfont Dao Van Vinh$^{1,\ast}$, Nguyen Thanh Xuan$^{1}$, Dao Phuc Dan$^{1}$}\\[3pt]
-  {\fontsize{8}{10}\selectfont\itshape
-  $^{1}$Faculty of Information Technology, University of Transport Technology, Hanoi, Vietnam}\\[8pt]
-  \fontsize{10}{12}\selectfont
-  \textbf{Abstract:} \sloppy Drowsiness, inattention, and driving rule violations are leading causes
-  of traffic casualties worldwide. Existing driver monitoring solutions are either intrusive
-  (physiological sensors) or limited to individual tasks, and no low-cost system integrates
-  comprehensive behavioral detection across multiple vision modules. This paper proposes an AI-based
-  intelligent driver monitoring system that integrates six computer vision modules: drowsiness,
-  yawning, mobile phone usage, seatbelt status, head posture, and steering wheel grip. The system
-  employs YOLOv8, MediaPipe, Dlib, and the Perspective-n-Point (PnP) method on a traditional
-  three-tier architecture (presentation layer, application layer, data layer). The Flask-based
-  application layer integrates a specialized AI inference module for real-time video processing. Experimental results demonstrate
-  89.9\% average module accuracy in CPU lab tests and $\sim$92\% end-to-end accuracy with 20--30 FPS on GPU, and 100--200~ms latency, offering a cost-effective real-time
-  monitoring solution for enhanced driving safety.\par
-  \vspace{\baselineskip}
-  \textbf{Keywords:} drowsiness detection; driver distraction; YOLOv8; MediaPipe; Dlib;
-  traffic safety; edge AI
-}
+\vspace{6pt}
 
-\clearpage
-
-% ======================================================================
-% TRANG 2 TRỞ ĐI: HEADER VÀ ABSTRACT TIẾNG VIỆT + NỘI DUNG CHÍNH
-% ======================================================================
-\JSTTHeader
-
-% ========== TIẾNG VIỆT ==========
-\titlebox{%
-  \fontsize{8.5}{11}\selectfont
-  {\large\bfseries Thông tin bài viết}\\[6pt]
+\noindent
+\begin{minipage}[c]{0.32\textwidth}
+  \raggedright\sloppy
+  \setlength{\parindent}{0pt}%
+  \setlength{\parskip}{0pt}%
+  \fontsize{10}{13}\selectfont
+  {\bfseries\fontsize{13}{15}\selectfont Thông tin bài viết}\\[8pt]
   \textbf{Dạng bài viết:}\\[2pt]
-  Bài báo nghiên cứu\\[6pt]
-  \textbf{Tác giả liên hệ:}\\[2pt]
+  Bài báo nghiên cứu khoa học sinh viên\\[12pt]
+  \textbf{*Tác giả liên hệ:}\\[2pt]
   Địa chỉ E-mail:\\[2pt]
-  vinh74dctt22119@st.utt.edu.vn\\[6pt]
-  \textbf{Ngày nộp bài:} 00/00/2026\\[3pt]
-  \textbf{Ngày chấp nhận:} 00/00/2026\\[3pt]
-  \textbf{Ngày đăng bài:} 00/00/2026
-}{%
-  {\fontsize{11}{13}\selectfont\bfseries\color{jsttblue} Hệ thống giám sát tài xế thông minh tích hợp
-  sáu module thị giác máy tính phát hiện hành vi thời gian thực}\\[5pt]
-  {\fontsize{9}{11}\selectfont Đào Văn Vinh$^{1,\ast}$, Nguyễn Thanh Xuân$^{1}$, Đào Phúc Dân$^{1}$}\\[3pt]
-  {\fontsize{8}{10}\selectfont\itshape
-  $^{1}$Khoa Công nghệ Thông tin, Trường Đại học Công nghệ Giao thông vận tải, Hà Nội, Việt Nam}\\[8pt]
-  \fontsize{10}{12}\selectfont
-  \textbf{Tóm tắt:} \sloppy Buồn ngủ, mất tập trung và vi phạm quy tắc lái xe là những nguyên nhân
-  hàng đầu gây thương vong giao thông tại Việt Nam. Bài báo đề xuất một hệ thống giám sát tài xế
-  thông minh dựa trên trí tuệ nhân tạo, tích hợp 6 module thị giác máy tính bao gồm: phát hiện
-  buồn ngủ, ngáp, sử dụng điện thoại, không thắt dây an toàn, tư thế đầu và vị trí tay lái. Hệ
-  thống sử dụng các mô hình YOLOv8, MediaPipe, Dlib và phương pháp Perspective-n-Point (PnP) để
-  phân tích hành vi tài xế theo thời gian thực. Hệ thống được tổ chức theo kiến trúc ba tầng
-  truyền thống gồm tầng giao diện, tầng ứng dụng và tầng dữ liệu, trong đó tầng ứng dụng
-  (Flask) tích hợp một module AI suy luận chuyên biệt để xử lý video thời gian thực. Kết quả thực nghiệm
-  cho thấy hệ thống đạt 89,9\% trung bình các module trong kiểm thử lab trên CPU và khoảng 92\% end-to-end trên GPU, tốc độ xử lý 20--30 FPS và độ trễ
-  đầu cuối 100--200~ms, đáp ứng yêu cầu giám sát thời gian thực và hỗ trợ nâng cao an toàn lái xe.\par
-  \vspace{\baselineskip}
-  \textbf{Từ khóa:} Phát hiện buồn ngủ; phân tâm khi lái xe; YOLOv8; MediaPipe; Dlib;
-  an toàn giao thông; AI biên
-}
+  {\fontsize{9}{12}\selectfont{\hypersetup{urlcolor=black}\urlstyle{same}\url{daovinhgm2005@gmail.com}}}\\[10pt]
+  \textbf{Giảng viên hướng dẫn:}\\[2pt]
+  Đoàn Thị Thanh Hằng$^{1}$\\[10pt]
+  \textbf{Giảng viên nhận xét:}\\[2pt]
+  Phạm Đức Anh$^{1}$
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.63\textwidth}
+  \setlength{\parindent}{0pt}%
+  {\raggedright
+  {\fontsize{13}{16}\selectfont\bfseries Hệ thống giám sát tài xế thông minh tích hợp sáu module thị giác máy tính phát hiện hành vi thời gian thực}\par
+  \vspace{12pt}
+  {\fontsize{10}{12}\selectfont Đào Văn Vinh$^{1,\ast}$, Đào Phúc Dân$^{1}$, Nguyễn Thanh Xuân$^{1}$}\par
+  \vspace{2pt}
+  {\fontsize{10}{12}\selectfont\itshape $^{1}$Khoa Công nghệ Thông tin, Trường Đại học Công nghệ Giao thông vận tải, Hà Nội, Việt Nam}\par
+  }
+  \vspace{8pt}
+  \noindent\rule{\linewidth}{0.4pt}\vspace{12pt}
+
+  {\justifying\noindent\fontsize{10}{12}\selectfont\textbf{Tóm tắt:} Buồn ngủ, mất tập trung và vi phạm quy tắc lái xe là những nguyên nhân hàng đầu gây thương vong giao thông tại Việt Nam. Bài báo đề xuất một hệ thống giám sát tài xế thông minh dựa trên trí tuệ nhân tạo, tích hợp 6 module thị giác máy tính bao gồm: phát hiện buồn ngủ, ngáp, sử dụng điện thoại, không thắt dây an toàn, tư thế đầu và vị trí tay lái. Hệ thống sử dụng các mô hình YOLOv8, MediaPipe, Dlib và phương pháp Perspective-n-Point (PnP) để phân tích hành vi tài xế theo thời gian thực trên nền kiến trúc client-server ba tầng. Kết quả thực nghiệm cho thấy hệ thống đạt độ chính xác phân loại trung bình 89{,}9\% trên CPU phòng lab và khoảng 92\% end-to-end trên GPU với tốc độ xử lý 20--30 FPS, độ trễ đầu cuối 100--200~ms, đáp ứng yêu cầu giám sát thời gian thực và hỗ trợ nâng cao an toàn lái xe.\par
+  }
+  \vspace{8pt}
+
+  {\justifying\noindent\fontsize{10}{12}\selectfont\textbf{Ghi chú:} Bài báo là sản phẩm thuộc đề tài nghiên cứu khoa học sinh viên có mã đề tài: ĐTSV2526-280; Tên đề tài: ``Nghiên cứu, phát triển hệ thống giám sát tài xế thời gian thực ứng dụng thị giác máy tính''.\par
+  }
+  \vspace{8pt}
+
+  {\justifying\noindent\fontsize{10}{12}\selectfont\textbf{Từ khóa:} \textit{Phát hiện buồn ngủ, phân tâm khi lái xe, YOLOv8, MediaPipe, Dlib, an toàn giao thông, AI biên.}\par
+  }
+\end{minipage}
+
+\vspace{4pt}
+\noindent\rule{\textwidth}{0.8pt}
+\vspace{4pt}
 
 \begin{multicols}{2}
 
@@ -434,7 +351,7 @@ Mô hình YOLOv8n \cite{jocher2023} thuộc họ YOLO \cite{redmon2016} được
 \noindent
 \begin{minipage}{\columnwidth}
 \centering
-\includegraphics[width=0.85\columnwidth]{phone_results.png}
+\safeincludegraphics[width=0.85\columnwidth]{phone_results.png}
 \captionof{figure}{Đường cong huấn luyện mô hình phát hiện điện thoại}
 \label{fig:training_curves}
 \end{minipage}
@@ -443,7 +360,7 @@ Mô hình YOLOv8n \cite{jocher2023} thuộc họ YOLO \cite{redmon2016} được
 \noindent
 \begin{minipage}{\columnwidth}
 \centering
-\includegraphics[width=0.70\columnwidth]{phone_confusion.png}
+\safeincludegraphics[width=0.70\columnwidth]{phone_confusion.png}
 \captionof{figure}{Ma trận nhầm lẫn của mô hình phát hiện điện thoại}
 \label{fig:confusion_matrix}
 \end{minipage}
@@ -455,7 +372,7 @@ Module sử dụng YOLOv8 \cite{jocher2023} được huấn luyện tùy chỉnh
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\columnwidth]{images/dan.png}
+\safeincludegraphics[width=\columnwidth]{images/dan.png}
 \caption{Kết quả nhận diện tài xế trong thực nghiệm}
 \label{fig:detection_examples}
 \end{figure}
@@ -494,7 +411,7 @@ Hệ thống được kiểm thử trên hai cấu hình: GPU (Intel Core i7-127
 
 Hệ thống có cơ chế đo thời gian suy luận (timing instrumentation) ghi log mỗi 100 frame. Bảng~\ref{tab:thresholds} liệt kê các tham số ngưỡng phát hiện của từng module.
 
-Việc lựa chọn ngưỡng ảnh hưởng trực tiếp đến độ chính xác và tốc độ phát hiện. Ngưỡng EAR = 0{,}30 kết hợp với thời gian nhắm mắt tối thiểu 2 giây giúp phân biệt chớp mắt tự nhiên (100--400~ms) với buồn ngủ thực sự, giảm dương tính giả. Ngưỡng YAWN = 25~pixel và 15 khung hình liên tiếp (tương đương 0{,}75~giây ở 20~FPS) loại bỏ các chuyển động miệng ngắn (nói chuyện, cười). Ngưỡng tư thế đầu $|yaw| > 40^\circ$ và $pitch > 35^\circ$ theo biên độ nhìn tự nhiên khi lái xe \cite{lawson2020}; conf $>0{,}5$ cho YOLO để cân bằng precision--recall; FistScore $\geq 3$ (cơ chế đa số với 4/5 ngón) cân bằng giữa độ nhạy và độ đặc hiệu. Cơ chế cooldown (2--4~giây) ngăn cảnh báo trùng lặp, giảm nhiễu cho người lái.
+Việc lựa chọn ngưỡng ảnh hưởng trực tiếp đến độ chính xác và tốc độ phát hiện. Ngưỡng EAR = 0{,}30 kết hợp với thời gian nhắm mắt tối thiểu 2 giây giúp phân biệt chớp mắt tự nhiên (100--400~ms) với buồn ngủ thực sự, giảm dương tính giả. Ngưỡng YAWN = 25~pixel và 15 khung hình liên tiếp (tương đương 0{,}75~giây ở 20~FPS) loại bỏ các chuyển động miệng ngắn (nói chuyện, cười). Ngưỡng tư thế đầu $\vert{}yaw\vert{} > 40^\circ$ và $pitch > 35^\circ$ theo biên độ nhìn tự nhiên khi lái xe \cite{lawson2020}; conf $>0{,}5$ cho YOLO để cân bằng precision--recall; FistScore $\geq 3$ (cơ chế đa số với 4/5 ngón) cân bằng giữa độ nhạy và độ đặc hiệu. Cơ chế cooldown (2--4~giây) ngăn cảnh báo trùng lặp, giảm nhiễu cho người lái.
 
 \vspace{4pt}
 \noindent
