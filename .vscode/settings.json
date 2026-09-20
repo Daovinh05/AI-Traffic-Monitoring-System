@@ -2,5 +2,24 @@
     "liveServer.settings.port": 5504,
     "git.ignoreLimitWarning": true,
     "python.analysis.ignore": ["dotenv"],
-    "python.linting.pylintArgs": ["--generated-ignored=dotenv"]
+    "python.linting.pylintArgs": ["--generated-ignored=dotenv"],
+    "latex-workshop.latex.recipe.default": "xelatex",
+    "latex-workshop.latex.recipes": [
+        {
+            "name": "xelatex",
+            "tools": ["xelatex"]
+        }
+    ],
+    "latex-workshop.latex.tools": [
+        {
+            "name": "xelatex",
+            "command": "/Users/vinhdv/.TinyTeX/bin/universal-darwin/xelatex",
+            "args": [
+                "-interaction=nonstopmode",
+                "-synctex=1",
+                "%DOC%"
+            ]
+        }
+    ],
+    "latex-workshop.view.pdf.viewer": "tab"
 }

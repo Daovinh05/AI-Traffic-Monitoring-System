@@ -424,14 +424,26 @@ Mô hình YOLOv8n \cite{jocher2023} thuộc họ YOLO \cite{redmon2016} được
 
 \subsection{Phát hiện dây an toàn}
 
-Module sử dụng YOLOv8 \cite{jocher2023} được huấn luyện tùy chỉnh (trọng số {\tt day\_an\_toan.pt}) trên tập dữ liệu 1.200 ảnh thu thập từ nhiều góc nhìn trong cabin, áp dụng transfer learning với fine-tuning. Kết quả (Bảng~\ref{tab:yolo_training}) đạt mAP@50 = 0,753 và mAP@50--95 = 0,354 sau 50 epoch. Độ chính xác thấp hơn so với mô hình điện thoại do kích thước tập dữ liệu nhỏ hơn và sự đa dạng về tư thế, góc nhìn của dây an toàn.
+Module sử dụng YOLOv8 \cite{jocher2023} được huấn luyện tùy chỉnh (trọng số {\tt day\_an\_toan.pt}) trên tập dữ liệu 1.200 ảnh thu thập từ nhiều góc nhìn trong cabin, áp dụng transfer learning với fine-tuning. Kết quả (Bảng~\ref{tab:yolo_training}) đạt mAP@50 = 0,753 và mAP@50--95 = 0,354 sau 50 epoch (Hình~\ref{fig:seatbelt_curves}). Ma trận nhầm lẫn (Hình~\ref{fig:seatbelt_confusion}) cho thấy lớp ``seat\_belt'' đạt 0,73, thấp hơn rõ rệt so với lớp ``cell phone'' (0,98), phản ánh tập dữ liệu nhỏ hơn và biến động góc nhìn lớn. Độ chính xác thấp hơn so với mô hình điện thoại do kích thước tập dữ liệu nhỏ hơn và sự đa dạng về tư thế, góc nhìn của dây an toàn.
 
-\begin{figure}[H]
+\vspace{4pt}
+\noindent
+\begin{minipage}{\columnwidth}
 \centering
-\safeincludegraphics[width=\columnwidth]{images/dan.png}
-\caption{Kết quả nhận diện tài xế trong thực nghiệm}
-\label{fig:detection_examples}
-\end{figure}
+\safeincludegraphics[width=0.85\columnwidth]{seatbelt_results.png}
+\captionof{figure}{Đường cong huấn luyện mô hình phát hiện dây an toàn (50 epoch)}
+\label{fig:seatbelt_curves}
+\end{minipage}
+
+\vspace{4pt}
+\noindent
+\begin{minipage}{\columnwidth}
+\centering
+\safeincludegraphics[width=0.70\columnwidth]{seatbelt_confusion.png}
+\captionof{figure}{Ma trận nhầm lẫn của mô hình phát hiện dây an toàn}
+\label{fig:seatbelt_confusion}
+\end{minipage}
+\vspace{4pt}
 
 \begin{table}[H]
 \centering
@@ -550,7 +562,7 @@ Toàn bộ hệ thống & 462,37 & 2,16 & 89,9 \\
 
 Độ chính xác của từng module chịu ảnh hưởng trực tiếp từ ngưỡng phát hiện. dlib đạt 95,0\% nhờ HOG+SVM phát hiện khuôn mặt chính diện ổn định \cite{king2009}, nhưng giảm khi góc nghiêng vượt $30^\circ$. YOLOv8n phát hiện điện thoại đạt precision 99,8\% ở ngưỡng conf $>0{,}5$ trên tập kiểm thử cô lập -- đây là độ chính xác phân loại trong điều kiện thử nghiệm chuẩn. Khi triển khai trên luồng stream thực tế trong cabin, module vẫn duy trì độ nhạy cao và góp phần đưa độ chính xác cảnh báo end-to-end toàn hệ thống đạt $\sim$92\% trên GPU, dù trong một số tình huống đặc thù góc nhìn bị khuất tay cầm hoặc phản xạ ánh sáng mạnh có thể làm giảm nhẹ độ tin cậy tức thời. YOLOv8 phát hiện dây an toàn đạt 80,7\% với conf $>0{,}5$, thấp hơn do tập huấn luyện chỉ 1.200 ảnh. MediaPipe đạt 90,5\% nhờ mô hình TFLite nhẹ hoạt động ổn định trong cabin \cite{lugaresi2019}. Giá trị trung bình 89,9\% trong bảng này là kết quả lab trên CPU, phản ánh sự cân bằng giữa độ nhạy và độ đặc hiệu ở các ngưỡng đã chọn. Về thời gian, hai mô hình YOLOv8 chiếm $\sim$71\% tổng thời gian xử lý (327~ms), cho thấy đây là nút thắt cổ chai cần tối ưu.
 
-Trên luồng webcam trực tiếp, hệ thống đạt tốc độ 20--30 FPS với độ trễ 100--200 ms và độ chính xác end-to-end khoảng 92\% trên GPU, trong khi trên CPU chỉ đạt 2--5 FPS với độ trễ 200--500 ms và khoảng 85\% (chênh lệch do pipeline tuần tự trên CPU bỏ lỡ sự kiện khi tải YOLO cao, Bảng~\ref{tab:comparison}). GPU nhanh hơn 6--10 lần, khẳng định vai trò thiết yếu của tăng tốc phần cứng trong các hệ thống DMS đa module.
+Trên luồng webcam trực tiếp, hệ thống đạt tốc độ 20--30 FPS với độ trễ 100--200 ms và độ chính xác end-to-end khoảng 92\% trên GPU, trong khi trên CPU chỉ đạt 2--5 FPS với độ trễ 200--500 ms và khoảng 85\% (chênh lệch do pipeline tuần tự trên CPU bỏ lỡ sự kiện khi tải YOLO cao, Bảng~\ref{tab:comparison}, Hình~\ref{fig:fps_latency}). GPU nhanh hơn 6--10 lần, khẳng định vai trò thiết yếu của tăng tốc phần cứng trong các hệ thống DMS đa module.
 
 \begin{table}[H]
 \centering
@@ -567,6 +579,62 @@ GPU (i7-12700H, RTX 3050 Ti) & 20--30 & 100--200 & $\sim$92\% \\
 \end{tabular}
 \label{tab:comparison}
 \end{table}
+
+\vspace{4pt}
+\noindent
+\begin{minipage}{\columnwidth}
+\centering
+\resizebox{0.90\columnwidth}{!}{%
+\begin{tikzpicture}[font=\fontsize{7}{8}\selectfont]
+% --- FPS ---
+\node[anchor=west, font=\bfseries] at (0,4.6) {FPS (cao hơn = tốt hơn)};
+\draw (0,4.2) -- (6,4.2);
+\foreach \x/\v in {0/0,2/10,4/20,6/30} \draw (\x,4.2) -- (\x,4.05) node[below, font=\fontsize{6}{7}\selectfont]{\v};
+\node[anchor=east, font=\fontsize{7}{8}\selectfont] at (-0.1,3.6) {CPU};
+\fill[blue!45] (0,3.4) rectangle (0.7,3.8);
+\node[anchor=west, font=\fontsize{6}{7}\selectfont] at (0.75,3.6) {2--5};
+\node[anchor=east, font=\fontsize{7}{8}\selectfont] at (-0.1,2.9) {GPU};
+\fill[green!50] (0,2.7) rectangle (5.0,3.1);
+\node[anchor=west, font=\fontsize{6}{7}\selectfont] at (5.05,2.9) {20--30};
+% --- Do tre ---
+\node[anchor=west, font=\bfseries] at (0,2.1) {Độ trễ end-to-end, ms (thấp hơn = tốt hơn)};
+\draw (0,1.7) -- (6,1.7);
+\foreach \x/\v in {0/0,2/166,4/333,6/500} \draw (\x,1.7) -- (\x,1.55) node[below, font=\fontsize{6}{7}\selectfont]{\v};
+\node[anchor=east, font=\fontsize{7}{8}\selectfont] at (-0.1,1.1) {CPU};
+\fill[blue!45] (0,0.9) rectangle (4.2,1.3);
+\node[anchor=west, font=\fontsize{6}{7}\selectfont] at (4.25,1.1) {200--500};
+\node[anchor=east, font=\fontsize{7}{8}\selectfont] at (-0.1,0.4) {GPU};
+\fill[green!50] (0,0.2) rectangle (1.8,0.6);
+\node[anchor=west, font=\fontsize{6}{7}\selectfont] at (1.85,0.4) {100--200};
+\end{tikzpicture}%
+}
+\captionof{figure}{So sánh FPS và độ trễ end-to-end giữa CPU và GPU (thanh bar vẽ theo giá trị giữa khoảng trong Bảng~\ref{tab:comparison})}
+\label{fig:fps_latency}
+\end{minipage}
+\vspace{4pt}
+
+\noindent
+\begin{minipage}{\columnwidth}
+\centering
+\captionof{table}{Danh mục kiểm thử chức năng hệ thống (kiểm thử thủ công, chưa có bộ test tự động)}
+\label{tab:functional}
+\fontsize{7}{8.5}\selectfont
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{ll}
+\toprule
+Chức năng & Kết quả thủ công \\
+\midrule
+Hiển thị video stream trên dashboard & Đạt \\
+Bật/tắt từng module AI từ web & Đạt \\
+Điều chỉnh ngưỡng phát hiện từ web & Đạt \\
+Cảnh báo âm thanh pygame theo mức ưu tiên & Đạt \\
+Nhận cảnh báo qua HTTP polling/SSE & Đạt \\
+Đẩy cảnh báo qua MQTT tới ESP32 & Đạt khi có broker \\
+Lưu lịch sử cảnh báo và video vào MySQL & Đạt \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\vspace{4pt}
 
 \section{Thảo luận}
 
